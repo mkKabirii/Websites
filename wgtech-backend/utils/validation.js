@@ -13,8 +13,12 @@ const createUserSchema = Joi.object({
   email: Joi.string().email().required(),
   username: Joi.string().required(),
   password: Joi.string().min(6).required(),
+  role: Joi.string().valid("user", "admin", "worker", "client").optional(),
   designation: Joi.string().custom(validateMongoDbId).optional(),
   profileImage: Joi.string().optional(),
+  assignedClients: Joi.array()
+    .items(Joi.string().custom(validateMongoDbId))
+    .optional(),
 });
 
 const updateUserSchema = Joi.object({

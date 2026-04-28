@@ -18,6 +18,7 @@ import { X, Plus, Edit } from "lucide-react";
 import TextInput from "../../components/textInput";
 import CustomButton from "../../components/customButton";
 import { CustomSelect } from "../../components";
+import ClientAssignmentField from "../../components/ClientAssignmentField";
 
 const AddEditUserDialog = ({
   open,
@@ -33,6 +34,7 @@ const AddEditUserDialog = ({
     userEmail: "",
     password: "",
     designation: null,
+    assignedClients: [],
   });
   const [errors, setErrors] = useState({});
 
@@ -47,6 +49,9 @@ const AddEditUserDialog = ({
           userEmail: editData.email || "",
           password: "",
           designation: editData.designation || null,
+          assignedClients: (editData.assignedClients || []).map((client) =>
+            typeof client === "string" ? client : client._id,
+          ),
         });
       } else {
         setFormData({
@@ -54,6 +59,7 @@ const AddEditUserDialog = ({
           userEmail: "",
           password: "",
           designation: null,
+          assignedClients: [],
         });
       }
       setErrors({});
@@ -121,10 +127,14 @@ const AddEditUserDialog = ({
       userEmail: "",
       password: "",
       designation: null,
+      assignedClients: [],
     });
     setErrors({});
     onClose();
   };
+
+  const selectedRoleName = String(formData.designation?.roleName || "").toLowerCase();
+  const isWorker = selectedRoleName === "worker";
 
   return (
     <Dialog
@@ -267,7 +277,14 @@ const AddEditUserDialog = ({
                     onChange={(e) => {
                       const id = e.target.value;
                       const selected = roles.find((r) => r._id === id) || null;
-                      handleInputChange("designation", selected);
+                      setFormData((prev) => ({
+                        ...prev,
+                        designation: selected,
+                        assignedClients:
+                          String(selected?.roleName || "").toLowerCase() === "worker"
+                            ? prev.assignedClients
+                            : [],
+                      }));
                     }}
                     label="Designation *"
                     sx={{
@@ -292,6 +309,18 @@ const AddEditUserDialog = ({
                     </Typography>
                   )}
                 </Box>
+
+                {isWorker && (
+                  <ClientAssignmentField
+                    value={formData.assignedClients}
+                    onChange={(value) =>
+                      handleInputChange("assignedClients", value)
+                    }
+                    error={errors.assignedClients}
+                    helperText={errors.assignedClients}
+                    disabled={isSubmitting}
+                  />
+                )}
               </Box>
             </DialogContent>
 

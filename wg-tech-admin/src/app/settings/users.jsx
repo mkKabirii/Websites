@@ -102,6 +102,8 @@ const Users = () => {
         username: formData.username.trim(),
         password: formData.password?.trim(),
         designation: formData.designation?._id || formData.designation || null,
+        role: String(formData.designation?.roleName || "").toLowerCase(),
+        assignedClients: formData.assignedClients || [],
       };
 
       // For update, if password is empty, remove it

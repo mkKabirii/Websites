@@ -72,6 +72,12 @@ export default function AuthForm() {
           return;
         }
 
+        if (normalizedUser.userType !== "client") {
+          toast.error("Only client accounts can access the Client Portal");
+          setIsSubmitting(false);
+          return;
+        }
+
         localStorage.setItem("token", data.token);
         setAuth({ token: data.token, user: normalizedUser });
         toast.success("Welcome back!");

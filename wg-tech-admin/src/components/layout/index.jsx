@@ -22,7 +22,7 @@ import {
 import { Menu as MenuIcon, User, Settings, LogOut } from "lucide-react";
 
 import { useLocation, useNavigate } from "react-router-dom";
-import { ADMIN_ROUTES, buildRoutesFromDesignation } from "../../routes";
+import { buildRoutesForUser } from "../../routes";
 import logo from "../../assets/Logo.png";
 import useUserStore from "../../zustand/useUserStore";
 import ActionButtons from "./actionButton";
@@ -97,16 +97,8 @@ export default function MainLayout({ children }) {
   };
 
   const computedRoutes = React.useMemo(() => {
-    // If user has designation with routes, use them; otherwise use all admin routes
-    if (
-      user?.designation?.routes &&
-      Array.isArray(user.designation.routes) &&
-      user.designation.routes.length > 0
-    ) {
-      return buildRoutesFromDesignation(user.designation);
-    }
-    return ADMIN_ROUTES;
-  }, [user, ADMIN_ROUTES]);
+    return buildRoutesForUser(user);
+  }, [user]);
 
   const drawerContent = (showText) => (
     <Box sx={{ overflow: "auto", p: 2 }}>

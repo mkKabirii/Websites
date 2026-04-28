@@ -51,6 +51,7 @@ import ProjectsUpdatesManagement from "../app/projectsUpdatesManagement";
 import ChatPage from "../app/chat";
 import WorkingField from "../app/workingField";
 import TasksManagement from "../app/tasks";
+import MyProjectsPage from "../app/my-projects";
 
 const createDefaultPermissions = () => [
   { isDelete: false, label: "Delete" },
@@ -148,6 +149,16 @@ const ADMIN_ROUTES = [
     path: "/chat",
     activeIcon: <MessageSquare size={20} color="#fff" />,
     inActiveIcon: <MessageSquare size={20} color="#64748b" />,
+    permissions: createDefaultPermissions(),
+  },
+  {
+    id: 1.55,
+    name: "Assigned Projects",
+    component: <MyProjectsPage />,
+    exact: "exact",
+    path: "/my-projects",
+    activeIcon: <FolderOpen size={20} color="#fff" />,
+    inActiveIcon: <FolderOpen size={20} color="#64748b" />,
     permissions: createDefaultPermissions(),
   },
   {
@@ -398,4 +409,23 @@ export const buildRoutesFromDesignation = (designation) => {
       };
     })
     .sort((a, b) => (a.order || 0) - (b.order || 0));
+};
+
+export const buildRoutesForUser = (user) => {
+  const storedRole = String(user?.role || "").toLowerCase();
+  const designationRole = String(user?.designation?.roleName || "").toLowerCase();
+  const role = storedRole && storedRole !== "user" ? storedRole : designationRole || storedRole;
+
+  if (role === "worker") {
+    return ADMIN_ROUTES.filter((route) =>
+      ["/my-projects", "/chat"].includes(route.path),
+    );
+  }
+
+  if (user?.designation) {
+    const designationRoutes = buildRoutesFromDesignation(user.designation);
+    if (designationRoutes.length > 0) return designationRoutes;
+  }
+
+  return ADMIN_ROUTES;
 };

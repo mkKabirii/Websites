@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   Send,
   Paperclip,
-  MoreVertical,
   TrendingUp,
   FileText,
+  Trash2,
 } from "lucide-react";
 import MessageList from "./MessageList";
 import ProjectStatusIndicator from "./ProjectStatusIndicator";
@@ -24,6 +24,7 @@ const ChatWindow = ({
   socketRef,
   meta,
   userRole,
+  onDeleteChat,
 }) => {
   const [messageText, setMessageText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -285,9 +286,15 @@ const ChatWindow = ({
               <TrendingUp size={20} />
             </button>
           )}
-          <button className="header-action-btn" title="More options">
-            <MoreVertical size={20} />
-          </button>
+          {userRole === "admin" && (
+            <button
+              className="header-action-btn"
+              onClick={onDeleteChat}
+              title="Delete chat"
+            >
+              <Trash2 size={20} />
+            </button>
+          )}
         </div>
       </div>
 

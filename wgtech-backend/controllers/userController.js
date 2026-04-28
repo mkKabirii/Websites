@@ -9,12 +9,15 @@ const { schemaValidator } = require("../utils/schemaValidator");
 const { createUserSchema } = require("../utils/validation");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { ensureClientAdminChat } = require("../utils/chatService");
+const {
+  ensureClientAdminChat,
+  syncWorkerClientAssignments,
+} = require("../utils/chatService");
 // const { generateToken } = require("../utils/jwt");
 
 // const { generateToken } = require("../utils/jwt");
 
-// ✅ Multer setup for profile picture
+// âœ… Multer setup for profile picture
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
@@ -32,7 +35,7 @@ const storage = multer.diskStorage({
 
 const uploadMiddleware = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // ✅ 10MB
+  limits: { fileSize: 10 * 1024 * 1024 }, // âœ… 10MB
   fileFilter: (req, file, cb) => {
     const allowed = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
     if (allowed.includes(file.mimetype)) {
@@ -43,13 +46,35 @@ const uploadMiddleware = multer({
   },
 }).single("profilePicture");
 
+const normalizeRoleName = (roleName) => {
+  const normalized = String(roleName || "").trim().toLowerCase();
+  if (["admin", "main admin", "superadmin"].includes(normalized)) return "admin";
+  if (normalized === "worker") return "worker";
+  if (normalized === "client") return "client";
+  return "user";
+};
+
+const getEffectiveRole = (user) => {
+  const storedRole = String(user?.role || "").toLowerCase();
+  const designationRole = String(user?.designation?.roleName || "").toLowerCase();
+  return normalizeRoleName(
+    storedRole && storedRole !== "user" ? storedRole : designationRole || storedRole,
+  );
+};
+
+const resolveRoleFromDesignation = async (designation, fallback = "user") => {
+  if (!designation) return normalizeRoleName(fallback);
+  const userRole = await UserRole.findById(designation).select("roleName");
+  return normalizeRoleName(userRole?.roleName || fallback);
+};
+
 // Create User (for backend - creates admin/worker)
 // For clients, this endpoint now creates a CLIENT instead
 const createUser = catchAsync(async (req, res, next) => {
-  // ✅ Check what fields are provided to determine if it's a client or admin registration
+  // âœ… Check what fields are provided to determine if it's a client or admin registration
   const { email, username, password, name, company, projectName, phone, role, designation, profileImage } = req.body;
 
-  // If 'name' or 'company' or 'projectName' is provided → CLIENT registration
+  // If 'name' or 'company' or 'projectName' is provided â†’ CLIENT registration
   if (name || company || projectName) {
     // Create CLIENT
     const existingClient = await Client.findOne({ email });
@@ -103,21 +128,39 @@ const createUser = catchAsync(async (req, res, next) => {
     return next(new AppError(error, 400));
   }
 
+  if (getEffectiveRole(req.user) !== "admin") {
+    return next(new AppError("Only admins can create admin panel users", 403));
+  }
+
   // Check if user already exists
   const existingUser = await User.findOne({ email });
   if (existingUser) {
     return next(new AppError("User with this email already exists", 400));
   }
 
+  const effectiveRole = await resolveRoleFromDesignation(designation, role);
+  const assignedClients =
+    effectiveRole === "worker" && Array.isArray(req.body.assignedClients)
+      ? req.body.assignedClients
+      : [];
+
   // Create user (admin/worker)
   const user = await User.create({
     email,
     username,
     password,
-    role,
+    role: effectiveRole,
     designation,
-    assignedClients: req.body.assignedClients || [],
+    assignedClients,
   });
+
+  if (effectiveRole === "worker" && assignedClients.length > 0 && req.user?._id) {
+    await syncWorkerClientAssignments({
+      workerId: user._id,
+      clientIds: assignedClients,
+      adminId: req.user._id,
+    });
+  }
 
   // Remove password from response
   user.password = undefined;
@@ -131,15 +174,19 @@ const createUser = catchAsync(async (req, res, next) => {
 });
 
 const loginUser = catchAsync(async (req, res, next) => {
-  const { email, password } = req.body;
+  const { email, password, portal } = req.body;
 
-  // ✅ NOW CHECK CLIENT MODEL FIRST (for client login)
+  // âœ… NOW CHECK CLIENT MODEL FIRST (for client login)
   const client = await Client.findOne({ email }).select("+password");
   if (client) {
     // Client found - authenticate as client
     const isPasswordValid = await bcrypt.compare(password, client.password);
     if (!isPasswordValid) {
       return next(new AppError("Invalid password", 401));
+    }
+
+    if (portal === "admin") {
+      return next(new AppError("Client accounts cannot access Admin Panel", 403));
     }
 
     // Generate token with client type
@@ -173,7 +220,7 @@ const loginUser = catchAsync(async (req, res, next) => {
     );
   }
 
-  // ✅ IF NOT CLIENT, CHECK USER MODEL (for admin/worker login)
+  // âœ… IF NOT CLIENT, CHECK USER MODEL (for admin/worker login)
   const user = await User.findOne({ email }).populate("designation", "roleName routes status");
   if (!user) {
     return next(new AppError("No account found with this email", 404));
@@ -184,6 +231,17 @@ const loginUser = catchAsync(async (req, res, next) => {
     return next(new AppError("Invalid password", 400));
   }
 
+  const effectiveRole = getEffectiveRole(user);
+  user.role = effectiveRole;
+
+  if (portal === "client" && effectiveRole !== "client") {
+    return next(new AppError("Only client accounts can access Client Portal", 403));
+  }
+
+  if (portal === "admin" && !["admin", "worker"].includes(effectiveRole)) {
+    return next(new AppError("Only admin or worker accounts can access Admin Panel", 403));
+  }
+
   // Generate token with user type
   const token = jwt.sign(
     { id: user._id },
@@ -191,7 +249,7 @@ const loginUser = catchAsync(async (req, res, next) => {
     { expiresIn: "7d" }
   );
 
-  if (user.role === "client") {
+  if (effectiveRole === "client") {
     const client = await Client.findOne({ email: user.email });
     ensureClientAdminChat({ client, clientUser: user }).catch((chatError) => {
       console.error("Auto chat creation failed:", chatError.message);
@@ -234,6 +292,11 @@ const getAllUsers = catchAsync(async (req, res, next) => {
 // Get User by ID
 const getUserById = catchAsync(async (req, res, next) => {
   const { id } = req.params;
+  const requesterRole = getEffectiveRole(req.user);
+
+  if (requesterRole !== "admin" && String(req.user?._id) !== String(id)) {
+    return next(new AppError("You can only access your own profile", 403));
+  }
 
   const user = await User.findById(id)
     .populate("designation", "roleName routes")
@@ -253,9 +316,19 @@ const updateUser = catchAsync(async (req, res, next) => {
   const updateData = { ...req.body };
   const adminId = req.user?._id;
 
-  // If password is being updated, hash it
   if (updateData.password) {
     updateData.password = await hashPassword(updateData.password);
+  }
+
+  if (updateData.designation || updateData.role) {
+    updateData.role = await resolveRoleFromDesignation(
+      updateData.designation,
+      updateData.role,
+    );
+  }
+
+  if (updateData.role && updateData.role !== "worker") {
+    updateData.assignedClients = [];
   }
 
   const user = await User.findByIdAndUpdate(id, updateData, {
@@ -269,60 +342,18 @@ const updateUser = catchAsync(async (req, res, next) => {
     return next(new AppError("User not found", 404));
   }
 
-  // Auto-create group chats if clients were assigned
-  if (updateData.assignedClients && Array.isArray(updateData.assignedClients) && updateData.assignedClients.length > 0 && adminId) {
-    const Chat = require("../model/chatModel");
-    
-    for (const clientId of updateData.assignedClients) {
-      try {
-        // Check if group chat already exists
-        const existingChat = await Chat.findOne({
-          isGroupChat: true,
-          participants: { $all: [user._id, clientId, adminId] },
-        });
-
-        if (!existingChat) {
-          // Get client details
-          const Client = require("../model/clientModel");
-          const client = await Client.findById(clientId) || await User.findById(clientId);
-          
-          if (client) {
-            const clientName = client.name || client.fullname || client.username || client.email;
-            const workerName = user.fullname || user.username;
-
-            const groupChat = new Chat({
-              participants: [user._id, clientId, adminId],
-              chatType: "admin_work",
-              clientId: clientId,
-              assignedAdmin: adminId,
-              isGroupChat: true,
-              groupName: `${clientName} - ${workerName}`,
-              groupDescription: `Collaboration between Admin, Worker, and Client`,
-              groupAdmins: [adminId, user._id],
-              unreadCount: new Map([
-                [user._id.toString(), 0],
-                [clientId.toString(), 0],
-                [adminId.toString(), 0],
-              ]),
-            });
-
-            await groupChat.save();
-            console.log(`✅ Group chat created for ${clientName} and ${workerName}`);
-          }
-        }
-      } catch (error) {
-        console.error(`Error creating group chat for client ${clientId}:`, error.message);
-        // Don't throw error, just log it - user update should succeed
-      }
-    }
+  if (Array.isArray(updateData.assignedClients)) {
+    await syncWorkerClientAssignments({
+      workerId: user._id,
+      clientIds: updateData.assignedClients,
+      adminId,
+    });
   }
 
-  // Remove password from response
   user.password = undefined;
 
   successHandler(res, user, "User updated successfully");
 });
-
 // Delete User
 const deleteUser = catchAsync(async (req, res, next) => {
   const { id } = req.params;
@@ -338,6 +369,21 @@ const deleteUser = catchAsync(async (req, res, next) => {
 
 // GET /api/v1/users/profile
 const getProfile = catchAsync(async (req, res, next) => {
+  if (req.userType === "client") {
+    const client = await Client.findById(req.user._id).select("-password");
+    if (!client) return next(new AppError("Client not found", 404));
+    return successHandler(
+      res,
+      {
+        ...client.toObject(),
+        fullname: client.name || client.username,
+        role: "client",
+        userType: "client",
+      },
+      "Profile fetched successfully",
+    );
+  }
+
   const user = await User.findById(req.user._id).select("-password");
   if (!user) return next(new AppError("User not found", 404));
   successHandler(res, user, "Profile fetched successfully");
@@ -381,7 +427,7 @@ const toggleUserStatus = catchAsync(async (req, res, next) => {
   );
 });
 
-// ✅ FORGOT PASSWORD — OTP Send
+// âœ… FORGOT PASSWORD â€” OTP Send
 const forgotPassword = catchAsync(async (req, res, next) => {
   const { email } = req.body;
   if (!email) return next(new AppError("Email is required", 400));
@@ -403,7 +449,7 @@ const forgotPassword = catchAsync(async (req, res, next) => {
     const EmailService = require("../utils/emailService");
     const emailService = new EmailService(email);
     await emailService.send({
-      subject: "🔐 Password Reset OTP - WG Tech Solutions",
+      subject: "ðŸ” Password Reset OTP - WG Tech Solutions",
       message: `
         <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:30px;background:#111;color:#fff;border-radius:12px;">
           <h2 style="color:#9EFF00;">Password Reset Request</h2>
@@ -427,7 +473,7 @@ const forgotPassword = catchAsync(async (req, res, next) => {
   successHandler(res, null, "OTP sent to your email");
 });
 
-// ✅ VERIFY OTP + RESET PASSWORD
+// âœ… VERIFY OTP + RESET PASSWORD
 const resetPassword = catchAsync(async (req, res, next) => {
   const { email, otp, newPassword } = req.body;
 
@@ -455,7 +501,7 @@ const resetPassword = catchAsync(async (req, res, next) => {
 
   successHandler(res, null, "Password reset successfully! Please login.");
 });
-// ✅ UPDATE PROFILE PICTURE
+// âœ… UPDATE PROFILE PICTURE
 // const updateProfilePicture = catchAsync(async (req, res, next) => {
 //   const multer = require("multer");
 //   const path = require("path");
@@ -515,9 +561,9 @@ module.exports = {
   createUser,
   updateProfile,
   loginUser,
-  updateProfilePicture, // ✅
-  forgotPassword, // ✅
-  resetPassword, // ✅
+  updateProfilePicture, // âœ…
+  forgotPassword, // âœ…
+  resetPassword, // âœ…
   getAllUsers,
   getUserById,
   updateUser,

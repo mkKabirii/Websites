@@ -5,6 +5,12 @@ const ClientModel = require("../model/clientModel");
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 
+const getEffectiveRole = (user) => {
+  const storedRole = String(user?.role || "").toLowerCase();
+  const designationRole = String(user?.designation?.roleName || "").toLowerCase();
+  return storedRole && storedRole !== "user" ? storedRole : designationRole || storedRole;
+};
+
 const protect = catchAsync(async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
@@ -49,10 +55,34 @@ const protect = catchAsync(async (req, res, next) => {
   next();
 });
 
+const optionalProtect = catchAsync(async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) return next();
+
+  const token = authHeader.split(" ")[1];
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (decoded.type === "client") {
+      req.user = await ClientModel.findById(decoded.id).select("-password");
+      req.userType = "client";
+    } else {
+      req.user = await UserModel.findById(decoded.id)
+        .populate("designation", "roleName routes status")
+        .select("-password");
+      req.userType = "user";
+    }
+  } catch (err) {
+    // Public endpoints can continue unauthenticated; protected endpoints use protect.
+  }
+
+  next();
+});
+
 const authorize = (roles) => {
   return catchAsync(async (req, res, next) => {
-    const user = req.user;
-    if (!roles.includes(user.role)) {
+    const normalizedRoles = roles.map((role) => String(role).toLowerCase());
+    const userRole = getEffectiveRole(req.user);
+    if (!normalizedRoles.includes(userRole)) {
       return next(
         new AppError("You are not authorized to access this resource", 403)
       );
@@ -62,4 +92,4 @@ const authorize = (roles) => {
 };
 
 
-module.exports = { protect, authorize };
+module.exports = { protect, optionalProtect, authorize, getEffectiveRole };

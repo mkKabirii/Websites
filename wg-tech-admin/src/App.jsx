@@ -2,8 +2,7 @@ import "./App.css";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import {
   AUTH_ROUTES,
-  ADMIN_ROUTES,
-  buildRoutesFromDesignation,
+  buildRoutesForUser,
 } from "./routes";
 import MainLayout from "./components/layout";
 import AdminLayout from "./components/adminLayout";
@@ -17,9 +16,7 @@ import ViewProposals from "./app/proposals/viewProposals";
 
 function App() {
   const { user } = useUserStore();
-  const effectiveAdminRoutes = user?.designation
-    ? buildRoutesFromDesignation(user.designation)
-    : ADMIN_ROUTES;
+  const effectiveAdminRoutes = buildRoutesForUser(user);
 
   return (
     <SnackbarProvider

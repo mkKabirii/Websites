@@ -63,11 +63,20 @@ const ensureGroupChat = async ({ workerId, clientId, adminId }) => {
   if (!workerId || !clientId || !adminId) return null;
 
   const client = await Client.findById(clientId);
-  const clientParticipantId = client?.userId || client?._id || clientId;
+  const clientParticipantIds = [
+    client?._id,
+    client?.userId,
+    clientId,
+  ]
+    .filter(Boolean)
+    .map(String);
+  const clientParticipantId = clientParticipantIds[0];
+  const participants = [...new Set([String(workerId), ...clientParticipantIds, String(adminId)])];
 
   let chat = await Chat.findOne({
     isGroupChat: true,
-    participants: { $all: [workerId, clientParticipantId, adminId] },
+    clientRef: client?._id || clientId,
+    participants: workerId,
   });
 
   if (chat) return chat;
@@ -77,7 +86,7 @@ const ensureGroupChat = async ({ workerId, clientId, adminId }) => {
   const workerName = worker?.fullname || worker?.username || "Worker";
 
   chat = await Chat.create({
-    participants: [workerId, clientParticipantId, adminId],
+    participants,
     chatType: "admin_work",
     clientId: clientParticipantId,
     clientRef: client?._id || null,
@@ -87,17 +96,60 @@ const ensureGroupChat = async ({ workerId, clientId, adminId }) => {
     groupDescription: "Collaboration between Admin, Worker, and Client",
     groupAdmins: [adminId, workerId],
     unreadCount: new Map([
-      [String(workerId), 0],
-      [String(clientParticipantId), 0],
-      [String(adminId), 0],
+      ...participants.map((participantId) => [participantId, 0]),
     ]),
   });
 
   return chat;
 };
 
+const syncWorkerClientAssignments = async ({ workerId, clientIds = [], adminId }) => {
+  if (!workerId) return [];
+
+  const worker = await User.findById(workerId);
+  if (!worker || worker.role !== "worker") return [];
+
+  const uniqueClientIds = [...new Set((clientIds || []).map(String))].filter(Boolean);
+
+  await Client.updateMany(
+    { assignedWorker: workerId, _id: { $nin: uniqueClientIds } },
+    { $unset: { assignedWorker: "", assignedDepartment: "" } },
+  );
+
+  if (uniqueClientIds.length === 0) {
+    worker.assignedClients = [];
+    await worker.save();
+    return [];
+  }
+
+  const clients = await Client.find({ _id: { $in: uniqueClientIds } });
+  const actualClientIds = clients.map((client) => client._id);
+
+  worker.assignedClients = actualClientIds;
+  await worker.save();
+
+  await Client.updateMany(
+    { _id: { $in: actualClientIds } },
+    {
+      assignedWorker: workerId,
+      assignedDepartment: worker.assignedDepartment || undefined,
+    },
+  );
+
+  if (adminId) {
+    await Promise.all(
+      actualClientIds.map((clientId) =>
+        ensureGroupChat({ workerId, clientId, adminId }),
+      ),
+    );
+  }
+
+  return actualClientIds;
+};
+
 module.exports = {
   getPrimaryAdmin,
   ensureClientAdminChat,
   ensureGroupChat,
+  syncWorkerClientAssignments,
 };

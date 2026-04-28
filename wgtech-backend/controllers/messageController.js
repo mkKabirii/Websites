@@ -5,6 +5,24 @@ const ProjectStatus = require("../model/projectStatusModel");
 const User = require("../model/userModel");
 const Client = require("../model/clientModel");
 
+const getRole = (user) => {
+  const storedRole = String(user?.role || "").toLowerCase();
+  const designationRole = String(user?.designation?.roleName || "").toLowerCase();
+  return storedRole && storedRole !== "user" ? storedRole : designationRole || storedRole;
+};
+
+const canAccessChat = (chat, req) => {
+  const role = getRole(req.user);
+  if (role === "admin") return true;
+  const requesterId = String(req.user?._id || "");
+  const isParticipant = (chat?.participants || []).some(
+    (id) => String(id) === requesterId,
+  );
+  if (!isParticipant) return false;
+  if (role === "worker") return Boolean(chat.isGroupChat);
+  return true;
+};
+
 const deriveNameFromUrl = (url, fallback) => {
   try {
     const raw = String(url || "").split("?")[0].split("#")[0];
@@ -55,6 +73,21 @@ exports.sendMessage = async (req, res) => {
 
     if (messageType === "image" && (!content || !String(content).trim())) {
       content = fileName || deriveNameFromUrl(imageUrl || fileUrl, "Image");
+    }
+
+    if (String(senderId) !== String(req.user?._id)) {
+      return res.status(403).json({
+        success: false,
+        message: "Sender does not match authenticated user",
+      });
+    }
+
+    const existingChat = await Chat.findById(chatId);
+    if (!existingChat || !canAccessChat(existingChat, req)) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not allowed to send messages in this chat",
+      });
     }
 
     // Determine sender type (User or Client)
@@ -141,6 +174,14 @@ exports.getMessages = async (req, res) => {
     const { chatId } = req.params;
     const { page = 1, limit = 50 } = req.query;
     const skip = (page - 1) * limit;
+
+    const chat = await Chat.findById(chatId);
+    if (!chat || !canAccessChat(chat, req)) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not allowed to access this chat",
+      });
+    }
 
     const messages = await Message.find({
       chatId,

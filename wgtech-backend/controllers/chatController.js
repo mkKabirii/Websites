@@ -6,6 +6,13 @@ const Client = require("../model/clientModel");
 const Proposal = require("../model/proposalsModel");
 const ProjectStatus = require("../model/projectStatusModel");
 const { ensureDefaultWebsiteAutoReplies } = require("../utils/defaultAutoReplies");
+const { ensureGroupChat } = require("../utils/chatService");
+
+const getRole = (user) => {
+  const storedRole = String(user?.role || "").toLowerCase();
+  const designationRole = String(user?.designation?.roleName || "").toLowerCase();
+  return storedRole && storedRole !== "user" ? storedRole : designationRole || storedRole;
+};
 
 // Utility to safely resolve client + user pairing for accepted proposals
 const resolveClientUser = async (proposalEmail) => {
@@ -43,6 +50,7 @@ const buildAcceptedClientEntries = async () => {
       if (participantId) {
         chat = await Chat.findOne({
           chatType: "admin_work",
+          isGroupChat: { $ne: true },
           participants: participantId,
         })
           .populate("clientId", "username email profileImage")
@@ -86,6 +94,7 @@ const buildAllClientEntries = async () => {
       if (participantId) {
         chat = await Chat.findOne({
           chatType: "admin_work",
+          isGroupChat: { $ne: true },
           participants: participantId,
         })
           .populate("clientId", "username email profileImage")
@@ -117,30 +126,36 @@ exports.getUserChats = async (req, res) => {
   try {
     const userId = req.params.userId;
     const { chatType } = req.query;
+    const requesterRole = getRole(req.user);
+
+    if (requesterRole !== "admin" && String(req.user?._id) !== String(userId)) {
+      return res.status(403).json({
+        success: false,
+        message: "You can only access your own chats",
+      });
+    }
 
     // Get user to check if they're a worker
     const user = await User.findById(userId)
       .populate("designation", "roleName")
       .populate("assignedClients");
 
-    const isWorker = user?.designation?.roleName === "worker";
+    const userRole = getRole(user);
 
     let query = { isActive: true };
     
-    if (isWorker) {
+    if (userRole === "admin") {
+      query = { isActive: true };
+    } else if (userRole === "worker") {
       // Workers see ONLY group chats where they're participants
       query.isGroupChat = true;
       query.participants = userId;
     } else {
-      // Non-workers (admin) see all their chats
-      query.$or = [
-        { participants: userId },
-        { clientRef: userId },
-        { clientId: userId },
-      ];
+      query.participants = userId;
+      query.chatType = "admin_work";
     }
 
-    if (chatType && !isWorker) {
+    if (chatType && userRole !== "worker") {
       query.chatType = chatType;
     }
 
@@ -168,7 +183,7 @@ exports.getUserChats = async (req, res) => {
 exports.getChat = async (req, res) => {
   try {
     const { chatId } = req.params;
-    const userId = req.userId;
+    const userId = req.user?._id;
 
     const chat = await Chat.findById(chatId)
       .populate("clientId", "username email profileImage")
@@ -181,6 +196,18 @@ exports.getChat = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Chat not found",
+      });
+    }
+
+    const role = getRole(req.user);
+    const isParticipant = chat.participants.some(
+      (participantId) => String(participantId._id || participantId) === String(userId),
+    );
+
+    if (role !== "admin" && (!isParticipant || (role === "worker" && !chat.isGroupChat))) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not allowed to access this chat",
       });
     }
 
@@ -223,6 +250,20 @@ exports.getChat = async (req, res) => {
 exports.createChat = async (req, res) => {
   try {
     const { clientId, chatType, assignedAdmin, projectId } = req.body;
+
+    if (chatType !== "website" && !req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Dashboard chats require authentication",
+      });
+    }
+
+    if (chatType === "website" && req.body.isGroupChat) {
+      return res.status(400).json({
+        success: false,
+        message: "Website support chat cannot be a group chat",
+      });
+    }
 
     // Check if chat already exists
     let chat = await Chat.findOne({
@@ -292,9 +333,9 @@ exports.createChat = async (req, res) => {
 exports.listWebsiteSupportChats = async (req, res) => {
   try {
     const userId = req.user?._id;
-    const isWorker = req.user?.designation?.roleName === "worker";
+    const userRole = getRole(req.user);
 
-    if (isWorker) {
+    if (userRole !== "admin") {
       return res.status(200).json({ success: true, data: [] });
     }
 
@@ -302,11 +343,6 @@ exports.listWebsiteSupportChats = async (req, res) => {
       isActive: true,
       chatType: "website",
     };
-
-    // Keep chats scoped to the current admin when assignment exists.
-    if (userId) {
-      query.$or = [{ assignedAdmin: userId }, { participants: userId }];
-    }
 
     const chats = await Chat.find(query)
       .populate("clientId", "username email profileImage")
@@ -340,6 +376,13 @@ exports.listWebsiteSupportChats = async (req, res) => {
 // Assign admin to chat
 exports.assignAdminToChat = async (req, res) => {
   try {
+    if (getRole(req.user) !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Only admins can assign chats",
+      });
+    }
+
     const { chatId, adminId } = req.body;
 
     const chat = await Chat.findByIdAndUpdate(
@@ -431,6 +474,13 @@ exports.archiveChat = async (req, res) => {
 // Create group chat when client is assigned to worker
 exports.createGroupChat = async (req, res) => {
   try {
+    if (getRole(req.user) !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Only admins can create group chats",
+      });
+    }
+
     const { workerId, clientId, adminId } = req.body;
 
     if (!workerId || !clientId || !adminId) {
@@ -440,10 +490,9 @@ exports.createGroupChat = async (req, res) => {
       });
     }
 
-    // Get user/client details for group name
-    const worker = await User.findById(workerId).select("fullname username email");
-    const client = await Client.findById(clientId) || await User.findById(clientId);
-    const admin = await User.findById(adminId).select("fullname username email");
+    const worker = await User.findById(workerId).select("fullname username email role");
+    const client = await Client.findById(clientId);
+    const admin = await User.findById(adminId).select("fullname username email role");
 
     if (!worker || !client || !admin) {
       return res.status(404).json({
@@ -452,41 +501,7 @@ exports.createGroupChat = async (req, res) => {
       });
     }
 
-    // Check if group chat already exists
-    let existingChat = await Chat.findOne({
-      isGroupChat: true,
-      participants: { $all: [workerId, clientId, adminId] },
-    });
-
-    if (existingChat) {
-      return res.status(200).json({
-        success: true,
-        data: existingChat,
-        message: "Group chat already exists",
-      });
-    }
-
-    // Create new group chat
-    const clientName = client.name || client.fullname || client.username || client.email;
-    const workerName = worker.fullname || worker.username;
-
-    const groupChat = new Chat({
-      participants: [workerId, clientId, adminId],
-      chatType: "admin_work",
-      clientId: clientId, // Primary client for compatibility
-      assignedAdmin: adminId,
-      isGroupChat: true,
-      groupName: `${clientName} - ${workerName}`,
-      groupDescription: `Collaboration between Admin, Worker, and Client`,
-      groupAdmins: [adminId, workerId],
-      unreadCount: new Map([
-        [workerId.toString(), 0],
-        [clientId.toString(), 0],
-        [adminId.toString(), 0],
-      ]),
-    });
-
-    await groupChat.save();
+    const groupChat = await ensureGroupChat({ workerId, clientId, adminId });
 
     const populatedChat = await Chat.findById(groupChat._id)
       .populate("participants", "username email fullname profileImage")
@@ -509,17 +524,26 @@ exports.createGroupChat = async (req, res) => {
 // List accepted proposals with client info and existing/placeholder chat
 exports.listAcceptedClientChats = async (req, res) => {
   try {
+    if (getRole(req.user) === "worker") {
+      return exports.getUserChats(
+        { ...req, params: { userId: req.user._id } },
+        res,
+      );
+    }
+
     const entries = await buildAcceptedClientEntries();
     
     // Also fetch group chats for the current user
     const userId = req.user?._id;
     let groupChats = [];
     if (userId) {
-      groupChats = await Chat.find({
+      const groupQuery = {
         isGroupChat: true,
-        participants: userId,
         isActive: true
-      })
+      };
+      if (getRole(req.user) !== "admin") groupQuery.participants = userId;
+
+      groupChats = await Chat.find(groupQuery)
         .populate("clientId", "username email profileImage")
         .populate("assignedAdmin", "username email profileImage")
         .populate("lastMessage")
@@ -555,17 +579,26 @@ exports.listAcceptedClientChats = async (req, res) => {
 // List all clients (Client collection) with chat info
 exports.listClientChats = async (req, res) => {
   try {
+    if (getRole(req.user) === "worker") {
+      return exports.getUserChats(
+        { ...req, params: { userId: req.user._id } },
+        res,
+      );
+    }
+
     const entries = await buildAllClientEntries();
     
     // Also fetch group chats for the current user
     const userId = req.user?._id;
     let groupChats = [];
     if (userId) {
-      groupChats = await Chat.find({
+      const groupQuery = {
         isGroupChat: true,
-        participants: userId,
         isActive: true
-      })
+      };
+      if (getRole(req.user) !== "admin") groupQuery.participants = userId;
+
+      groupChats = await Chat.find(groupQuery)
         .populate("clientId", "username email profileImage")
         .populate("assignedAdmin", "username email profileImage")
         .populate("lastMessage")
@@ -714,6 +747,39 @@ exports.getArchivedChats = async (req, res) => {
     res.status(200).json({
       success: true,
       data: chats,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+exports.deleteChat = async (req, res) => {
+  try {
+    if (getRole(req.user) !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Only admins can delete chats",
+      });
+    }
+
+    const { chatId } = req.params;
+    const chat = await Chat.findById(chatId);
+    if (!chat) {
+      return res.status(404).json({
+        success: false,
+        message: "Chat not found",
+      });
+    }
+
+    await Message.deleteMany({ chatId });
+    await Chat.findByIdAndDelete(chatId);
+
+    res.status(200).json({
+      success: true,
+      message: "Chat deleted permanently",
     });
   } catch (error) {
     res.status(500).json({

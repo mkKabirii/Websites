@@ -546,6 +546,37 @@ const ChatContainer = ({ userId, adminId, userRole, source = "accepted" }) => {
     });
   };
 
+  const handleDeleteChat = async () => {
+    if (!selectedChat?._id || userRole !== "admin") return;
+    if (!window.confirm("Delete this chat permanently for all users?")) return;
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL || "http://localhost:8003"}/api/v1/chats/${selectedChat._id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        alert(data.message || "Failed to delete chat");
+        return;
+      }
+
+      setChats((prev) =>
+        (prev || []).filter((chat) => chat._id !== selectedChat._id),
+      );
+      setSelectedChat(null);
+      setMessages([]);
+    } catch (error) {
+      console.error("Error deleting chat:", error);
+      alert("Failed to delete chat");
+    }
+  };
+
   return (
     <div className="chat-container">
       <div className="chat-notification-badge">
@@ -581,6 +612,7 @@ const ChatContainer = ({ userId, adminId, userRole, source = "accepted" }) => {
             socketRef={socketRef.current}
             meta={selectedChat.meta}
             userRole={userRole}
+            onDeleteChat={handleDeleteChat}
           />
         ) : (
           <div className="chat-empty-state">

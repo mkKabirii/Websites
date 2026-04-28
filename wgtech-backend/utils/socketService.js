@@ -14,6 +14,12 @@ let userSocketMap = {};
 let ioInstance = null;
 const pendingAutoReplyByChat = new Map();
 
+const getRole = (user) => {
+  const storedRole = String(user?.role || "").toLowerCase();
+  const designationRole = String(user?.designation?.roleName || "").toLowerCase();
+  return storedRole && storedRole !== "user" ? storedRole : designationRole || storedRole;
+};
+
 const deriveNameFromUrl = (url, fallback) => {
   try {
     const raw = String(url || "")
@@ -146,9 +152,16 @@ const initializeSocket = (server, corsOptions) => {
           return;
         }
 
+        if (String(senderId) !== String(userId)) {
+          socket.emit("message_error", {
+            error: "Sender does not match socket user",
+          });
+          return;
+        }
+
         // Determine sender type (User or Client)
         let senderType = "User";
-        let sender = await User.findById(senderId);
+        let sender = await User.findById(senderId).populate("designation", "roleName");
 
         if (!sender) {
           // Try Client collection if not found in User
@@ -169,6 +182,25 @@ const initializeSocket = (server, corsOptions) => {
         if (!existingChat) {
           console.error("❌ Chat not found:", chatId);
           socket.emit("message_error", { error: "Chat not found" });
+          return;
+        }
+
+        const senderRole = getRole(sender);
+        const isParticipant = existingChat.participants.some(
+          (participantId) => String(participantId) === String(senderId),
+        );
+
+        if (!isParticipant && senderRole !== "admin") {
+          socket.emit("message_error", {
+            error: "You are not a participant in this chat",
+          });
+          return;
+        }
+
+        if (senderRole === "worker" && !existingChat.isGroupChat) {
+          socket.emit("message_error", {
+            error: "Workers can only message assigned group chats",
+          });
           return;
         }
 

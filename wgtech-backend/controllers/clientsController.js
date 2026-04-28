@@ -3,6 +3,13 @@ const Client = require("../model/clientModel");
 const User = require("../model/userModel");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
+const { ensureGroupChat } = require("../utils/chatService");
+
+const getRole = (user) => {
+  const storedRole = String(user?.role || "").toLowerCase();
+  const designationRole = String(user?.designation?.roleName || "").toLowerCase();
+  return storedRole && storedRole !== "user" ? storedRole : designationRole || storedRole;
+};
 
 // Get all clients with role-based filtering
 exports.getClients = catchAsync(async (req, res) => {
@@ -15,7 +22,7 @@ exports.getClients = catchAsync(async (req, res) => {
   }
 
   let query = {}; // Query for Client collection (not User)
-  const userRole = user.designation?.roleName || user.role;
+  const userRole = getRole(user);
 
   // Role-based filtering
   if (userRole === "worker") {
@@ -142,7 +149,7 @@ exports.updateClient = catchAsync(async (req, res) => {
 // Assign worker to client
 exports.assignWorker = catchAsync(async (req, res) => {
   // Verify Main Admin
-  if (req.user.designation?.roleName !== "admin") {
+  if (getRole(req.user) !== "admin") {
     return res.status(403).json({
       success: false,
       message: "Only Main Admin can assign workers",
@@ -189,38 +196,11 @@ exports.assignWorker = catchAsync(async (req, res) => {
 
   // Ensure group chat exists for Admin + Worker + Client after assignment
   try {
-    const Chat = require("../model/chatModel");
-
-    const adminId = req.user._id;
-    const participantClientId = client.userId || client._id;
-
-    let existingGroupChat = await Chat.findOne({
-      isGroupChat: true,
-      chatType: "admin_work",
-      participants: { $all: [workerId, participantClientId, adminId] },
+    await ensureGroupChat({
+      workerId,
+      clientId: client._id,
+      adminId: req.user._id,
     });
-
-    if (!existingGroupChat) {
-      const workerName = worker.fullname || worker.username || worker.email;
-      const clientName = client.name || client.username || client.email;
-
-      existingGroupChat = await Chat.create({
-        participants: [workerId, participantClientId, adminId],
-        chatType: "admin_work",
-        clientId: participantClientId,
-        clientRef: client._id,
-        assignedAdmin: adminId,
-        isGroupChat: true,
-        groupName: `${clientName} - ${workerName}`,
-        groupDescription: "Collaboration between Admin, Worker, and Client",
-        groupAdmins: [adminId, workerId],
-        unreadCount: new Map([
-          [String(workerId), 0],
-          [String(participantClientId), 0],
-          [String(adminId), 0],
-        ]),
-      });
-    }
   } catch (chatError) {
     console.error("Failed to ensure group chat after worker assignment:", chatError.message);
   }
@@ -353,7 +333,7 @@ exports.addComment = catchAsync(async (req, res) => {
 // Delete client
 exports.deleteClient = catchAsync(async (req, res) => {
   // Verify Main Admin
-  if (req.user.designation?.roleName !== "admin") {
+  if (getRole(req.user) !== "admin") {
     return res.status(403).json({
       success: false,
       message: "Only Main Admin can delete clients",
@@ -378,7 +358,7 @@ exports.deleteClient = catchAsync(async (req, res) => {
 // ✅ Generate/Reset client password (admin only)
 exports.generateClientPassword = catchAsync(async (req, res) => {
   // Verify Main Admin
-  if (req.user.designation?.roleName !== "admin") {
+  if (getRole(req.user) !== "admin") {
     return res.status(403).json({
       success: false,
       message: "Only Main Admin can generate client passwords",

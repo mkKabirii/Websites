@@ -27,7 +27,11 @@ const ChatContainerWrapper = ({ source = "accepted" }) => {
     <ChatContainer
       userId={userId}
       adminId={adminId}
-      userRole={user?.designation?.roleName || "admin"}
+      userRole={
+        user?.role && user.role !== "user"
+          ? user.role
+          : user?.designation?.roleName || "admin"
+      }
       source={source}
     />
   );

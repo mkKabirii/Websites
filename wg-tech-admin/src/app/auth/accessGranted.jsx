@@ -11,6 +11,16 @@ const AccessGranted = () => {
   const { user } = useUserStore();
 
   const navigateToFirstRoute = useCallback(() => {
+    const storedRole = String(user?.role || "").toLowerCase();
+    const designationRole = String(user?.designation?.roleName || "").toLowerCase();
+    const role =
+      storedRole && storedRole !== "user" ? storedRole : designationRole || storedRole;
+
+    if (role === "worker") {
+      navigate("/my-projects");
+      return;
+    }
+
     // Get first route from user's designation routes
     const userRoutes = user?.designation?.routes || [];
     if (userRoutes.length > 0) {

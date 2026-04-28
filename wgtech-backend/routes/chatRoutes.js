@@ -45,8 +45,8 @@ router.get("/user/:userId", authMiddleware.protect, chatController.getUserChats)
 // Get single chat (requires auth)
 router.get("/:chatId", authMiddleware.protect, chatController.getChat);
 
-// Create new chat (allow without auth for guest users)
-router.post("/", chatController.createChat);
+// Create website support chats publicly; dashboard chats require a token.
+router.post("/", authMiddleware.optionalProtect, chatController.createChat);
 
 // Assign admin to chat (requires auth)
 router.put("/assign-admin", authMiddleware.protect, chatController.assignAdminToChat);
@@ -59,5 +59,8 @@ router.put("/:chatId/archive", authMiddleware.protect, chatController.archiveCha
 
 // Get archived chats (requires auth)
 router.get("/archived/:userId", authMiddleware.protect, chatController.getArchivedChats);
+
+// Delete chat permanently (admin only)
+router.delete("/:chatId", authMiddleware.protect, chatController.deleteChat);
 
 module.exports = router;

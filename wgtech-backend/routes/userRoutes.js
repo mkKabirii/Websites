@@ -1,5 +1,5 @@
 const express = require("express");
-const { protect } = require("../middleware/authMiddleware");
+const { protect, optionalProtect, authorize } = require("../middleware/authMiddleware");
 const {
 createUser,
 loginUser,
@@ -18,7 +18,7 @@ toggleUserStatus,
 const router = express.Router();
 
 // Auth routes
-router.post("/", createUser);
+router.post("/", optionalProtect, createUser);
 router.post("/login", loginUser);
 
 // OTP routes
@@ -31,10 +31,10 @@ router.put("/profile", protect, updateProfile);
 router.put("/profile/picture", protect, updateProfilePicture);
 
 // User management routes
-router.get("/", getAllUsers);
-router.patch("/:id/toggle-status", protect, toggleUserStatus);
-router.get("/:id", getUserById);
-router.put("/:id", protect, updateUser);
-router.delete("/:id", protect, deleteUser);
+router.get("/", protect, authorize(["admin"]), getAllUsers);
+router.patch("/:id/toggle-status", protect, authorize(["admin"]), toggleUserStatus);
+router.get("/:id", protect, getUserById);
+router.put("/:id", protect, authorize(["admin"]), updateUser);
+router.delete("/:id", protect, authorize(["admin"]), deleteUser);
 
 module.exports = router;

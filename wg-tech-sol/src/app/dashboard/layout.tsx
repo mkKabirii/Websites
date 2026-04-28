@@ -40,6 +40,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       return;
     }
 
+    const role = String(user?.userType || user?.role || user?.designation || "").toLowerCase();
+    if (user && role !== "client") {
+      localStorage.removeItem("token");
+      clearAuth();
+      router.push("/wgAuthForm");
+      return;
+    }
+
     setIsLoading(false);
 
     if (!user) {
@@ -57,6 +65,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               designation: data.role || data.designation,
               userType: data.role || data.userType || "user",
             };
+            if (normalizedUser.userType !== "client") {
+              localStorage.removeItem("token");
+              clearAuth();
+              router.push("/wgAuthForm");
+              return;
+            }
             setAuth({ token, user: normalizedUser });
           }
         } catch {
