@@ -42,10 +42,16 @@ export interface AdvertisementItem {
   image?: string;
 }
 
+export interface HomeStatItem {
+  label: string;
+  value: number;
+  suffix?: string;
+}
+
 export interface HomeData {
   faqs?: FAQItem[];
   services?: ServiceItem[];
   reviews?: ReviewItem[];
   advertisements?: AdvertisementItem[];
+  homeStats?: HomeStatItem[];
 }
-

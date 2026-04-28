@@ -4,13 +4,18 @@
 const http = require("http");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
+const path = require("path");
 const { initializeSocket } = require("./utils/socketService");
 
+// Set default NODE_ENV if not set
+if (!process.env.NODE_ENV) {
+  process.env.NODE_ENV = "development";
+}
 
 if (process.env.NODE_ENV === "production") {
-  dotenv.config({ path: "./config.prod.env" });
+  dotenv.config({ path: path.join(__dirname, "./config.prod.env") });
 } else {
-  dotenv.config({ path: "./config.dev.env" });
+  dotenv.config({ path: path.join(__dirname, "./config.dev.env") });
 }
 
 const app = require("./app");
@@ -52,11 +57,16 @@ mongoose
 const server = http.createServer(app);
 
 // Initialize Socket.io for real-time chat
+const corsOrigins = [
+  process.env.FRONTEND_URL,
+  process.env.ADMIN_PANEL_URL,
+  process.env.CLIENT_APP_URL,
+  "http://localhost:3000",
+  "http://localhost:5173",
+].filter(Boolean);
+
 const corsOptions = {
-  origin: [
-    process.env.FRONTEND_URL || "http://localhost:3000",
-    "http://localhost:5173",
-  ],
+  origin: corsOrigins.length ? corsOrigins : "*",
   credentials: true,
 };
 

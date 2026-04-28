@@ -133,7 +133,7 @@ const createOpportunitiesSchema = Joi.object({
         title: Joi.string().required(),
         description: Joi.string().required(),
         image: Joi.string().required(),
-      })
+      }),
     )
     .min(1)
     .required(),
@@ -148,7 +148,7 @@ const updateOpportunitiesSchema = Joi.object({
         title: Joi.string().required(),
         description: Joi.string().required(),
         image: Joi.string().required(),
-      })
+      }),
     )
     .optional(),
   status: Joi.string().valid("Active", "Inactive").optional(),
@@ -166,7 +166,7 @@ const updateOurStorySchema = Joi.object({
 });
 
 // Work validation schemas
-const   createWorkSchema = Joi.object({
+const createWorkSchema = Joi.object({
   workCategory: Joi.string().required(),
   categoryDescription: Joi.string().required(),
   serviceId: Joi.string().custom(validateMongoDbId).optional(),
@@ -181,7 +181,7 @@ const   createWorkSchema = Joi.object({
         url: Joi.string().required(),
         description: Joi.string().required(),
         purpose: Joi.string().required(),
-      })
+      }),
     )
     .min(1)
     .required(),
@@ -202,7 +202,7 @@ const updateWorkSchema = Joi.object({
         title: Joi.string().required(),
         url: Joi.string().required(),
         description: Joi.string().required(),
-      })
+      }),
     )
     .optional(),
   status: Joi.string().valid("active", "inactive").optional(),
@@ -219,7 +219,7 @@ const createTeamMemberSchema = Joi.object({
       Joi.object({
         siteName: Joi.string().required(),
         link: Joi.string().required(),
-      })
+      }),
     )
     .optional(),
 });
@@ -234,7 +234,7 @@ const updateTeamMemberSchema = Joi.object({
       Joi.object({
         siteName: Joi.string().required(),
         link: Joi.string().required(),
-      })
+      }),
     )
     .optional(),
 });
@@ -296,7 +296,7 @@ const createEventSchema = Joi.object({
       Joi.object({
         name: Joi.string().required(),
         url: Joi.string().required(),
-      })
+      }),
     )
     .optional(),
   eventDate: Joi.date().optional(),
@@ -305,7 +305,7 @@ const createEventSchema = Joi.object({
       Joi.object({
         name: Joi.string().required(),
         url: Joi.string().required(),
-      })
+      }),
     )
     .optional(),
   location: Joi.string().optional(),
@@ -408,7 +408,7 @@ const createApplicationSchema = Joi.object({
         level: Joi.string()
           .valid("beginner", "intermediate", "advanced", "expert")
           .required(),
-      })
+      }),
     )
     .optional(),
   cvResume: Joi.string().allow(null, "").optional(),
@@ -449,22 +449,18 @@ const updateApplicationSchema = Joi.object({
         level: Joi.string()
           .valid("beginner", "intermediate", "advanced", "expert")
           .optional(),
-      })
+      }),
     )
     .optional(),
   cvResume: Joi.string().allow(null, "").optional(),
   picture: Joi.string().allow(null, "").optional(),
   certification: Joi.boolean().optional(),
-  status: Joi.string()
-    .valid("pending", "approved", "rejected")
-    .optional(),
+  status: Joi.string().valid("pending", "approved", "rejected").optional(),
   isActive: Joi.boolean().optional(),
 });
 
 const updateApplicationStatusSchema = Joi.object({
-  status: Joi.string()
-    .valid("pending", "approved", "rejected")
-    .required(),
+  status: Joi.string().valid("pending", "approved", "rejected").required(),
 });
 
 // Common validation for MongoDB ObjectId
@@ -479,7 +475,9 @@ const dashboardDateRangeSchema = Joi.object({
 }).custom((value, helpers) => {
   if (value.startDate && value.endDate) {
     if (new Date(value.endDate) < new Date(value.startDate)) {
-      return helpers.message("endDate must be greater than or equal to startDate");
+      return helpers.message(
+        "endDate must be greater than or equal to startDate",
+      );
     }
   }
   return value;
@@ -489,15 +487,35 @@ const dashboardDateRangeSchema = Joi.object({
 const createSettingsSchema = Joi.object({
   privacyPolicy: Joi.string().required(),
   termsCondition: Joi.string().required(),
-  proposalEmailTemplate: Joi.string().allow("").optional(),      // ✅ NAYA
-  applicationEmailTemplate: Joi.string().allow("").optional(),   // ✅ NAYA
+  proposalEmailTemplate: Joi.string().allow("").optional(), // ✅ NAYA
+  applicationEmailTemplate: Joi.string().allow("").optional(), // ✅ NAYA
+  senderEmail: Joi.string().email().allow("").optional(),
+  homeStats: Joi.array()
+    .items(
+      Joi.object({
+        label: Joi.string().required(),
+        value: Joi.number().min(0).required(),
+        suffix: Joi.string().allow("").optional(),
+      }),
+    )
+    .optional(),
 });
 
 const updateSettingsSchema = Joi.object({
   privacyPolicy: Joi.string().optional(),
   termsCondition: Joi.string().optional(),
-  proposalEmailTemplate: Joi.string().allow("").optional(),      // ✅ NAYA
-  applicationEmailTemplate: Joi.string().allow("").optional(),   // ✅ NAYA
+  proposalEmailTemplate: Joi.string().allow("").optional(), // ✅ NAYA
+  applicationEmailTemplate: Joi.string().allow("").optional(), // ✅ NAYA
+  senderEmail: Joi.string().email().allow("").optional(),
+  homeStats: Joi.array()
+    .items(
+      Joi.object({
+        label: Joi.string().required(),
+        value: Joi.number().min(0).required(),
+        suffix: Joi.string().allow("").optional(),
+      }),
+    )
+    .optional(),
 });
 
 module.exports = {

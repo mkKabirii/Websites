@@ -15,10 +15,12 @@ const AccessGranted = () => {
     const userRoutes = user?.designation?.routes || [];
     if (userRoutes.length > 0) {
       // Sort routes by order and get first route
-      const sortedRoutes = [...userRoutes].sort((a, b) => (a.order || 0) - (b.order || 0));
+      const sortedRoutes = [...userRoutes].sort(
+        (a, b) => (a.order || 0) - (b.order || 0),
+      );
       const firstRoute = sortedRoutes[0];
       const firstRoutePath = firstRoute?.path;
-      
+
       if (firstRoutePath) {
         navigate(firstRoutePath);
       } else {
@@ -44,20 +46,11 @@ const AccessGranted = () => {
   }, [navigateToFirstRoute]);
 
   return (
-    // <VideoScreen
-    //   videoSource={accessGrantedVideo}
-    //   onVideoEnd={handleVideoEnd}
-    //   isAccessGranted={true}
-    // />
-    <>
-      <Box sx={{ width: "100%", height: "100vh" ,overflow: "hidden" }}>
-        <img
-          src={accessGrantedImage}
-          alt="access granted"
-          style={{ width: "100%", height: "100%", objectFit: "contain" }}
-        />
-      </Box>
-    </>
+    <VideoScreen
+      videoSource={accessGrantedVideo}
+      onVideoEnd={handleVideoEnd}
+      isAccessGranted={true}
+    />
   );
 };
 

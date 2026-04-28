@@ -1,11 +1,11 @@
 :root {
-  font-family: 'Poppins', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: "Poppins", system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
   color-scheme: dark;
-  color: #FFFFFF;
-  background-color: #0F0F0F;
+  color: #ffffff;
+  background-color: #0f0f0f;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -25,16 +25,175 @@ a:hover {
 body {
   margin: 0;
   padding: 0;
-  background-color: #0F0F0F !important;
-  color: #FFFFFF !important;
-  font-family: 'Poppins', sans-serif;
+  background-color: #0f0f0f !important;
+  color: #ffffff !important;
+  font-family: "Poppins", sans-serif;
   min-height: 100vh;
 }
 
+/* Admin sidebar hover/glow effect matching provided design */
+.admin-nav-item {
+  border-radius: 14px;
+  transition:
+    transform 220ms cubic-bezier(0.2, 0.9, 0.2, 1),
+    box-shadow 220ms ease,
+    background 220ms ease;
+  will-change: transform, box-shadow, background;
+  padding: 8px 10px;
+  position: relative;
+  overflow: hidden;
+}
+.admin-nav-item .MuiListItemIcon-root {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.admin-nav-item::before {
+  /* glossy sheen */
+  content: "";
+  position: absolute;
+  left: -30%;
+  top: -50%;
+  width: 160%;
+  height: 120%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.06),
+    rgba(255, 255, 255, 0.02)
+  );
+  transform: rotate(-18deg);
+  opacity: 0;
+  transition:
+    opacity 320ms ease,
+    transform 320ms ease;
+  pointer-events: none;
+}
+.admin-nav-item:hover::before {
+  opacity: 1;
+  transform: translateX(6px) rotate(-18deg);
+}
+.admin-nav-item:hover {
+  transform: translateX(6px);
+  background: linear-gradient(135deg, #5faa00 0%, #2a7e00 50%, #1a4d00 100%);
+  color: #e6ffb8 !important;
+  box-shadow:
+    inset 0 0 50px rgba(158, 255, 0, 0.16),
+    0 0 20px rgba(158, 255, 0, 0.6),
+    0 0 40px rgba(158, 255, 0, 0.3);
+  border: 1px solid rgba(158, 255, 0, 0.5);
+}
+.admin-nav-item:hover .MuiListItemIcon-root svg,
+.admin-nav-item:hover .MuiTypography-root {
+  color: #e6ffb8 !important;
+  filter: drop-shadow(0 0 5px rgba(158, 255, 0, 0.7));
+}
+.admin-nav-item.active {
+  background: linear-gradient(
+    90deg,
+    #b8ff00 0%,
+    #9eff00 50%,
+    #7ae600 100%
+  ) !important;
+  color: #031003 !important;
+  box-shadow:
+    inset 0 0 70px rgba(158, 255, 0, 0.28),
+    0 10px 28px rgba(0, 0, 0, 0.5);
+}
+
+/* when hovering on active/selected item, keep placeholder visible */
+.admin-nav-item.active:hover {
+  color: #031003 !important;
+}
+
+.admin-nav-item.active:hover .MuiListItemIcon-root svg,
+.admin-nav-item.active:hover .MuiTypography-root {
+  color: #031003 !important;
+  filter: none;
+}
+.admin-nav-item .MuiListItemText-root .MuiTypography-root {
+  font-weight: 600;
+}
+
+/* make icon badge or small svg pop with neon stroke for exact look */
+.admin-nav-item .MuiListItemIcon-root svg {
+  color: #9eff00;
+  transition:
+    color 220ms ease,
+    filter 220ms ease;
+}
+
+/* inset inner-glow for nav items on hover */
+.admin-nav-item::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 200ms ease;
+  box-shadow:
+    inset 0 0 0 1px rgba(158, 255, 0, 0.2),
+    inset 0 0 40px rgba(158, 255, 0, 0.35),
+    inset 0 0 100px rgba(0, 0, 0, 0.4);
+}
+.admin-nav-item:hover::after {
+  opacity: 0.8;
+}
+/* enhanced glow for selected/active nav item */
+.admin-nav-item.active::after {
+  opacity: 1;
+  box-shadow:
+    inset 0 0 0 1px rgba(158, 255, 0, 0.35),
+    inset 0 0 60px rgba(158, 255, 0, 0.55),
+    inset 0 0 140px rgba(158, 255, 0, 0.25);
+}
+
+/* Reuse wg-card inner glow used in main frontend */
+.wg-card {
+  position: relative;
+}
+.wg-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 200ms ease;
+  box-shadow:
+    inset 0 0 0 1px rgba(158, 255, 0, 0.32),
+    inset 0 0 60px rgba(158, 255, 0, 0.55),
+    inset 0 0 140px rgba(158, 255, 0, 0.25);
+}
+.wg-card:hover::after {
+  opacity: 1;
+}
+
+/* small helper to apply same nav glow semantics */
+.wg-nav-glow {
+  position: relative;
+}
+.wg-nav-glow::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 200ms ease;
+  box-shadow:
+    inset 0 0 0 1px rgba(158, 255, 0, 0.32),
+    inset 0 0 60px rgba(158, 255, 0, 0.55),
+    inset 0 0 140px rgba(158, 255, 0, 0.25);
+}
+.wg-nav-glow:hover::after {
+  opacity: 1;
+}
+
 #root {
-  background-color: #0F0F0F;
+  background-color: #0f0f0f;
   min-height: 100vh;
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
 h1 {
@@ -67,48 +226,48 @@ button:focus-visible {
 }
 
 ::-webkit-scrollbar-track {
-  background: #1A1A1A;
+  background: #1a1a1a;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #8CE600;
+  background: #8ce600;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #6BBF00;
+  background: #6bbf00;
 }
 
 /* DatePicker Custom Styles */
 .custom-datepicker {
-  background-color: #1A1A1A !important;
+  background-color: #1a1a1a !important;
   border: 1px solid #333333 !important;
   border-radius: 12px !important;
-  color: #FFFFFF !important;
+  color: #ffffff !important;
 }
 
 .custom-datepicker .react-datepicker__header {
-  background-color: #2A2A2A !important;
+  background-color: #2a2a2a !important;
   border-bottom: 1px solid #333333 !important;
   border-radius: 12px 12px 0 0 !important;
 }
 
 .custom-datepicker .react-datepicker__current-month,
 .custom-datepicker .react-datepicker__day-name {
-  color: #FFFFFF !important;
+  color: #ffffff !important;
 }
 
 .custom-datepicker .react-datepicker__day {
-  color: #FFFFFF !important;
+  color: #ffffff !important;
 }
 
 .custom-datepicker .react-datepicker__day:hover {
   background-color: #333333 !important;
-  color: #8CE600 !important;
+  color: #8ce600 !important;
 }
 
 .custom-datepicker .react-datepicker__day--selected {
-  background-color: #8CE600 !important;
+  background-color: #8ce600 !important;
   color: #000000 !important;
 }
 
@@ -117,9 +276,9 @@ button:focus-visible {
 }
 
 .custom-datepicker .react-datepicker__navigation {
-  color: #FFFFFF !important;
+  color: #ffffff !important;
 }
 
 .custom-datepicker .react-datepicker__navigation:hover {
-  color: #8CE600 !important;
+  color: #8ce600 !important;
 }

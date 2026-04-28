@@ -1,4 +1,5 @@
 const User = require("../model/userModel");
+const Client = require("../model/clientModel");
 const UserRole = require("../model/userRole");
 const { successHandler, signToken } = require("../utils/helper");
 const catchAsync = require("../utils/catchAsync");
@@ -6,6 +7,9 @@ const AppError = require("../utils/appError");
 const { hashPassword, comparePassword } = require("../utils/helper");
 const { schemaValidator } = require("../utils/schemaValidator");
 const { createUserSchema } = require("../utils/validation");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const { ensureClientAdminChat } = require("../utils/chatService");
 // const { generateToken } = require("../utils/jwt");
 
 // const { generateToken } = require("../utils/jwt");
@@ -39,16 +43,65 @@ const uploadMiddleware = multer({
   },
 }).single("profilePicture");
 
-// Create User
-// Create User
+// Create User (for backend - creates admin/worker)
+// For clients, this endpoint now creates a CLIENT instead
 const createUser = catchAsync(async (req, res, next) => {
+  // ✅ Check what fields are provided to determine if it's a client or admin registration
+  const { email, username, password, name, company, projectName, phone, role, designation, profileImage } = req.body;
+
+  // If 'name' or 'company' or 'projectName' is provided → CLIENT registration
+  if (name || company || projectName) {
+    // Create CLIENT
+    const existingClient = await Client.findOne({ email });
+    if (existingClient) {
+      return next(new AppError("Email already registered", 400));
+    }
+
+    const existingUsername = await Client.findOne({ username });
+    if (existingUsername) {
+      return next(new AppError("Username already taken", 400));
+    }
+
+    const client = await Client.create({
+      name: name || username,
+      email,
+      username,
+      password, // Will be hashed by clientModel middleware
+      company: company || "",
+      projectName: projectName || "",
+      phone: phone || "",
+    });
+
+    // Generate token
+    const token = jwt.sign(
+      { id: client._id, type: "client" },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    return successHandler(
+      res,
+      {
+        client: {
+          _id: client._id,
+          name: client.name,
+          email: client.email,
+          username: client.username,
+          company: client.company,
+          projectName: client.projectName,
+        },
+        token,
+      },
+      "Client registered successfully",
+      201
+    );
+  }
+
+  // Otherwise it's a USER/ADMIN registration
   const [error, validatedData] = schemaValidator(req.body, createUserSchema);
   if (error) {
     return next(new AppError(error, 400));
   }
-
-  const { email, username, password, role, designation, profileImage } =
-    validatedData;
 
   // Check if user already exists
   const existingUser = await User.findOne({ email });
@@ -56,30 +109,74 @@ const createUser = catchAsync(async (req, res, next) => {
     return next(new AppError("User with this email already exists", 400));
   }
 
-  // Hash password
-  const hashedPassword = await hashPassword(password);
-
-  // Create user
+  // Create user (admin/worker)
   const user = await User.create({
     email,
     username,
-    password: hashedPassword,
+    password,
     role,
     designation,
+    assignedClients: req.body.assignedClients || [],
   });
 
   // Remove password from response
   user.password = undefined;
 
-  successHandler(res, user, "User created successfully", 201);
+  // Populate assigned clients for response
+  const populatedUser = await User.findById(user._id)
+    .populate("designation", "roleName routes")
+    .populate("assignedClients", "name email company");
+
+  successHandler(res, populatedUser, "User created successfully", 201);
 });
 
 const loginUser = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
 
-  const user = await User.findOne({ email }).populate("designation");
+  // ✅ NOW CHECK CLIENT MODEL FIRST (for client login)
+  const client = await Client.findOne({ email }).select("+password");
+  if (client) {
+    // Client found - authenticate as client
+    const isPasswordValid = await bcrypt.compare(password, client.password);
+    if (!isPasswordValid) {
+      return next(new AppError("Invalid password", 401));
+    }
+
+    // Generate token with client type
+    const token = jwt.sign(
+      { id: client._id, type: "client" },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    ensureClientAdminChat({ client }).catch((chatError) => {
+      console.error("Auto chat creation failed:", chatError.message);
+    });
+
+    return successHandler(
+      res,
+      {
+        client: {
+          _id: client._id,
+          name: client.name,
+          email: client.email,
+          username: client.username,
+          company: client.company,
+          projectName: client.projectName,
+          status: client.status,
+          type: "client",
+        },
+        token,
+      },
+      "Client logged in successfully",
+      200
+    );
+  }
+
+  // ✅ IF NOT CLIENT, CHECK USER MODEL (for admin/worker login)
+  const user = await User.findOne({ email }).populate("designation", "roleName routes status");
   if (!user) {
-    return next(new AppError("User not found", 404));
+    return next(new AppError("No account found with this email", 404));
   }
 
   const isPasswordValid = await comparePassword(password, user.password);
@@ -87,7 +184,19 @@ const loginUser = catchAsync(async (req, res, next) => {
     return next(new AppError("Invalid password", 400));
   }
 
-  const token = signToken(user._id); // generate token
+  // Generate token with user type
+  const token = jwt.sign(
+    { id: user._id },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
+
+  if (user.role === "client") {
+    const client = await Client.findOne({ email: user.email });
+    ensureClientAdminChat({ client, clientUser: user }).catch((chatError) => {
+      console.error("Auto chat creation failed:", chatError.message);
+    });
+  }
 
   successHandler(res, { user, token }, "User logged in successfully", 200);
 });
@@ -102,6 +211,7 @@ const getAllUsers = catchAsync(async (req, res, next) => {
 
   const users = await User.find(filter)
     .populate("designation", "roleName")
+    .populate("assignedClients", "name email company")
     .select("-password")
     .limit(limit * 1)
     .skip((page - 1) * limit)
@@ -127,6 +237,7 @@ const getUserById = catchAsync(async (req, res, next) => {
 
   const user = await User.findById(id)
     .populate("designation", "roleName routes")
+    .populate("assignedClients", "name email company")
     .select("-password");
 
   if (!user) {
@@ -140,6 +251,7 @@ const getUserById = catchAsync(async (req, res, next) => {
 const updateUser = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const updateData = { ...req.body };
+  const adminId = req.user?._id;
 
   // If password is being updated, hash it
   if (updateData.password) {
@@ -149,10 +261,60 @@ const updateUser = catchAsync(async (req, res, next) => {
   const user = await User.findByIdAndUpdate(id, updateData, {
     new: true,
     runValidators: true,
-  }).populate("designation", "roleName routes");
+  })
+    .populate("designation", "roleName routes")
+    .populate("assignedClients", "name email company");
 
   if (!user) {
     return next(new AppError("User not found", 404));
+  }
+
+  // Auto-create group chats if clients were assigned
+  if (updateData.assignedClients && Array.isArray(updateData.assignedClients) && updateData.assignedClients.length > 0 && adminId) {
+    const Chat = require("../model/chatModel");
+    
+    for (const clientId of updateData.assignedClients) {
+      try {
+        // Check if group chat already exists
+        const existingChat = await Chat.findOne({
+          isGroupChat: true,
+          participants: { $all: [user._id, clientId, adminId] },
+        });
+
+        if (!existingChat) {
+          // Get client details
+          const Client = require("../model/clientModel");
+          const client = await Client.findById(clientId) || await User.findById(clientId);
+          
+          if (client) {
+            const clientName = client.name || client.fullname || client.username || client.email;
+            const workerName = user.fullname || user.username;
+
+            const groupChat = new Chat({
+              participants: [user._id, clientId, adminId],
+              chatType: "admin_work",
+              clientId: clientId,
+              assignedAdmin: adminId,
+              isGroupChat: true,
+              groupName: `${clientName} - ${workerName}`,
+              groupDescription: `Collaboration between Admin, Worker, and Client`,
+              groupAdmins: [adminId, user._id],
+              unreadCount: new Map([
+                [user._id.toString(), 0],
+                [clientId.toString(), 0],
+                [adminId.toString(), 0],
+              ]),
+            });
+
+            await groupChat.save();
+            console.log(`✅ Group chat created for ${clientName} and ${workerName}`);
+          }
+        }
+      } catch (error) {
+        console.error(`Error creating group chat for client ${clientId}:`, error.message);
+        // Don't throw error, just log it - user update should succeed
+      }
+    }
   }
 
   // Remove password from response
@@ -286,9 +448,7 @@ const resetPassword = catchAsync(async (req, res, next) => {
     return next(new AppError("OTP has expired. Please request a new one", 400));
   }
 
-  // Hash new password
-  const bcrypt = require("bcryptjs");
-  user.password = await bcrypt.hash(newPassword, 12);
+  user.password = newPassword;
   user.resetOtp = undefined;
   user.resetOtpExpiry = undefined;
   await user.save();

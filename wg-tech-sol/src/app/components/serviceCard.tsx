@@ -55,11 +55,10 @@ function ServiceCard({ services }: ServiceCardProps) {
         <div
           key={idx}
           data-aos="zoom-in"
-          className="group flex flex-col justify-between p-6 bg-[#1f1f1f] rounded-xl h-full"
+          className="wg-card no-glow group flex flex-col justify-between p-6 bg-[#1f1f1f] rounded-xl h-full"
         >
           <div className="space-y-6">
             <div className="relative w-[88px] h-[88px] rounded-lg overflow-hidden">
-              <div className="absolute inset-0 bg-[#66AFFC33] opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-300 z-10"></div>
               <Image
                 src={service.image || "/images/app-development.png"}
                 alt={service.alt || service.title}

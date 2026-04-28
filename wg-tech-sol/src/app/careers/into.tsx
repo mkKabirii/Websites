@@ -1,22 +1,23 @@
-import React from 'react'
+import React from "react";
+import MagnifyText from "../components/MagnifyText";
 
 type Section = {
-    heading: string;
-    description: string;
-    boxText?: string;
+  heading: string;
+  description: string;
+  boxText?: string;
 };
 
 type IntoProps = {
-    section: Section;
+  section: Section;
 };
 
 function Into({ section }: IntoProps) {
   return (
-    <div  className='w-auto h-auto mt-4'>
+    <div className="w-auto h-auto mt-4">
       <section className="py-2 md:py-4 mt-12">
         <div className="mx-auto px-6 md:px-8">
           <h1 className="text-4xl md:text-[50px] mb-5">
-            {section.heading}
+            <MagnifyText text={section.heading} />
           </h1>
           <p className="text-[#E6E6E6] text-base md:text-lg leading-snug mb-6 ">
             {section.description}
@@ -31,7 +32,7 @@ function Into({ section }: IntoProps) {
         </div>
       </section>
     </div>
-  )
+  );
 }
 
-export default Into
+export default Into;

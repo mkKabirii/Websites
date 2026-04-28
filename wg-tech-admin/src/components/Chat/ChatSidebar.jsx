@@ -10,11 +10,35 @@ const ChatSidebar = ({
   onlineUsers,
   onShowAutoReply,
   userRole,
+  title = "Chats",
 }) => {
+  const getLastMessagePreview = (chat) => {
+    const msg = chat.lastMessage;
+    if (!msg) return "No messages yet";
+
+    if (typeof msg === "string") return msg;
+
+    const type = msg?.messageType;
+    if (type === "image") return `Image: ${msg.fileName || msg.content || "Shared image"}`;
+    if (type === "document") {
+      return `Document: ${msg.documentName || msg.fileName || msg.content || "Shared document"}`;
+    }
+    if (type === "file") return `File: ${msg.fileName || msg.documentName || msg.content || "Shared file"}`;
+
+    return typeof msg?.content === "string" ? msg.content : "No messages yet";
+  };
+
+  const renderAvatarInitial = (chat) => {
+    const initial = (chat.meta?.clientName || chat.clientId?.username || chat.clientId?.email || "?")
+      .charAt(0)
+      .toUpperCase();
+    return initial;
+  };
+
   return (
     <div className="chat-sidebar">
       <div className="chat-sidebar-header">
-        <h2>Chats</h2>
+        <h2>{title}</h2>
         {userRole === "admin" && (
           <button
             className="auto-reply-btn"
@@ -38,7 +62,7 @@ const ChatSidebar = ({
         {chats && chats.length > 0 ? (
           chats.map((chat) => (
             <div
-              key={chat._id}
+              key={chat._id || chat.meta?.clientId || chat.meta?.clientUserId}
               className={`chat-item ${selectedChat?._id === chat._id ? "active" : ""}`}
               onClick={() => onSelectChat(chat)}
             >
@@ -46,9 +70,7 @@ const ChatSidebar = ({
                 {chat.clientId?.profileImage ? (
                   <img src={chat.clientId.profileImage} alt="Chat" />
                 ) : (
-                  <div className="avatar-placeholder">
-                    {chat.clientId?.username?.charAt(0).toUpperCase()}
-                  </div>
+                  <div className="avatar-placeholder">{renderAvatarInitial(chat)}</div>
                 )}
                 {onlineUsers[chat.clientId?._id] === "online" && (
                   <span className="online-indicator"></span>
@@ -57,18 +79,16 @@ const ChatSidebar = ({
 
               <div className="chat-info">
                 <div className="chat-header-row">
-                  <h3 className="chat-name">{chat.clientId?.username}</h3>
-                  <span className="chat-type">{chat.chatType}</span>
+                  <h3 className="chat-name">{String(chat.meta?.clientName || chat.clientId?.username || chat.clientId?.email || "Unknown")}</h3>
+                  <span className="chat-type">{String(chat.chatType || "Chat")}</span>
                 </div>
                 <p className="chat-preview">
-                  {chat.lastMessage?.content || "No messages yet"}
+                  {getLastMessagePreview(chat)}
                 </p>
               </div>
 
               {unreadCount[chat._id] > 0 && (
-                <span className="unread-badge">
-                  {unreadCount[chat._id]}
-                </span>
+                <span className="unread-badge">{unreadCount[chat._id]}</span>
               )}
             </div>
           ))

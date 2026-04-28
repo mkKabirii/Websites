@@ -4,6 +4,9 @@ const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const { schemaValidator } = require("../utils/schemaValidator");
 const { createReviewSchema } = require("../utils/validation");
+const { buildReviewSubmittedEmail } = require("../utils/emailTemplates");
+const { enqueueEmail } = require("../utils/emailQueue");
+const { notifyAdmins } = require("../utils/notificationService");
 
 // Create Review
 const createReview = catchAsync(async (req, res, next) => {
@@ -19,6 +22,37 @@ const createReview = catchAsync(async (req, res, next) => {
     rating,
     review,
     status
+  });
+
+  try {
+    if (userInfo?.email) {
+      const reviewTemplate = buildReviewSubmittedEmail({
+        partnerName: userInfo?.name || userInfo?.fullname || "Partner",
+      });
+
+      enqueueEmail({
+        to: userInfo.email,
+        subject: reviewTemplate.subject,
+        message: reviewTemplate.message,
+      });
+    }
+  } catch (emailError) {
+    console.error("Error sending review feedback email:", emailError.message);
+  }
+
+  notifyAdmins({
+    title: "New client review",
+    message: `${userInfo?.name || userInfo?.email || "A client"} submitted feedback.`,
+    type: "system",
+    entityId: reviewData._id,
+    entityType: "Review",
+    link: "/reviews",
+    metadata: {
+      rating,
+      email: userInfo?.email,
+    },
+  }).catch((notificationError) => {
+    console.error("Review notification failed:", notificationError.message);
   });
 
   successHandler(res, reviewData, "Review created successfully", 201);

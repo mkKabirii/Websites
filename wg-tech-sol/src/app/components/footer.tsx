@@ -3,6 +3,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
+import { getServices } from "@/api/module/service";
+import { getAllWork } from "@/api/module/work";
+import type { OurServiceType } from "../services/types";
+import type { WorkCategory } from "../work/types";
 import {
   FaFacebookF,
   FaLinkedinIn,
@@ -31,6 +35,8 @@ export default function Footer() {
   // TypeScript state for dropdown management
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [serviceDropdown, setServiceDropdown] = useState<DropdownItem[]>([]);
+  const [workDropdown, setWorkDropdown] = useState<DropdownItem[]>([]);
 
   // TypeScript function to handle dropdown toggle
   const toggleDropdown = (itemHref: string) => {
@@ -76,6 +82,79 @@ export default function Footer() {
     { href: "/careers", label: "Careers" },
   ];
 
+  const slugify = (value: string) =>
+    value
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+
+  useEffect(() => {
+    const fetchDropdowns = async () => {
+      try {
+        const [servicesRes, workRes] = await Promise.all([
+          getServices(),
+          getAllWork(),
+        ]);
+
+        const services = Array.isArray(servicesRes?.data?.data)
+          ? (servicesRes.data.data as OurServiceType[])
+          : [];
+
+        const serviceItems = services
+          .map((service) => {
+            const label = service.title?.trim() || "";
+            const slug = slugify(label);
+            if (!label || !slug) return null;
+            return { href: `/services#${slug}`, label };
+          })
+          .filter(Boolean) as DropdownItem[];
+
+        const workCategories: WorkCategory[] =
+          (workRes?.data?.data?.works && Array.isArray(workRes.data.data.works)
+            ? workRes.data.data.works
+            : null) ||
+          (workRes?.data?.works && Array.isArray(workRes.data.works)
+            ? workRes.data.works
+            : null) ||
+          (Array.isArray(workRes?.data?.data) ? workRes.data.data : null) ||
+          (Array.isArray(workRes?.data) ? workRes.data : []);
+
+        const workItems = workCategories
+          .map((category) => {
+            const label = category.workCategory?.trim() || "";
+            const slug = slugify(label);
+            if (!label || !slug) return null;
+            return { href: `/work#${slug}`, label };
+          })
+          .filter(Boolean) as DropdownItem[];
+
+        setServiceDropdown(serviceItems);
+        setWorkDropdown(workItems);
+      } catch (error) {
+        console.error("Error fetching dropdown data:", error);
+      }
+    };
+
+    fetchDropdowns();
+  }, []);
+
+  const resolvedNavItems = navItems.map((item) => {
+    if (item.label === "Services") {
+      return {
+        ...item,
+        dropdown: serviceDropdown.length ? serviceDropdown : undefined,
+      };
+    }
+    if (item.label === "Work") {
+      return {
+        ...item,
+        dropdown: workDropdown.length ? workDropdown : undefined,
+      };
+    }
+    return item;
+  });
+
   return (
     <footer className="w-auto h-auto min-h-[335px] flex flex-col justify-between py-10 px-2 md:px-6 lg:px-10">
       {/* Top row: becomes column by default; row at 1405px+ */}
@@ -98,11 +177,13 @@ export default function Footer() {
         </Link>
 
         <nav className="flex flex-wrap justify-center gap-4 md:gap-8">
-          {navItems.map((item) => (
+          {resolvedNavItems.map((item) => (
             <div
               key={item.href}
               className="relative group"
               ref={item.dropdown ? dropdownRef : null}
+              onMouseEnter={() => item.dropdown && setOpenDropdown(item.href)}
+              onMouseLeave={() => item.dropdown && setOpenDropdown(null)}
             >
               {item.dropdown ? (
                 <>
@@ -111,7 +192,7 @@ export default function Footer() {
                     className={`md:text-lg hover:text-lime-400 transition-colors duration-200 flex items-center gap-1 ${
                       pathname === item.href ||
                       item.dropdown.some(
-                        (dropItem) => pathname === dropItem.href
+                        (dropItem) => pathname === dropItem.href,
                       )
                         ? "text-lime-400"
                         : "text-white"
@@ -278,13 +359,13 @@ export default function Footer() {
         <div className="text-center sm:text-left">
           © 2025 WGTECSOL (Pvt.) Ltd. All rights reserved.{" "}
           <Link
-  href="/privacy-policy"
-  className={`text-[#9EFF00] hover:text-[#9EFF00]/80 underline font-bold ${
-    pathname === "/privacy-policy" ? "text-lime-400" : ""
-  }`}
->
-  Privacy Policy
-</Link>
+            href="/privacy-policy"
+            className={`text-[#9EFF00] hover:text-[#9EFF00]/80 underline font-bold ${
+              pathname === "/privacy-policy" ? "text-lime-400" : ""
+            }`}
+          >
+            Privacy Policy
+          </Link>
         </div>
         <div className="flex items-center gap-4 sm:gap-6"></div>
       </div>

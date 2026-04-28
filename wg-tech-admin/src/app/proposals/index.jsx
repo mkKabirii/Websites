@@ -93,7 +93,6 @@ const ProposalsManagement = () => {
     }
   }, [enqueueSnackbar]);
 
-
   const handleGetProposal = async (page = 1, limit = 10) => {
     setIsLoading(true);
 
@@ -124,8 +123,6 @@ const ProposalsManagement = () => {
     setDialogOpen(true);
   };
 
-
-
   const statusOptions = [
     { label: "Pending", value: "Pending" },
     { label: "Accepted", value: "Accepted" },
@@ -144,7 +141,7 @@ const ProposalsManagement = () => {
     // Always resolve the original row (with IDs), not the decorated table data
     const id = getRowId(rowOrId);
     const original = (proposal || []).find(
-      (p) => String(p._id || p.id) === String(id)
+      (p) => String(p._id || p.id) === String(id),
     );
     setEditData(original || rowOrId);
     setIsEdit(true);
@@ -155,7 +152,9 @@ const ProposalsManagement = () => {
     if (!rowOrId) return undefined;
     if (typeof rowOrId === "string") return rowOrId;
     if (typeof rowOrId === "number") return rowOrId;
-    return rowOrId._id || rowOrId.id || rowOrId.proposalId || rowOrId.proposal_id;
+    return (
+      rowOrId._id || rowOrId.id || rowOrId.proposalId || rowOrId.proposal_id
+    );
   };
 
   // ensure table shows service titles not ids
@@ -164,7 +163,11 @@ const ProposalsManagement = () => {
       Array.isArray(p.services) && services?.length
         ? p.services
             .map((sid) => {
-              const s = services.find((sv) => String(sv.id) === String(sid) || String(sv._id) === String(sid));
+              const s = services.find(
+                (sv) =>
+                  String(sv.id) === String(sid) ||
+                  String(sv._id) === String(sid),
+              );
               return s ? s.title : undefined;
             })
             .filter(Boolean)
@@ -222,10 +225,14 @@ const ProposalsManagement = () => {
       setIsLoading(true);
       const response = await updateProposals(rowId, { status });
       if (response.status === 200 || response.status === 201) {
-        enqueueSnackbar(response.data?.message || "Status updated", { variant: "success" });
+        enqueueSnackbar(response.data?.message || "Status updated", {
+          variant: "success",
+        });
         await handleGetProposal(currentPage, rowsPerPage);
       } else {
-        enqueueSnackbar(response.data?.message || "Failed to update status", { variant: "error" });
+        enqueueSnackbar(response.data?.message || "Failed to update status", {
+          variant: "error",
+        });
       }
     } catch (error) {
       enqueueSnackbar("Failed to update status", { variant: "error" });
@@ -241,10 +248,14 @@ const ProposalsManagement = () => {
       setIsLoading(true);
       const response = await updateProposals(rowId, { isActive });
       if (response.status === 200 || response.status === 201) {
-        enqueueSnackbar(response.data?.message || "Updated", { variant: "success" });
+        enqueueSnackbar(response.data?.message || "Updated", {
+          variant: "success",
+        });
         await handleGetProposal(currentPage, rowsPerPage);
       } else {
-        enqueueSnackbar(response.data?.message || "Failed to update", { variant: "error" });
+        enqueueSnackbar(response.data?.message || "Failed to update", {
+          variant: "error",
+        });
       }
     } catch (error) {
       enqueueSnackbar("Failed to update", { variant: "error" });
@@ -253,33 +264,35 @@ const ProposalsManagement = () => {
     }
   };
   const handleDeleteParposal = async (id) => {
-  try {
-    const confirmation = await deleteConfirm({
-      title: "Delete Proposal?",
-      text: "Are you sure you want to delete this proposal?",
-      confirmButtonText: "Delete"
-    });
+    try {
+      const confirmation = await deleteConfirm({
+        title: "Delete Proposal?",
+        text: "Are you sure you want to delete this proposal?",
+        confirmButtonText: "Delete",
+      });
 
-    if (!confirmation.isConfirmed) return;
+      if (!confirmation.isConfirmed) return;
 
-    setIsLoading(true);
+      setIsLoading(true);
 
-    const response = await deleteProposals(id);
-    console.log(response, "Deleted Proposal");
+      const response = await deleteProposals(id);
+      console.log(response, "Deleted Proposal");
 
-    if (response.status === 200 || response.status === 201) {
-      enqueueSnackbar(response.data.message, { variant: "success" });
-      await handleGetProposal(currentPage, rowsPerPage); // refresh table after delete
-    } else {
-      enqueueSnackbar(response.data.message, { variant: "error" });
+      if (response.status === 200 || response.status === 201) {
+        enqueueSnackbar(response.data.message, { variant: "success" });
+        await handleGetProposal(currentPage, rowsPerPage); // refresh table after delete
+      } else {
+        enqueueSnackbar(response.data.message, { variant: "error" });
+      }
+    } catch (error) {
+      console.log("Delete Proposal error:", error);
+      enqueueSnackbar("Something went wrong while deleting.", {
+        variant: "error",
+      });
+    } finally {
+      setIsLoading(false);
     }
-  } catch (error) {
-    console.log("Delete Proposal error:", error);
-    enqueueSnackbar("Something went wrong while deleting.", { variant: "error" });
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   const handlePageChange = (newPage, newRowsPerPage) => {
     setCurrentPage(newPage);
@@ -329,26 +342,28 @@ const ProposalsManagement = () => {
           </Box>
 
           {/* Add Proposal Button */}
-          {perms.isCreate && <Button
-            variant="contained"
-            startIcon={<Plus size={20} />}
-            onClick={handleAddProposal}
-            sx={{
-              backgroundColor: "#8CE600",
-              color: "#000000",
-              fontWeight: 600,
-              px: 3,
-              py: 1.5,
-              borderRadius: "12px",
-              textTransform: "none",
-              fontSize: "16px",
-              "&:hover": {
-                backgroundColor: "#00D4AA",
-              },
-            }}
-          >
-            Add Proposal
-          </Button>}
+          {perms.isCreate && (
+            <Button
+              variant="contained"
+              startIcon={<Plus size={20} />}
+              onClick={handleAddProposal}
+              sx={{
+                backgroundColor: "#8CE600",
+                color: "#000000",
+                fontWeight: 600,
+                px: 3,
+                py: 1.5,
+                borderRadius: "12px",
+                textTransform: "none",
+                fontSize: "16px",
+                "&:hover": {
+                  backgroundColor: "#7BCC00",
+                },
+              }}
+            >
+              Add Proposal
+            </Button>
+          )}
         </Box>
       </Box>
 

@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import MagnifyText from "./MagnifyText";
 
 interface BannerProps {
   bgImage: string;
@@ -15,7 +16,7 @@ export default function Banner({
   subheading,
 }: BannerProps) {
   return (
-    <section className="w-full mt-16 sm:mt-20 md:mt-24 lg:mt-28">
+    <section className="w-full">
       <div className="relative w-full overflow-hidden">
         {/* Responsive padding for different screen sizes */}
         <div className="py-16 sm:py-20 md:py-24 lg:py-32 px-4 sm:px-6 md:px-8 lg:px-12">
@@ -61,7 +62,7 @@ export default function Banner({
                 className="text-white font-bold leading-tight
       text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl"
               >
-                {heading}
+                <MagnifyText text={heading} />
               </h2>
 
               {headingTwo && (
@@ -69,7 +70,7 @@ export default function Banner({
                   className="text-white font-bold leading-tight
         text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl"
                 >
-                  {headingTwo}
+                  <MagnifyText text={headingTwo} />
                 </h2>
               )}
 

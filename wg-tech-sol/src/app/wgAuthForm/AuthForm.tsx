@@ -6,15 +6,15 @@ import {
   loginUser,
   forgotPasswordApi,
   resetPasswordApi,
-  registerUser,
 } from "@/api/module/auth";
 import Image from "next/image";
+import Link from "next/link";
 import { useAuthStore } from "@/zustand/authStore";
+import MagnifyText from "@/app/components/MagnifyText";
 
-type Mode = "login" | "signup" | "forgot" | "otp" | "reset";
+type Mode = "login" | "forgot" | "otp" | "reset";
 
 export default function AuthForm() {
-  const [fullname, setFullname] = useState("");
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -40,55 +40,44 @@ export default function AuthForm() {
       const res = await loginUser({ email: email.trim(), password });
       if (res.status === 200 || res.status === 201) {
         const data = res.data?.data;
+
+        // Backend returns { client, token } for client logins and { user, token } for admin/worker.
+        const client = data?.client;
+        const user = data?.user;
+        const normalizedUser = client
+          ? {
+              _id: client._id,
+              fullname: client.name || client.fullname || client.username,
+              email: client.email,
+              profilePicture: undefined,
+              nationalId: null,
+              designation: "client",
+              userType: "client",
+            }
+          : user
+            ? {
+                _id: user._id,
+                fullname: user.fullname || user.username,
+                email: user.email,
+                profilePicture: user.profileImage || user.profilePicture,
+                nationalId: user.nationalId || null,
+                designation: user.role || user.designation,
+                userType: user.role || "user",
+              }
+            : null;
+
+        if (!data?.token || !normalizedUser) {
+          toast.error("Login response missing token or user");
+          setIsSubmitting(false);
+          return;
+        }
+
         localStorage.setItem("token", data.token);
-        setAuth({ token: data.token, user: data.user });
+        setAuth({ token: data.token, user: normalizedUser });
         toast.success("Welcome back!");
         window.location.href = "/dashboard";
       } else {
         toast.error(res.data?.message || "Login failed");
-      }
-    } catch {
-      toast.error("Something went wrong");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // ✅ SIGNUP
-  const handleSignup = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!fullname.trim() || fullname.length < 3) {
-      toast.error("Name min 3 characters");
-      return;
-    }
-    if (!email.trim()) {
-      toast.error("Email required");
-      return;
-    }
-    if (!password || password.length < 6) {
-      toast.error("Password min 6 characters");
-      return;
-    }
-    if (password !== confirmPassword) {
-      toast.error("Passwords don't match");
-      return;
-    }
-    setIsSubmitting(true);
-    try {
-      const res = await registerUser({
-        fullname: fullname.trim(),
-        username: fullname.trim(),
-        email: email.trim(),
-        password,
-      });
-      if (res.status === 200 || res.status === 201) {
-        toast.success("Account created! Please login.");
-        setMode("login");
-        setFullname("");
-        setPassword("");
-        setConfirmPassword("");
-      } else {
-        toast.error(res.data?.message || "Signup failed");
       }
     } catch {
       toast.error("Something went wrong");
@@ -177,12 +166,6 @@ export default function AuthForm() {
       sub: "Access your dashboard",
       desc: "Track proposals, manage your profile and stay updated.",
     },
-    signup: {
-      emoji: "✨",
-      title: "Join Us!",
-      sub: "Create your account today",
-      desc: "Submit proposals, track projects and manage your profile.",
-    },
     forgot: {
       emoji: "📧",
       title: "Check Email!",
@@ -213,6 +196,11 @@ export default function AuthForm() {
         <div className="w-full md:w-1/2 p-8 md:p-10 bg-[#0d0d0d] flex flex-col justify-between">
           {/* Logo */}
           <div>
+            <div className="mb-4">
+              <Link href="/" className="text-[#9EFF00] text-xs hover:underline">
+                ← Back to Home
+              </Link>
+            </div>
             {/* <div className="mb-6">
               <span className="text-[#9EFF00] text-lg font-bold tracking-wide">WG Tech Solutions</span>
             </div> */}
@@ -231,7 +219,9 @@ export default function AuthForm() {
             {/* LOGIN */}
             {mode === "login" && (
               <>
-                <h1 className="text-white text-2xl font-bold mb-1">Sign In</h1>
+                <h1 className="text-white text-2xl font-bold mb-1">
+                  <MagnifyText text="Sign In" />
+                </h1>
                 <p className="text-gray-500 text-sm mb-6">
                   Enter your credentials to continue
                 </p>
@@ -289,120 +279,13 @@ export default function AuthForm() {
                     {isSubmitting ? "Signing in..." : "SIGN IN"}
                   </button>
                   <p className="text-center text-gray-500 text-xs pt-1">
-                    Don't have an account?{" "}
-                    <button
-                      type="button"
-                      onClick={() => setMode("signup")}
+                    Need an account?{" "}
+                    <Link
+                      href="/contact"
                       className="text-[#9EFF00] hover:underline font-semibold"
                     >
-                      Sign Up
-                    </button>
-                  </p>
-                </form>
-              </>
-            )}
-
-            {/* SIGNUP */}
-            {mode === "signup" && (
-              <>
-                <h1 className="text-white text-2xl font-bold mb-1">
-                  Create Account
-                </h1>
-                <p className="text-gray-500 text-sm mb-6">
-                  Join WG Tech Solutions today
-                </p>
-                <form onSubmit={handleSignup} className="space-y-3">
-                  <div>
-                    <label className={labelClass}>Full Name</label>
-                    <input
-                      type="text"
-                      value={fullname}
-                      onChange={(e) => setFullname(e.target.value)}
-                      placeholder="Muhammad Ali"
-                      required
-                      minLength={3}
-                      className={inputClass}
-                    />
-                  </div>
-                  <div>
-                    <label className={labelClass}>Email</label>
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="your@email.com"
-                      required
-                      className={inputClass}
-                    />
-                  </div>
-                  <div>
-                    <label className={labelClass}>Password</label>
-                    <div className="relative">
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="••••••••"
-                        required
-                        minLength={6}
-                        className={inputClass + " pr-12"}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className={eyeBtn}
-                      >
-                        {showPassword ? (
-                          <EyeOff size={16} />
-                        ) : (
-                          <Eye size={16} />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                  <div>
-                    <label className={labelClass}>Confirm Password</label>
-                    <div className="relative">
-                      <input
-                        type={showConfirmPassword ? "text" : "password"}
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="••••••••"
-                        required
-                        minLength={6}
-                        className={inputClass + " pr-12"}
-                      />
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setShowConfirmPassword(!showConfirmPassword)
-                        }
-                        className={eyeBtn}
-                      >
-                        {showConfirmPassword ? (
-                          <EyeOff size={16} />
-                        ) : (
-                          <Eye size={16} />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className={btnPrimary + " mt-1"}
-                  >
-                    {isSubmitting ? "Creating..." : "CREATE ACCOUNT"}
-                  </button>
-                  <p className="text-center text-gray-500 text-xs pt-1">
-                    Already have an account?{" "}
-                    <button
-                      type="button"
-                      onClick={() => setMode("login")}
-                      className="text-[#9EFF00] hover:underline font-semibold"
-                    >
-                      Sign In
-                    </button>
+                      Contact Us
+                    </Link>
                   </p>
                 </form>
               </>
@@ -412,7 +295,7 @@ export default function AuthForm() {
             {mode === "forgot" && (
               <>
                 <h1 className="text-white text-2xl font-bold mb-1">
-                  Forgot Password
+                  <MagnifyText text="Forgot Password" />
                 </h1>
                 <p className="text-gray-500 text-sm mb-6">
                   Enter your registered email to receive OTP
@@ -453,7 +336,7 @@ export default function AuthForm() {
             {mode === "otp" && (
               <>
                 <h1 className="text-white text-2xl font-bold mb-1">
-                  Verify OTP
+                  <MagnifyText text="Verify OTP" />
                 </h1>
                 <p className="text-gray-500 text-sm mb-1">
                   Code sent to <span className="text-[#9EFF00]">{email}</span>
@@ -497,7 +380,7 @@ export default function AuthForm() {
             {mode === "reset" && (
               <>
                 <h1 className="text-white text-2xl font-bold mb-1">
-                  New Password
+                  <MagnifyText text="New Password" />
                 </h1>
                 <p className="text-gray-500 text-sm mb-6">
                   Set your new secure password
@@ -569,24 +452,201 @@ export default function AuthForm() {
         </div>
 
         {/* ===== RIGHT PANEL ===== */}
-        <div className="w-full md:w-1/2 bg-gradient-to-br from-[#9EFF00] to-[#00D4AA] p-8 md:p-10 flex flex-col items-center justify-center text-center min-h-[280px] md:min-h-0">
-          <div className="text-5xl mb-5">{rp.emoji}</div>
-          <h2 className="text-black text-3xl font-bold mb-2">{rp.title}</h2>
-          <p className="text-black/70 text-base font-medium mb-1">{rp.sub}</p>
-          <p className="text-black/60 text-sm max-w-[260px] leading-relaxed">
-            {rp.desc}
-          </p>
+        <div className="w-full md:w-1/2 bg-[#0b0b0b] border-t md:border-t-0 md:border-l border-[#222] p-8 md:p-10 relative overflow-hidden">
+          {/* Animated tech lines (chip/bus data flow) */}
+          <div aria-hidden="true" className="wg-auth-tech-bg">
+            <div className="wg-auth-tech-glow wg-auth-tech-glow--tr" />
+            <div className="wg-auth-tech-glow wg-auth-tech-glow--bl" />
+            <div className="wg-auth-tech-fade" />
 
-          {/* Mode indicator dots */}
-          <div className="flex gap-2 mt-8">
-            {(["login", "signup", "forgot", "otp", "reset"] as Mode[]).map(
-              (m) => (
+            <div className="wg-auth-tech-lines">
+              <div
+                className="wg-auth-tech-line"
+                style={{
+                  top: "14%",
+                  ["--dur" as any]: "4.8s",
+                  ["--delay" as any]: "-1.2s",
+                }}
+              />
+              <div
+                className="wg-auth-tech-line"
+                style={{
+                  top: "24%",
+                  ["--dur" as any]: "3.6s",
+                  ["--delay" as any]: "-2.4s",
+                }}
+              />
+              <div
+                className="wg-auth-tech-line"
+                style={{
+                  top: "36%",
+                  ["--dur" as any]: "5.4s",
+                  ["--delay" as any]: "-0.6s",
+                }}
+              />
+              <div
+                className="wg-auth-tech-line"
+                style={{
+                  top: "48%",
+                  ["--dur" as any]: "4.1s",
+                  ["--delay" as any]: "-3.1s",
+                }}
+              />
+              <div
+                className="wg-auth-tech-line"
+                style={{
+                  top: "60%",
+                  ["--dur" as any]: "6.2s",
+                  ["--delay" as any]: "-2.0s",
+                }}
+              />
+              <div
+                className="wg-auth-tech-line"
+                style={{
+                  top: "72%",
+                  ["--dur" as any]: "3.9s",
+                  ["--delay" as any]: "-1.8s",
+                }}
+              />
+              <div
+                className="wg-auth-tech-line"
+                style={{
+                  top: "84%",
+                  ["--dur" as any]: "5.9s",
+                  ["--delay" as any]: "-0.9s",
+                }}
+              />
+
+              {/* Vertical traces */}
+              <div
+                className="wg-auth-tech-vline"
+                style={{
+                  left: "10%",
+                  ["--dur" as any]: "5.8s",
+                  ["--delay" as any]: "-2.2s",
+                }}
+              />
+              <div
+                className="wg-auth-tech-vline"
+                style={{
+                  left: "26%",
+                  ["--dur" as any]: "4.9s",
+                  ["--delay" as any]: "-1.3s",
+                }}
+              />
+              <div
+                className="wg-auth-tech-vline"
+                style={{
+                  left: "44%",
+                  ["--dur" as any]: "6.3s",
+                  ["--delay" as any]: "-3.1s",
+                }}
+              />
+              <div
+                className="wg-auth-tech-vline"
+                style={{
+                  left: "68%",
+                  ["--dur" as any]: "5.2s",
+                  ["--delay" as any]: "-0.9s",
+                }}
+              />
+              <div
+                className="wg-auth-tech-vline"
+                style={{
+                  left: "86%",
+                  ["--dur" as any]: "6.9s",
+                  ["--delay" as any]: "-2.8s",
+                }}
+              />
+
+              {/* Turning network paths (L-shapes) */}
+              <div
+                className="wg-auth-tech-path wg-auth-tech-path--hv"
+                style={{
+                  left: "8%",
+                  top: "18%",
+                  ["--w" as any]: "240px",
+                  ["--h" as any]: "120px",
+                  ["--elbow" as any]: "140px",
+                  ["--dur" as any]: "6.4s",
+                  ["--delay" as any]: "-1.8s",
+                  ["--rot" as any]: "-6deg",
+                }}
+              />
+              <div
+                className="wg-auth-tech-path wg-auth-tech-path--vh"
+                style={{
+                  left: "62%",
+                  top: "8%",
+                  ["--w" as any]: "210px",
+                  ["--h" as any]: "150px",
+                  ["--elbow" as any]: "86px",
+                  ["--dur" as any]: "5.7s",
+                  ["--delay" as any]: "-2.6s",
+                  ["--rot" as any]: "10deg",
+                }}
+              />
+              <div
+                className="wg-auth-tech-path wg-auth-tech-path--hv"
+                style={{
+                  left: "22%",
+                  top: "58%",
+                  ["--w" as any]: "260px",
+                  ["--h" as any]: "130px",
+                  ["--elbow" as any]: "110px",
+                  ["--dur" as any]: "7.2s",
+                  ["--delay" as any]: "-3.4s",
+                  ["--rot" as any]: "4deg",
+                }}
+              />
+              <div
+                className="wg-auth-tech-path wg-auth-tech-path--vh"
+                style={{
+                  left: "6%",
+                  top: "72%",
+                  ["--w" as any]: "200px",
+                  ["--h" as any]: "140px",
+                  ["--elbow" as any]: "92px",
+                  ["--dur" as any]: "6.1s",
+                  ["--delay" as any]: "-0.7s",
+                  ["--rot" as any]: "-12deg",
+                }}
+              />
+              <div
+                className="wg-auth-tech-path wg-auth-tech-path--hv"
+                style={{
+                  left: "58%",
+                  top: "46%",
+                  ["--w" as any]: "230px",
+                  ["--h" as any]: "120px",
+                  ["--elbow" as any]: "150px",
+                  ["--dur" as any]: "5.4s",
+                  ["--delay" as any]: "-4.1s",
+                  ["--rot" as any]: "-2deg",
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="relative z-10 flex flex-col items-center justify-center text-center min-h-[280px] md:min-h-0">
+            <div className="text-5xl mb-5 text-[#9EFF00]">{rp.emoji}</div>
+            <h2 className="text-[#9EFF00] text-3xl font-bold mb-2">
+              {rp.title}
+            </h2>
+            <p className="text-white/80 text-base font-medium mb-1">{rp.sub}</p>
+            <p className="text-white/60 text-sm max-w-[260px] leading-relaxed">
+              {rp.desc}
+            </p>
+
+            {/* Mode indicator dots */}
+            <div className="flex gap-2 mt-8">
+              {(["login", "forgot", "otp", "reset"] as Mode[]).map((m) => (
                 <div
                   key={m}
-                  className={`w-2 h-2 rounded-full transition-all ${mode === m ? "bg-black w-5" : "bg-black/30"}`}
+                  className={`h-2 rounded-full transition-all ${mode === m ? "bg-[#9EFF00] w-5" : "bg-white/25 w-2"}`}
                 />
-              ),
-            )}
+              ))}
+            </div>
           </div>
         </div>
       </div>

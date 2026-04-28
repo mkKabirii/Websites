@@ -248,105 +248,105 @@ const ProjectsUpdatesManagement = () => {
             </Typography>
           </Box>
 
-          {perms.isCreate && <Button
-            variant="contained"
-            startIcon={<Plus size={20} />}
-            onClick={handleAddUpdate}
-            sx={{
-              backgroundColor: "#8CE600",
-              color: "#000000",
-              fontWeight: 600,
-              px: 3,
-              py: 1.5,
-              borderRadius: "12px",
-              textTransform: "none",
-              fontSize: "16px",
-              "&:hover": {
-                backgroundColor: "#00D4AA",
-              },
-            }}
-          >
-            Add Update
-          </Button>}
-        </Box>
-
-
-
-        {isLoading ? (
-          Array.from({ length: 3 }).map((_, index) => (
-            <ProgressCardSkeleton key={index} />
-          ))
-        ) : (
-          updatesData.map((item) => (
-            <Card
-              key={item.id}
+          {perms.isCreate && (
+            <Button
+              variant="contained"
+              startIcon={<Plus size={20} />}
+              onClick={handleAddUpdate}
               sx={{
-                my: 2,
-                backgroundColor: "#1A1A1A",
-                borderRadius: "16px",
-                overflow: "hidden",
-                border: "1px solid #333333",
-                transition: "all 0.3s ease",
+                backgroundColor: "#8CE600",
+                color: "#000000",
+                fontWeight: 600,
+                px: 3,
+                py: 1.5,
+                borderRadius: "12px",
+                textTransform: "none",
+                fontSize: "16px",
                 "&:hover": {
-                  transform: "translateY(-4px)",
-                  boxShadow: "0 8px 25px rgba(140, 230, 0, 0.15)",
-                  borderColor: "#8CE600",
+                  backgroundColor: "#7BCC00",
                 },
               }}
             >
-              {/* Header with Title and Actions */}
-              <Box
+              Add Update
+            </Button>
+          )}
+        </Box>
+
+        {isLoading
+          ? Array.from({ length: 3 }).map((_, index) => (
+              <ProgressCardSkeleton key={index} />
+            ))
+          : updatesData.map((item) => (
+              <Card
+                key={item.id}
                 sx={{
-                  p: 3,
-                  backgroundColor: "#2A2A2A",
-                  borderBottom: "1px solid #333333",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
+                  my: 2,
+                  backgroundColor: "#1A1A1A",
+                  borderRadius: "16px",
+                  overflow: "hidden",
+                  border: "1px solid #333333",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    transform: "translateY(-4px)",
+                    boxShadow: "0 8px 25px rgba(140, 230, 0, 0.15)",
+                    borderColor: "#8CE600",
+                  },
                 }}
               >
-                <Box>
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      color: "#FFFFFF",
-                      fontWeight: 600,
-                      fontSize: "1.3rem",
-                      mb: 0.5,
-                    }}
-                  >
-                    {item.title}
-                  </Typography>
-                  {item.proposalId && (
+                {/* Header with Title and Actions */}
+                <Box
+                  sx={{
+                    p: 3,
+                    backgroundColor: "#2A2A2A",
+                    borderBottom: "1px solid #333333",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <Box>
                     <Typography
-                      variant="body2"
+                      variant="h6"
                       sx={{
-                        color: "#8CE600",
-                        fontSize: "0.9rem",
-                        fontWeight: 500,
+                        color: "#FFFFFF",
+                        fontWeight: 600,
+                        fontSize: "1.3rem",
+                        mb: 0.5,
                       }}
                     >
-                      Proposal #{item.proposalId.proposalId} -{" "}
-                      {item.proposalId.fullname}
-
+                      {item.title}
                     </Typography>
-                  )}
-                </Box>
+                    {item.proposalId && (
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "#8CE600",
+                          fontSize: "0.9rem",
+                          fontWeight: 500,
+                        }}
+                      >
+                        Proposal #{item.proposalId.proposalId} -{" "}
+                        {item.proposalId.fullname}
+                      </Typography>
+                    )}
+                  </Box>
 
-                <Box sx={{ display: "flex", gap: 1 }}>
-                  {perms.isEdit && <IconButton
-                    onClick={() => handleEditUpdate(item)}
-                    sx={{
-                      color: "#8CE600",
-                      backgroundColor: "#333333",
-                      "&:hover": {
-                        backgroundColor: "#444444",
-                      },
-                    }}
-                  >
-                    <Edit size={18} />
-                  </IconButton>}
-                  {/* {perms.isDelete && <IconButton
+                  <Box sx={{ display: "flex", gap: 1 }}>
+                    {perms.isEdit && (
+                      <IconButton
+                        onClick={() => handleEditUpdate(item)}
+                        sx={{
+                          color: "#8CE600",
+                          backgroundColor: "#333333",
+                          "&:hover": {
+                            backgroundColor: "#444444",
+                          },
+                        }}
+                      >
+                        <Edit size={18} />
+                      </IconButton>
+                    )}
+                    {/* {perms.isDelete && <IconButton
                     onClick={() => handleDeleteUpdate(item.id)}
                     sx={{
                       color: "#FF5050",
@@ -358,92 +358,91 @@ const ProjectsUpdatesManagement = () => {
                   >
                     <Trash size={18} />
                   </IconButton>} */}
+                  </Box>
                 </Box>
-              </Box>
 
-              {/* Image Carousel */}
-              {item.images.length > 0 && (
-                <Box sx={{ backgroundColor: "#2A2A2A", p: 7 }}>
-                  <Slider {...sliderSettings}>
-                    {item.images.map((image, index) => (
-                      <Box key={index} sx={{ px: 1 }}>
-                        <CardMedia
-                          component="img"
-                          image={image}
-                          alt={`${item.title} - Image ${index + 1}`}
-                          sx={{
-                            height: 300,
-                            borderRadius: "12px",
-                            objectFit: "cover",
-                            border: "2px solid #333333",
-                          }}
-                        />
-                      </Box>
-                    ))}
-                  </Slider>
-                </Box>
-              )}
+                {/* Image Carousel */}
+                {item.images.length > 0 && (
+                  <Box sx={{ backgroundColor: "#2A2A2A", p: 7 }}>
+                    <Slider {...sliderSettings}>
+                      {item.images.map((image, index) => (
+                        <Box key={index} sx={{ px: 1 }}>
+                          <CardMedia
+                            component="img"
+                            image={image}
+                            alt={`${item.title} - Image ${index + 1}`}
+                            sx={{
+                              height: 300,
+                              borderRadius: "12px",
+                              objectFit: "cover",
+                              border: "2px solid #333333",
+                            }}
+                          />
+                        </Box>
+                      ))}
+                    </Slider>
+                  </Box>
+                )}
 
-              {/* Description */}
-              <CardContent sx={{ p: 3 }}>
-                <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
-                  <Avatar
-                    sx={{
-                      backgroundColor: "#8CE600",
-                      width: 32,
-                      height: 32,
-                    }}
-                  >
-                    <FileText size={18} color="#000" />
-                  </Avatar>
+                {/* Description */}
+                <CardContent sx={{ p: 3 }}>
                   <Box
+                    sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}
+                  >
+                    <Avatar
+                      sx={{
+                        backgroundColor: "#8CE600",
+                        width: 32,
+                        height: 32,
+                      }}
+                    >
+                      <FileText size={18} color="#000" />
+                    </Avatar>
+                    <Box
+                      sx={{
+                        color: "#B0B0B0",
+                        // lineHeight: 1.6,
+                        fontSize: "14px",
+                        textAlign: "justify",
+                        marginTop: "0px",
+                        "& p": {
+                          margin: 0,
+                          marginBottom: "8px",
+                        },
 
-                    sx={{
-                      color: "#B0B0B0",
-                      // lineHeight: 1.6,
-                      fontSize: "14px",
-                      textAlign: "justify",
-                      marginTop: "0px",
-                      "& p": {
-                        margin: 0,
-                        marginBottom: "8px",
-                      },
-
-                      "& p:last-child": {
-                        marginBottom: 0,
-                      },
-                      "& strong": {
-                        color: "#FFFFFF",
-                        fontWeight: 600,
-                      },
-                      "& em": {
-                        fontStyle: "italic",
-                      },
-                      "& ul, & ol": {
-                        paddingLeft: "20px",
-                        marginBottom: "8px",
-                      },
-                      "& li": {
-                        marginBottom: "4px",
-                      },
-                      "& h2": {
-                        margin: 0,
-                        padding: 0
-                      },
-                      // maxHeight: 120,
-                      overflow: "hidden",
-                    }}
-                    dangerouslySetInnerHTML={{
-                      __html: decodeHtml(item.description || ""),
-                    }}
-                  />
-                </Box>
-              </CardContent>
-            </Card>
-          ))
-        )}
+                        "& p:last-child": {
+                          marginBottom: 0,
+                        },
+                        "& strong": {
+                          color: "#FFFFFF",
+                          fontWeight: 600,
+                        },
+                        "& em": {
+                          fontStyle: "italic",
+                        },
+                        "& ul, & ol": {
+                          paddingLeft: "20px",
+                          marginBottom: "8px",
+                        },
+                        "& li": {
+                          marginBottom: "4px",
+                        },
+                        "& h2": {
+                          margin: 0,
+                          padding: 0,
+                        },
+                        // maxHeight: 120,
+                        overflow: "hidden",
+                      }}
+                      dangerouslySetInnerHTML={{
+                        __html: decodeHtml(item.description || ""),
+                      }}
+                    />
+                  </Box>
+                </CardContent>
+              </Card>
+            ))}
       </Box>
-
 
       {/* Add/Edit Dialog */}
       <AddEditProjectUpdatesDialog

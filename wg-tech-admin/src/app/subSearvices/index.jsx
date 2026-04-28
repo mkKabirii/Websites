@@ -46,15 +46,15 @@ const SubServicesManagement = () => {
   const [subService, setSubService] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [services, setService] = useState([]);
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
   const [total, setTotal] = useState(0);
-  
-  console.log(services,'servicesservices');
-  
+
+  console.log(services, "servicesservices");
+
   useEffect(() => {
     fetchServices();
     handleGetSubService(currentPage, rowsPerPage);
@@ -85,7 +85,7 @@ const SubServicesManagement = () => {
       setIsLoading(false);
     }
   };
-  
+
   const handleGetSubService = async (page = 1, limit = 10) => {
     setIsLoading(true);
     try {
@@ -127,7 +127,7 @@ const SubServicesManagement = () => {
 
   const handleEditSubService = (subServiceId) => {
     const subServicess = subService.find((s) => s._id === subServiceId);
-    
+
     if (subServicess) {
       setEditData(subServicess);
       setIsEdit(true);
@@ -171,33 +171,33 @@ const SubServicesManagement = () => {
     }
   };
 
-//   const handleDeleteSubService = async (id) => {
-//   const result = await deleteConfirm({
-//     title: "Delete Sub Service?",
-//     text: "Are you sure you want to delete the sub service?",
-//     confirmButtonText: "Delete"
-//   });
+  //   const handleDeleteSubService = async (id) => {
+  //   const result = await deleteConfirm({
+  //     title: "Delete Sub Service?",
+  //     text: "Are you sure you want to delete the sub service?",
+  //     confirmButtonText: "Delete"
+  //   });
 
-//   if (result.isConfirmed) {
-//     setIsLoading(true);
-//     try {
-//       const response = await deleteSubService(id);
+  //   if (result.isConfirmed) {
+  //     setIsLoading(true);
+  //     try {
+  //       const response = await deleteSubService(id);
 
-//       if (response.status === 200 || response.status === 201) {
-//         Swal.fire("Deleted!", response.data.message, "success");
-//         await handleGetSubService(currentPage, rowsPerPage);
-//       } else {
-//         enqueueSnackbar(response.data.message, { variant: "error" });
-//       }
+  //       if (response.status === 200 || response.status === 201) {
+  //         Swal.fire("Deleted!", response.data.message, "success");
+  //         await handleGetSubService(currentPage, rowsPerPage);
+  //       } else {
+  //         enqueueSnackbar(response.data.message, { variant: "error" });
+  //       }
 
-//     } catch (error) {
-//       console.log(error);
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   }
-// };
-const handleDeleteSubService = async (id) => {
+  //     } catch (error) {
+  //       console.log(error);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   }
+  // };
+  const handleDeleteSubService = async (id) => {
     try {
       const result = await deleteConfirm({
         title: "Delete Sub Service?",
@@ -209,15 +209,13 @@ const handleDeleteSubService = async (id) => {
 
       setIsLoading(true);
 
-      
       const response = await deleteSubService(id);
-        console.log(response, 'delete sub service');
-        
+      console.log(response, "delete sub service");
+
       if (response.status === 200 || response.status === 201) {
         enqueueSnackbar(response.data.message, { variant: "sucess" });
-        
 
-         handleGetSubService(currentPage, rowsPerPage);
+        handleGetSubService(currentPage, rowsPerPage);
       } else {
         enqueueSnackbar(response.data.message, { variant: "error" });
       }
@@ -227,7 +225,7 @@ const handleDeleteSubService = async (id) => {
       setIsLoading(false);
     }
   };
-  
+
   return (
     <Box sx={{ p: 3 }}>
       {/* Header Section */}
@@ -252,31 +250,33 @@ const handleDeleteSubService = async (id) => {
       </Box>
 
       {/* Add Button */}
-      {perms.isCreate && <Box sx={{ mb: 3, display: "flex", justifyContent: "flex-end" }}>
-        <Button
-          variant="contained"
-          startIcon={<Plus size={20} />}
-          onClick={handleAddSubService}
-          sx={{
-            background: "linear-gradient(135deg, #8CE600 0%, #00D4AA 100%)",
-            color: "#000",
-            fontWeight: 600,
-            px: 3,
-            py: 1.5,
-            borderRadius: "12px",
-            textTransform: "none",
-            fontSize: "16px",
-            "&:hover": {
-              background: "linear-gradient(135deg, #7DD500 0%, #00C4A0 100%)",
-              transform: "translateY(-2px)",
-              boxShadow: "0 8px 25px rgba(140, 230, 0, 0.3)",
-            },
-            transition: "all 0.3s ease",
-          }}
-        >
-          Add New Sub Service
-        </Button>
-      </Box>}
+      {perms.isCreate && (
+        <Box sx={{ mb: 3, display: "flex", justifyContent: "flex-end" }}>
+          <Button
+            variant="contained"
+            startIcon={<Plus size={20} />}
+            onClick={handleAddSubService}
+            sx={{
+              backgroundColor: "#8CE600",
+              color: "#000",
+              fontWeight: 600,
+              px: 3,
+              py: 1.5,
+              borderRadius: "12px",
+              textTransform: "none",
+              fontSize: "16px",
+              "&:hover": {
+                backgroundColor: "#7BCC00",
+                transform: "translateY(-2px)",
+                boxShadow: "0 8px 25px rgba(140, 230, 0, 0.3)",
+              },
+              transition: "all 0.3s ease",
+            }}
+          >
+            Add New Sub Service
+          </Button>
+        </Box>
+      )}
 
       {/* Table Container */}
       <Paper

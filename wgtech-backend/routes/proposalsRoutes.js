@@ -18,7 +18,7 @@ router.get("/:id", protect, getProposalById);
 router.put("/:id", protect, updateProposal);
 router.patch("/:id/status", protect, updateProposalStatus);
 router.delete("/:id", protect, deleteProposal);
-router.post("/:id/send-email", sendProposalEmail); //new routes add here
+router.post("/:id/send-email", protect, sendProposalEmail);
 
 module.exports = router;
 

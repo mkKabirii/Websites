@@ -1,0 +1,460 @@
+/* ClientChatWindow.css */
+.client-chat-window {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #0b0b0b;
+}
+
+.client-messages-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.client-messages-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.client-messages-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.client-messages-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 3px;
+}
+
+.client-messages-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(158, 255, 0, 0.28);
+}
+
+.client-messages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.client-message {
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.client-message.own {
+  justify-content: flex-end;
+}
+
+.client-message.other {
+  justify-content: flex-start;
+}
+
+.client-message-image {
+  max-width: 260px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.client-message-image img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.client-image-actions {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.client-image-actions button {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.86);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.client-image-actions button:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(158, 255, 0, 0.24);
+}
+
+.client-message-file {
+  max-width: 260px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.client-message-file a {
+  color: #9eff00;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.client-message-file a:hover {
+  text-decoration: underline;
+}
+
+.message-bubble {
+  max-width: 70%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  line-height: 1.4;
+}
+
+.client-message.own .message-bubble {
+  background: linear-gradient(
+    135deg,
+    rgba(158, 255, 0, 0.98) 0%,
+    rgba(140, 230, 0, 0.92) 100%
+  );
+  color: #000;
+  border-bottom-right-radius: 2px;
+}
+
+.client-message.other .message-bubble {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom-left-radius: 2px;
+  color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
+}
+
+.typing-indicator-bubble {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 8px 12px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
+}
+
+.typing-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(158, 255, 0, 0.65);
+  animation: typingPulse 1.2s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes typingPulse {
+  0%,
+  80%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+
+  40% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+.message-bubble p {
+  margin: 0;
+  font-size: 14px;
+  word-wrap: break-word;
+  white-space: pre-line;
+}
+
+.message-time {
+  font-size: 11px;
+  opacity: 0.7;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  justify-content: flex-end;
+}
+
+.client-message.other .message-time {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.client-message.own .message-time {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.read-status {
+  display: flex;
+  align-items: center;
+}
+
+.status-notification {
+  width: 100%;
+  padding: 12px;
+  background: rgba(158, 255, 0, 0.08);
+  border-left: 3px solid rgba(158, 255, 0, 0.65);
+  border-radius: 6px;
+  text-align: center;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.status-notification p {
+  margin: 0 0 6px 0;
+}
+
+.status-notification p:last-child {
+  margin: 0;
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.empty-chat-messages {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 14px;
+}
+
+/* Message Input */
+.client-message-input-form {
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0 0 14px 14px;
+}
+
+.client-file-upload-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.client-file-upload-btn input {
+  display: none;
+}
+
+.client-file-upload-btn:hover {
+  color: #9eff00;
+  border-color: rgba(158, 255, 0, 0.35);
+}
+
+.client-message-input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 20px;
+  outline: none;
+  font-size: 14px;
+  font-family: inherit;
+  resize: none;
+  max-height: 80px;
+  transition: border-color 0.3s;
+  background-color: rgba(0, 0, 0, 0.35);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.client-message-input::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.client-message-input:focus {
+  border-color: rgba(158, 255, 0, 0.7);
+}
+
+.client-send-button {
+  background: linear-gradient(
+    180deg,
+    rgba(158, 255, 0, 0.98) 0%,
+    rgba(140, 230, 0, 0.92) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #000;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+}
+
+.client-send-button:hover:not(:disabled) {
+  transform: scale(1.05);
+}
+
+.client-send-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Quotation card (theme) */
+.message-quotation {
+  max-width: 100%;
+}
+
+.quotation-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 12px;
+  max-width: 320px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
+}
+
+.quotation-image {
+  width: 100%;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  max-height: 150px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.quotation-title {
+  font-weight: 800;
+  font-size: 14px;
+  margin-bottom: 4px;
+  color: #9eff00;
+}
+
+.quotation-subtitle {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.65);
+  margin-bottom: 6px;
+}
+
+.quotation-desc {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.quotation-total {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.quotation-signed {
+  margin-top: 10px;
+}
+
+.quotation-signed-banner {
+  background: rgba(158, 255, 0, 0.1);
+  color: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(158, 255, 0, 0.28);
+  padding: 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.quotation-signed-details {
+  margin-top: 8px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.5;
+}
+
+.quotation-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.quotation-btn {
+  flex: 1;
+  padding: 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.88);
+  transition:
+    transform 0.15s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.quotation-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(158, 255, 0, 0.24);
+}
+
+.quotation-btn:active {
+  transform: scale(0.98);
+}
+
+.quotation-btn--ghost {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.quotation-btn--primary {
+  background: linear-gradient(
+    180deg,
+    rgba(158, 255, 0, 0.98) 0%,
+    rgba(140, 230, 0, 0.92) 100%
+  );
+  color: #000;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.quotation-btn--primary:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.quotation-btn--full {
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .client-chat-window {
+    border-radius: 0;
+  }
+
+  .message-bubble {
+    max-width: 85%;
+    font-size: 13px;
+  }
+
+  .client-message-input-form {
+    border-radius: 0;
+  }
+}

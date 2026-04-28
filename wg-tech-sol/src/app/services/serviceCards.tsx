@@ -9,17 +9,26 @@ type ServiceCardProps = {
   description: string;
   serviceId: string;
   subServiceId: string;
+  anchorId?: string;
 };
 
-function ServiceCard({ image, title, description, serviceId, subServiceId }: ServiceCardProps) {
+function ServiceCard({
+  image,
+  title,
+  description,
+  serviceId,
+  subServiceId,
+  anchorId,
+}: ServiceCardProps) {
   const contactUrl = `/contact?serviceId=${serviceId}&subServiceId=${subServiceId}`;
-  
+
   return (
     <Link href={contactUrl}>
       <div
         data-aos="fade-up"
         data-aos-anchor-placement="top-bottom"
-        className="group relative block mx-auto w-full sm:w-auto
+        id={anchorId}
+        className="wg-card group relative block mx-auto w-full sm:w-auto scroll-mt-28
     min-h-[160px] p-6 flex flex-col items-start
     overflow-hidden rounded-2xl
     border border-gray-500 bg-transparent
@@ -80,6 +89,13 @@ interface OurServiceProps {
   serviceData: OurServiceType[];
 }
 
+const slugify = (value: string) =>
+  value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
 export function ServicesGrid({ serviceData }: OurServiceProps) {
   console.log(serviceData, "serviceDataserviceDataAAAAAAAAAAAAA");
   return (
@@ -87,16 +103,28 @@ export function ServicesGrid({ serviceData }: OurServiceProps) {
       <div className="max-w-[1500px] mx-auto">
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {serviceData.map((service) =>
-            service?.subServices?.map((sub) => (
-              <ServiceCard
-                key={sub._id}
-                image={sub.image ?? "/images/Icon.png"}
-                title={sub.title}
-                description={sub.description ?? ""}
-                serviceId={service._id}
-                subServiceId={sub._id}
-              />
-            ))
+            service?.subServices?.map((sub) =>
+              (() => {
+                const serviceSlug = slugify(service.title || "");
+                const subSlug = slugify(sub.title || "");
+                const anchorId =
+                  serviceSlug && subSlug
+                    ? `${serviceSlug}-${subSlug}`
+                    : subSlug || serviceSlug;
+
+                return (
+                  <ServiceCard
+                    key={sub._id}
+                    image={sub.image ?? "/images/Icon.png"}
+                    title={sub.title}
+                    description={sub.description ?? ""}
+                    serviceId={service._id}
+                    subServiceId={sub._id}
+                    anchorId={anchorId}
+                  />
+                );
+              })(),
+            ),
           )}
         </div>
       </div>

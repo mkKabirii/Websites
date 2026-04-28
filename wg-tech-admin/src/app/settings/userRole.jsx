@@ -28,7 +28,13 @@ const UserRole = () => {
     { id: "actions", title: "Actions", align: "center" },
   ];
 
-  const displayRows = ["id", "roleName", "totalRoutes", "assignedPages", "actions"];
+  const displayRows = [
+    "id",
+    "roleName",
+    "totalRoutes",
+    "assignedPages",
+    "actions",
+  ];
 
   const [userRoleData, setUserRoleData] = useState([]);
   const [isTableLoading, setIsTableLoading] = useState(false);
@@ -174,37 +180,39 @@ const UserRole = () => {
         assignedPages: formatAssignedPages(role.routes),
         totalRoutes: role.totalRoutes ?? role.routes?.length ?? 0,
       })),
-    [userRoleData]
+    [userRoleData],
   );
 
   return (
     <Box sx={{ p: 3 }}>
       {/* Add Button */}
-      {perms.isCreate && <Box sx={{ mb: 3, display: "flex", justifyContent: "flex-end" }}>
-        <Button
-          variant="contained"
-          startIcon={<Plus size={20} />}
-          onClick={handleAddUserRole}
-          sx={{
-            background: "linear-gradient(135deg, #8CE600 0%, #00D4AA 100%)",
-            color: "#000",
-            fontWeight: 600,
-            px: 3,
-            py: 1.5,
-            borderRadius: "12px",
-            textTransform: "none",
-            fontSize: "16px",
-            "&:hover": {
-              background: "linear-gradient(135deg, #7DD500 0%, #00C4A0 100%)",
-              transform: "translateY(-2px)",
-              boxShadow: "0 8px 25px rgba(140, 230, 0, 0.3)",
-            },
-            transition: "all 0.3s ease",
-          }}
-        >
-          Add New Role
-        </Button>
-      </Box>}
+      {perms.isCreate && (
+        <Box sx={{ mb: 3, display: "flex", justifyContent: "flex-end" }}>
+          <Button
+            variant="contained"
+            startIcon={<Plus size={20} />}
+            onClick={handleAddUserRole}
+            sx={{
+              backgroundColor: "#8CE600",
+              color: "#000",
+              fontWeight: 600,
+              px: 3,
+              py: 1.5,
+              borderRadius: "12px",
+              textTransform: "none",
+              fontSize: "16px",
+              "&:hover": {
+                backgroundColor: "#7BCC00",
+                transform: "translateY(-2px)",
+                boxShadow: "0 8px 25px rgba(140, 230, 0, 0.3)",
+              },
+              transition: "all 0.3s ease",
+            }}
+          >
+            Add New Role
+          </Button>
+        </Box>
+      )}
 
       {/* Table Container */}
       <Paper

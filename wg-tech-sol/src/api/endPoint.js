@@ -1,6 +1,7 @@
 const ENDPOINTS = {
   // Auth Endpoints
   loginUser: "v1/users/login",
+  // loginUser: "v1/auth/login",
   // about us
   getAboutUs: "v1/aboutus/web",
   // service

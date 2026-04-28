@@ -9,6 +9,12 @@ const {
   updateApplicationStatusSchema,
   mongoIdSchema,
 } = require("../utils/validation");
+const { buildApplicationStatusEmail } = require("../utils/emailTemplates");
+const { enqueueEmail } = require("../utils/emailQueue");
+const {
+  createNotification,
+  notifyAdmins,
+} = require("../utils/notificationService");
 
 // Create Application
 const createApplication = catchAsync(async (req, res, next) => {
@@ -21,38 +27,48 @@ const createApplication = catchAsync(async (req, res, next) => {
   }
 
   const application = await Applications.create(validatedData);
+  let emailStatus = {
+    sent: false,
+    error: null,
+  };
 
   // createApplication function mein — application create ke baad add karo:
 try {
   const Settings = require("../model/settingsModal");
-  const EmailService = require("../utils/emailService");
   const settings = await Settings.findOne();
-  const emailService = new EmailService(application.email);
 
-  if (settings?.applicationEmailTemplate) {
-    const compiledHtml = settings.applicationEmailTemplate
-      .replace(/{{fullname}}/g, `${application.firstName} ${application.lastName}`)
-      .replace(/{{email}}/g, application.email)
-      .replace(/{{position}}/g, application.jobTitle || "General Application");
+  const pendingTemplate = buildApplicationStatusEmail("pending", {
+    applicantName: `${application.firstName} ${application.lastName}`,
+    position: application.jobTitle || "General Application",
+  });
 
-    await emailService.send({
-      subject: "✅ Application Received - WG Tech Solutions",
-      message: compiledHtml,
-    });
-  } else {
-    await emailService.send({
-      subject: "✅ Application Received - WG Tech Solutions",
-      template: "applicationConfirmation",
-      templateData: {
-        fullname: `${application.firstName} ${application.lastName}`,
-        email: application.email,
-        position: application.jobTitle || "General Application",
-      },
-    });
-  }
+  enqueueEmail({
+    to: application.email,
+    subject: pendingTemplate.subject,
+    message: pendingTemplate.message,
+    senderEmail: settings?.senderEmail || null,
+  });
+
+  emailStatus.sent = true;
 } catch (emailError) {
+  emailStatus.error = emailError.message;
   console.error("📧 Email send failed:", emailError.message);
 }
+
+  notifyAdmins({
+    title: `New application from ${application.firstName} ${application.lastName}`,
+    message: application.email || "A new application was submitted.",
+    type: "application",
+    entityId: application._id,
+    entityType: "Application",
+    link: `/applied-form`,
+    metadata: {
+      status: application.status,
+      email: application.email,
+    },
+  }).catch((notificationError) => {
+    console.error("Application notification failed:", notificationError.message);
+  });
 
     // ✅ Email bhejo application for add kia ha?
   // try {
@@ -73,8 +89,13 @@ try {
 
   successHandler(
     res,
-    application,
-    "Application created successfully",
+    {
+      ...application.toObject(),
+      emailStatus,
+    },
+    emailStatus.sent
+      ? "Application created successfully"
+      : "Application created, but confirmation email could not be delivered",
     201
   );
 });
@@ -193,6 +214,43 @@ const updateApplicationStatus = catchAsync(async (req, res, next) => {
   if (!application) {
     return next(new AppError("Application not found", 404));
   }
+
+  try {
+    const Settings = require("../model/settingsModal");
+    const settings = await Settings.findOne();
+
+    const statusTemplate = buildApplicationStatusEmail(validatedData.status, {
+      applicantName: `${application.firstName} ${application.lastName}`,
+      position: application.jobTitle || "General Application",
+      joiningDate: "To be shared",
+      department: "To be shared",
+    });
+
+    enqueueEmail({
+      to: application.email,
+      subject: statusTemplate.subject,
+      message: statusTemplate.message,
+      senderEmail: settings?.senderEmail || null,
+    });
+  } catch (emailError) {
+    console.error("📧 Application status email send failed:", emailError.message);
+  }
+
+  createNotification({
+    title: `Application ${application.status}`,
+    message: `${application.firstName} ${application.lastName}'s application is now ${application.status}.`,
+    type: "application_status",
+    recipientRole: "admin",
+    entityId: application._id,
+    entityType: "Application",
+    link: "/applied-form",
+    metadata: {
+      status: application.status,
+      email: application.email,
+    },
+  }).catch((notificationError) => {
+    console.error("Application status notification failed:", notificationError.message);
+  });
 
   successHandler(
     res,

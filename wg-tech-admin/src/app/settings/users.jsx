@@ -5,7 +5,12 @@ import PaginatedTable from "../../components/dynamicTable";
 import AddEditUserDialog from "./addEditUser";
 import { useSnackbar } from "notistack";
 import { deleteConfirm } from "../../components/customSweetAlert";
-import { getAllUsers, deleteUser, createUser, updateUser } from "../../api/module/user";
+import {
+  getAllUsers,
+  deleteUser,
+  createUser,
+  updateUser,
+} from "../../api/module/user";
 import { getAllUserRole } from "../../api/module/userRole";
 import useUserStore from "../../zustand/useUserStore";
 import { useLocation } from "react-router-dom";
@@ -43,11 +48,15 @@ const Users = () => {
         const users = res.data?.data?.users || res.data?.data || [];
         setUserData(Array.isArray(users) ? users : []);
       } else {
-        enqueueSnackbar(res.data?.message || "Failed to fetch users", { variant: "error" });
+        enqueueSnackbar(res.data?.message || "Failed to fetch users", {
+          variant: "error",
+        });
       }
     } catch (e) {
       console.error(e);
-      enqueueSnackbar("Something went wrong fetching users", { variant: "error" });
+      enqueueSnackbar("Something went wrong fetching users", {
+        variant: "error",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -103,13 +112,17 @@ const Users = () => {
         : await createUser(payload);
 
       if (res.status === 200 || res.status === 201) {
-        enqueueSnackbar(res.data?.message || "User saved", { variant: "success" });
+        enqueueSnackbar(res.data?.message || "User saved", {
+          variant: "success",
+        });
         setDialogOpen(false);
         setEditData(null);
         setIsEdit(false);
         await fetchUsers();
       } else {
-        enqueueSnackbar(res.data?.message || "Failed to save user", { variant: "error" });
+        enqueueSnackbar(res.data?.message || "Failed to save user", {
+          variant: "error",
+        });
       }
     } catch (e) {
       console.error(e);
@@ -129,45 +142,53 @@ const Users = () => {
       if (!confirm.isConfirmed) return;
       const res = await deleteUser(userId);
       if (res.status === 200 || res.status === 201) {
-        enqueueSnackbar(res.data?.message || "User deleted", { variant: "success" });
+        enqueueSnackbar(res.data?.message || "User deleted", {
+          variant: "success",
+        });
         await fetchUsers();
       } else {
-        enqueueSnackbar(res.data?.message || "Failed to delete user", { variant: "error" });
+        enqueueSnackbar(res.data?.message || "Failed to delete user", {
+          variant: "error",
+        });
       }
     } catch (e) {
       console.error(e);
-      enqueueSnackbar("Something went wrong deleting user", { variant: "error" });
+      enqueueSnackbar("Something went wrong deleting user", {
+        variant: "error",
+      });
     }
   };
 
   return (
     <Box sx={{ p: 3 }}>
       {/* Add Button */}
-      {perms.isCreate && <Box sx={{ mb: 3, display: "flex", justifyContent: "flex-end" }}>
-        <Button
-          variant="contained"
-          startIcon={<Plus size={20} />}
-          onClick={handleAddUser}
-          sx={{
-            background: "linear-gradient(135deg, #8CE600 0%, #00D4AA 100%)",
-            color: "#000",
-            fontWeight: 600,
-            px: 3,
-            py: 1.5,
-            borderRadius: "12px",
-            textTransform: "none",
-            fontSize: "16px",
-            "&:hover": {
-              background: "linear-gradient(135deg, #7DD500 0%, #00C4A0 100%)",
-              transform: "translateY(-2px)",
-              boxShadow: "0 8px 25px rgba(140, 230, 0, 0.3)",
-            },
-            transition: "all 0.3s ease",
-          }}
-        >
-          Add New User
-        </Button>
-      </Box>}
+      {perms.isCreate && (
+        <Box sx={{ mb: 3, display: "flex", justifyContent: "flex-end" }}>
+          <Button
+            variant="contained"
+            startIcon={<Plus size={20} />}
+            onClick={handleAddUser}
+            sx={{
+              backgroundColor: "#8CE600",
+              color: "#000",
+              fontWeight: 600,
+              px: 3,
+              py: 1.5,
+              borderRadius: "12px",
+              textTransform: "none",
+              fontSize: "16px",
+              "&:hover": {
+                backgroundColor: "#7BCC00",
+                transform: "translateY(-2px)",
+                boxShadow: "0 8px 25px rgba(140, 230, 0, 0.3)",
+              },
+              transition: "all 0.3s ease",
+            }}
+          >
+            Add New User
+          </Button>
+        </Box>
+      )}
 
       {/* Table Container */}
       <Paper
@@ -187,9 +208,10 @@ const Users = () => {
               (userData || []).map((u, idx) => ({
                 ...u,
                 id: idx + 1,
-                designation: u.designation?.roleName || u.designationName || "-",
+                designation:
+                  u.designation?.roleName || u.designationName || "-",
               })),
-            [userData]
+            [userData],
           )}
           displayRows={displayRows}
           handleEditService={handleEditUser}

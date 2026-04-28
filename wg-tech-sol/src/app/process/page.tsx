@@ -6,7 +6,8 @@ import DetailFooter from "../components/detail_footer";
 import { detailFooter } from "../components/detailFooterData";
 import ContactForm from "../components/ContactForm";
 import Process from "./process";
-import { getStory } from "../../api/module/ourStory";
+import processData from "./processData";
+import MagnifyText from "../components/MagnifyText";
 
 const sections = [
   {
@@ -24,24 +25,17 @@ type OurStoryType = {
 };
 
 function Page() {
-  useEffect(() => {
-    handleGetOurStory();
-  }, []);
   const [ourStory, setOurStory] = useState<OurStoryType[]>([]);
-  console.log(ourStory, "ourStoryourStory");
 
-  const handleGetOurStory = async () => {
-    try {
-      const response = await getStory();
-      if (response.status === 200 || response.status === 201) {
-        const storyData: OurStoryType[] = response?.data.data.ourStories;
-        setOurStory(storyData);
-      }
-    } catch (error) {
-      console.error("Error fetching stories:", error);
-    } finally {
-    }
-  };
+  useEffect(() => {
+    // Keep process page content isolated from About/OurStory API.
+    const normalizedData: OurStoryType[] = processData.map((item, index) => ({
+      _id: `${item.number}-${index}`,
+      title: item.title,
+      description: item.description,
+    }));
+    setOurStory(normalizedData);
+  }, []);
 
   return (
     <>
@@ -55,7 +49,7 @@ function Page() {
           <section key={section.heading} className="pt-4 md:pt-6 pb-8 md:pb-10">
             <div className="max-w-[1500px] mx-auto px-4 md:px-6">
               <h1 className="text-white text-4xl md:text-[56px] font-bold leading-none mb-4">
-                {section.heading}
+                <MagnifyText text={section.heading} />
               </h1>
               <p className="text-white text-base md:text-lg font-medium leading-snug mb-6 md:mb-10 max-w-full md:max-w-[1290px]">
                 {section.description}
@@ -71,7 +65,9 @@ function Page() {
       </div>
       <Process ourStory={ourStory} />
       <DetailFooter data={detailFooter[0]} />
-      <Suspense fallback={<div className="text-white">Loading contact form...</div>}>
+      <Suspense
+        fallback={<div className="text-white">Loading contact form...</div>}
+      >
         <ContactForm />
       </Suspense>
     </>

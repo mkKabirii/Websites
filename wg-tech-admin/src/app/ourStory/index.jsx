@@ -32,7 +32,6 @@ const OurStoryManagement = () => {
   const [isEdit, setIsEdit] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  
 
   useEffect(() => {
     handleGetOurStory();
@@ -54,7 +53,6 @@ const OurStoryManagement = () => {
       setIsLoading(false);
     }
   };
-  
 
   const handleSaveStory = async (formData) => {
     setSaving(true);
@@ -83,63 +81,61 @@ const OurStoryManagement = () => {
     }
   };
 
-//   const handleDeleteStory = async (id) => {
-//   try {
-//     const result = await deleteConfirm({
-//       title: "Delete Story?",
-//       text: "Are you sure you want to delete this story?",
-//       confirmButtonText: "Delete"
-//     });
+  //   const handleDeleteStory = async (id) => {
+  //   try {
+  //     const result = await deleteConfirm({
+  //       title: "Delete Story?",
+  //       text: "Are you sure you want to delete this story?",
+  //       confirmButtonText: "Delete"
+  //     });
 
-//     if (!result.isConfirmed) return;
+  //     if (!result.isConfirmed) return;
 
-//     setIsLoading(true);   
+  //     setIsLoading(true);
 
-//     const response = await deleteStory(id);
+  //     const response = await deleteStory(id);
 
-//     if (response.status === 200 || response.status === 201) {
+  //     if (response.status === 200 || response.status === 201) {
 
-//       await Swal.fire({
-//         title: "Deleted!",
-//         text: response.data.message,
-//         icon: "success"
-//       });
+  //       await Swal.fire({
+  //         title: "Deleted!",
+  //         text: response.data.message,
+  //         icon: "success"
+  //       });
 
-//       await handleGetOurStory();
+  //       await handleGetOurStory();
 
-//     } else {
-//       enqueueSnackbar(response.data.message, { variant: "error" });
-//     }
+  //     } else {
+  //       enqueueSnackbar(response.data.message, { variant: "error" });
+  //     }
 
-//   } catch (error) {
-//     console.log("Delete Story Error:", error);
+  //   } catch (error) {
+  //     console.log("Delete Story Error:", error);
 
-//   } finally {
-//     setIsLoading(false);   
-//   }
-// };
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
-const handleDeleteStory = async (id) => {
+  const handleDeleteStory = async (id) => {
     try {
       const confirmation = await deleteConfirm({
-     title: "Delete Story?",
-      text: "Are you sure you want to delete this story?",
-       confirmButtonText: "Delete"
-     });
+        title: "Delete Story?",
+        text: "Are you sure you want to delete this story?",
+        confirmButtonText: "Delete",
+      });
 
       if (!confirmation.isConfirmed) return;
 
       setIsLoading(true);
 
-      
       const response = await deleteStory(id);
-        console.log(response, 'delete  Work Category');
-        
+      console.log(response, "delete  Work Category");
+
       if (response.status === 200 || response.status === 201) {
         enqueueSnackbar(response.data.message, { variant: "sucess" });
-        
 
-         handleGetOurStory();
+        handleGetOurStory();
       } else {
         enqueueSnackbar(response.data.message, { variant: "error" });
       }
@@ -189,31 +185,33 @@ const handleDeleteStory = async (id) => {
       </Box>
 
       {/* Add Button */}
-      {perms.isCreate && <Box sx={{ mb: 3, display: "flex", justifyContent: "flex-end" }}>
-        <Button
-          variant="contained"
-          startIcon={<Plus size={20} />}
-          onClick={handleAddStory}
-          sx={{
-            background: "linear-gradient(135deg, #8CE600 0%, #00D4AA 100%)",
-            color: "#000",
-            fontWeight: 600,
-            px: 3,
-            py: 1.5,
-            borderRadius: "12px",
-            textTransform: "none",
-            fontSize: "16px",
-            "&:hover": {
-              background: "linear-gradient(135deg, #7DD500 0%, #00C4A0 100%)",
-              transform: "translateY(-2px)",
-              boxShadow: "0 8px 25px rgba(140, 230, 0, 0.3)",
-            },
-            transition: "all 0.3s ease",
-          }}
-        >
-          Add New Story
-        </Button>
-      </Box>}
+      {perms.isCreate && (
+        <Box sx={{ mb: 3, display: "flex", justifyContent: "flex-end" }}>
+          <Button
+            variant="contained"
+            startIcon={<Plus size={20} />}
+            onClick={handleAddStory}
+            sx={{
+              backgroundColor: "#8CE600",
+              color: "#000",
+              fontWeight: 600,
+              px: 3,
+              py: 1.5,
+              borderRadius: "12px",
+              textTransform: "none",
+              fontSize: "16px",
+              "&:hover": {
+                backgroundColor: "#7BCC00",
+                transform: "translateY(-2px)",
+                boxShadow: "0 8px 25px rgba(140, 230, 0, 0.3)",
+              },
+              transition: "all 0.3s ease",
+            }}
+          >
+            Add New Story
+          </Button>
+        </Box>
+      )}
 
       {/* Table */}
       <Paper

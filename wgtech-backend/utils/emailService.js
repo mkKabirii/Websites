@@ -1,26 +1,33 @@
-const { EMAIL_USER, EMAIL_PASS, EMAIL_SERVICE } = process.env;
 const nodemailer = require("nodemailer");
 const ejs = require("ejs");
 const path = require("path");
 
-console.log(EMAIL_SERVICE, "EMAIL_SERVICE");
-
 class EmailService {
   constructor(userEmail) {
-    if (!EMAIL_USER || !EMAIL_PASS) {
-      throw new Error("Email credentials are not configured");
+    const emailUser = process.env.EMAIL_USER;
+    const emailPass = process.env.EMAIL_PASS;
+    const emailService = process.env.EMAIL_SERVICE || "gmail";
+
+    console.log("📧 Email Configuration:");
+    console.log("   EMAIL_SERVICE:", emailService);
+    console.log("   EMAIL_USER:", emailUser ? `${emailUser.substring(0, 5)}...` : "NOT SET");
+    console.log("   EMAIL_PASS:", emailPass ? "SET" : "NOT SET");
+
+    if (!emailUser || !emailPass) {
+      const error = `Email credentials missing! USER: ${!emailUser ? "❌" : "✅"}, PASS: ${!emailPass ? "❌" : "✅"}`;
+      console.error("❌", error);
+      throw new Error(error);
     }
 
     this.to = userEmail;
-    this.from = EMAIL_USER || "no-reply@replyce.com";
-    // this.from = options?.senderEmail || EMAIL_USER || "no-reply@replyce.com";
+    this.from = emailUser || "no-reply@replyce.com";
 
-    // SMTP Transporter Setup for Gmail
+    // SMTP transport based on configured provider (defaults to Gmail)
     this.transporter = nodemailer.createTransport({
-      service: "gmail",
+      service: emailService,
       auth: {
-        user: EMAIL_USER,
-        pass: EMAIL_PASS,
+        user: emailUser,
+        pass: emailPass,
       },
       tls: {
         rejectUnauthorized: false,
@@ -48,16 +55,31 @@ class EmailService {
     let htmlContent = message;
 
     try {
+      console.log(`\n📧 Sending email to: ${this.to}`);
+      console.log(`   Subject: ${subject}`);
+      
       // Verify SMTP connection configuration
-      await this.transporter.verify();
+      try {
+        await this.transporter.verify();
+        console.log("   ✅ SMTP connection verified");
+      } catch (verifyError) {
+        console.error("   ❌ SMTP verification failed:", verifyError.message);
+        throw verifyError;
+      }
 
       if (template) {
+        console.log(`   📄 Using template: ${template}`);
         htmlContent = await this.renderTemplate(template, templateData);
       }
 
+      // Always send FROM the authenticated mailbox to avoid provider rejections.
+      // If admin configured a custom sender email, expose it as Reply-To.
+      const sanitizedReplyTo =
+        senderEmail && String(senderEmail).includes("@") ? String(senderEmail).trim() : null;
+
       const mailOptions = {
-        // from: `Certano <${this.from}>`,
-        from: `WG Tech Solutions <${senderEmail || this.from}>`,
+        from: `WG Tech Solutions <${this.from}>`,
+        replyTo: sanitizedReplyTo || undefined,
         to: this.to,
         subject: subject,
         text: message || "",
@@ -65,12 +87,16 @@ class EmailService {
         attachments: attachments || [],
       };
 
+      console.log("   🚀 Sending via nodemail...");
       const info = await this.transporter.sendMail(mailOptions);
-      console.log(`📧 Email sent to ${this.to}: ${info.messageId}`);
+      console.log(`✅ Email sent successfully! MessageID: ${info.messageId}`);
       return info;
     } catch (error) {
-      console.error(`❌ Email sending failed: ${error.message}`);
-      throw new Error(`Email sending failed: ${error.message}`);
+      console.error(`\n❌ Email sending FAILED for ${this.to}`);
+      console.error("   Error:", error.message);
+      console.error("   Code:", error.code);
+      console.error("   Response:", error.response);
+      throw error;
     }
   }
 }

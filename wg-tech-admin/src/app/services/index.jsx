@@ -45,7 +45,7 @@ const ServicesManagement = () => {
   const [isLoading, setLoading] = useState(false);
   const [servicesData, setServicesData] = useState([]);
   const [saving, setSaving] = useState(false);
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -55,7 +55,7 @@ const ServicesManagement = () => {
   useEffect(() => {
     handleGetServices(currentPage, rowsPerPage);
   }, []);
-  
+
   const handleGetServices = async (page = 1, limit = 10) => {
     setLoading(true);
 
@@ -192,31 +192,33 @@ const ServicesManagement = () => {
       </Box>
 
       {/* Add Button */}
-     {perms.isCreate && <Box sx={{ mb: 3, display: "flex", justifyContent: "flex-end" }}>
-        <Button
-          variant="contained"
-          startIcon={<Plus size={20} />}
-          onClick={handleAddService}
-          sx={{
-            background: "linear-gradient(135deg, #8CE600 0%, #00D4AA 100%)",
-            color: "#000",
-            fontWeight: 600,
-            px: 3,
-            py: 1.5,
-            borderRadius: "12px",
-            textTransform: "none",
-            fontSize: "16px",
-            "&:hover": {
-              background: "linear-gradient(135deg, #7DD500 0%, #00C4A0 100%)",
-              transform: "translateY(-2px)",
-              boxShadow: "0 8px 25px rgba(140, 230, 0, 0.3)",
-            },
-            transition: "all 0.3s ease",
-          }}
-        >
-          Add New Service
-        </Button>
-      </Box>}
+      {perms.isCreate && (
+        <Box sx={{ mb: 3, display: "flex", justifyContent: "flex-end" }}>
+          <Button
+            variant="contained"
+            startIcon={<Plus size={20} />}
+            onClick={handleAddService}
+            sx={{
+              backgroundColor: "#8CE600",
+              color: "#000",
+              fontWeight: 600,
+              px: 3,
+              py: 1.5,
+              borderRadius: "12px",
+              textTransform: "none",
+              fontSize: "16px",
+              "&:hover": {
+                backgroundColor: "#7BCC00",
+                transform: "translateY(-2px)",
+                boxShadow: "0 8px 25px rgba(140, 230, 0, 0.3)",
+              },
+              transition: "all 0.3s ease",
+            }}
+          >
+            Add New Service
+          </Button>
+        </Box>
+      )}
 
       {/* Table Container */}
       <Paper

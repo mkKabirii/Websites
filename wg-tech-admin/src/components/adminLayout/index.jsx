@@ -1,7 +1,7 @@
 import React from "react";
 import { Box } from "@mui/material";
 import { motion } from "framer-motion";
-import authbg from "../../assets/web-bg-2.png"; 
+import authbg from "../../assets/web-bg-2.png";
 
 const AdminLayout = ({ children }) => {
   return (

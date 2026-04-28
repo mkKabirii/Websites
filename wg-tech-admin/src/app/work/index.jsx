@@ -23,12 +23,7 @@ const TABLE_HEADERS = [
   { id: "actions", title: "Actions", align: "center" },
 ];
 
-const DISPLAY_ROWS = [
-  "id",
-  "workCategory",
-  "view",
-  "actions",
-];
+const DISPLAY_ROWS = ["id", "workCategory", "view", "actions"];
 
 const mapWorkRecord = (work = {}) => {
   const id = String(work._id || "");
@@ -53,46 +48,49 @@ const WorkManagement = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
   const [total, setTotal] = useState(0);
 
-  const fetchWorkCategories = useCallback(async (page = 1, limit = 10) => {
-    setIsLoading(true);
-    try {
-      const response = await getAllWork(page, limit);
-      if (response.status === 200 || response.status === 201) {
-        const data = response.data?.data || {};
-        const workCategories = data.works || [];
-        setWorkData(workCategories.map(mapWorkRecord));
-        setTotalPages(data.totalPages || 0);
-        setCurrentPage(data.currentPage || 1);
-        setTotal(data.total || 0);
-      } else {
+  const fetchWorkCategories = useCallback(
+    async (page = 1, limit = 10) => {
+      setIsLoading(true);
+      try {
+        const response = await getAllWork(page, limit);
+        if (response.status === 200 || response.status === 201) {
+          const data = response.data?.data || {};
+          const workCategories = data.works || [];
+          setWorkData(workCategories.map(mapWorkRecord));
+          setTotalPages(data.totalPages || 0);
+          setCurrentPage(data.currentPage || 1);
+          setTotal(data.total || 0);
+        } else {
+          setWorkData([]);
+          enqueueSnackbar(
+            response.data?.message || "Unable to load work categories.",
+            {
+              variant: "error",
+            },
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching work categories:", error);
         setWorkData([]);
-        enqueueSnackbar(
-          response.data?.message || "Unable to load work categories.",
-          {
-            variant: "error",
-          }
-        );
+        enqueueSnackbar("Work categories load failed.", { variant: "error" });
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error("Error fetching work categories:", error);
-      setWorkData([]);
-      enqueueSnackbar("Work categories load failed.", { variant: "error" });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [enqueueSnackbar]);
+    },
+    [enqueueSnackbar],
+  );
 
   useEffect(() => {
     fetchWorkCategories(currentPage, rowsPerPage);
   }, []);
-  
+
   const handlePageChange = (newPage, newRowsPerPage) => {
     setCurrentPage(newPage);
     setRowsPerPage(newRowsPerPage);
@@ -144,10 +142,10 @@ const WorkManagement = () => {
         workCategory: formData.workCategory,
         categoryDescription: formData.categoryDescription || "",
         works: formData.works.map((workItem) => ({
-          image: Array.isArray(workItem.image) 
-            ? workItem.image 
-            : workItem.image 
-              ? [workItem.image] 
+          image: Array.isArray(workItem.image)
+            ? workItem.image
+            : workItem.image
+              ? [workItem.image]
               : [],
           title: workItem.title,
           url: workItem.url,
@@ -165,7 +163,7 @@ const WorkManagement = () => {
           response.data?.message || "Work category saved successfully.",
           {
             variant: "success",
-          }
+          },
         );
         handleDialogClose();
         await fetchWorkCategories(currentPage, rowsPerPage);
@@ -174,7 +172,7 @@ const WorkManagement = () => {
           response.data?.message || "Failed to save work category.",
           {
             variant: "error",
-          }
+          },
         );
       }
     } catch (error) {
@@ -225,27 +223,25 @@ const WorkManagement = () => {
   //     setIsLoading(false);
   //   }
   // };
-const handleDeleteWork = async (id) => {
+  const handleDeleteWork = async (id) => {
     try {
-       const confirmation = await deleteConfirm({
-      title: "Delete Work Category?",
-      text: "Are you sure you want to delete this work category?",
-      confirmButtonText: "Delete",
-    });
+      const confirmation = await deleteConfirm({
+        title: "Delete Work Category?",
+        text: "Are you sure you want to delete this work category?",
+        confirmButtonText: "Delete",
+      });
 
       if (!confirmation.isConfirmed) return;
 
       setIsLoading(true);
 
-      
       const response = await deleteWork(id);
-        console.log(response, 'delete  Work Category');
-        
+      console.log(response, "delete  Work Category");
+
       if (response.status === 200 || response.status === 201) {
         enqueueSnackbar(response.data.message, { variant: "sucess" });
-        
 
-         fetchWorkCategories(currentPage, rowsPerPage);
+        fetchWorkCategories(currentPage, rowsPerPage);
       } else {
         enqueueSnackbar(response.data.message, { variant: "error" });
       }
@@ -282,31 +278,33 @@ const handleDeleteWork = async (id) => {
         </Typography>
       </Box>
 
-      {perms.isCreate && <Box sx={{ mb: 3, display: "flex", justifyContent: "flex-end" }}>
-        <Button
-          variant="contained"
-          startIcon={<Plus size={20} />}
-          onClick={handleAddWork}
-          sx={{
-            background: "linear-gradient(135deg, #8CE600 0%, #00D4AA 100%)",
-            color: "#000",
-            fontWeight: 600,
-            px: 3,
-            py: 1.5,
-            borderRadius: "12px",
-            textTransform: "none",
-            fontSize: "16px",
-            "&:hover": {
-              background: "linear-gradient(135deg, #7DD500 0%, #00C4A0 100%)",
-              transform: "translateY(-2px)",
-              boxShadow: "0 8px 25px rgba(140, 230, 0, 0.3)",
-            },
-            transition: "all 0.3s ease",
-          }}
-        >
-          Add New Work
-        </Button>
-      </Box>}
+      {perms.isCreate && (
+        <Box sx={{ mb: 3, display: "flex", justifyContent: "flex-end" }}>
+          <Button
+            variant="contained"
+            startIcon={<Plus size={20} />}
+            onClick={handleAddWork}
+            sx={{
+              backgroundColor: "#8CE600",
+              color: "#000",
+              fontWeight: 600,
+              px: 3,
+              py: 1.5,
+              borderRadius: "12px",
+              textTransform: "none",
+              fontSize: "16px",
+              "&:hover": {
+                backgroundColor: "#7BCC00",
+                transform: "translateY(-2px)",
+                boxShadow: "0 8px 25px rgba(140, 230, 0, 0.3)",
+              },
+              transition: "all 0.3s ease",
+            }}
+          >
+            Add New Work
+          </Button>
+        </Box>
+      )}
 
       <Paper
         elevation={0}
@@ -351,7 +349,6 @@ const handleDeleteWork = async (id) => {
         open={viewDialogOpen}
         onClose={handleViewClose}
         workData={selectedWork}
-        
       />
     </Box>
   );

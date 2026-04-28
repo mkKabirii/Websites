@@ -4,28 +4,60 @@ const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-// Protect all routes
-router.use(authMiddleware.protect);
+// Admin: list accepted clients with chat info
+router.get(
+	"/admin/accepted",
+	authMiddleware.protect,
+	chatController.listAcceptedClientChats,
+);
 
-// Get all chats for user
-router.get("/user/:userId", chatController.getUserChats);
+// Admin: list all clients (Client collection) with chat info
+router.get(
+	"/admin/clients",
+	authMiddleware.protect,
+	chatController.listClientChats,
+);
 
-// Get single chat
-router.get("/:chatId", chatController.getChat);
+// Admin: list website support chats for navigation chat
+router.get(
+	"/admin/website",
+	authMiddleware.protect,
+	chatController.listWebsiteSupportChats,
+);
 
-// Create new chat
+// Admin: ensure chat exists for a client
+router.post(
+	"/admin/ensure",
+	authMiddleware.protect,
+	chatController.ensureChatForClient,
+);
+
+// Admin: create group chat (worker, admin, client)
+router.post(
+	"/admin/group",
+	authMiddleware.protect,
+	chatController.createGroupChat,
+);
+
+// Get all chats for user (requires auth)
+router.get("/user/:userId", authMiddleware.protect, chatController.getUserChats);
+
+// Get single chat (requires auth)
+router.get("/:chatId", authMiddleware.protect, chatController.getChat);
+
+// Create new chat (allow without auth for guest users)
 router.post("/", chatController.createChat);
 
-// Assign admin to chat
-router.put("/assign-admin", chatController.assignAdminToChat);
+// Assign admin to chat (requires auth)
+router.put("/assign-admin", authMiddleware.protect, chatController.assignAdminToChat);
 
-// Get unread count
-router.get("/unread/:userId", chatController.getUnreadCount);
+// Get unread count (requires auth)
+router.get("/unread/:userId", authMiddleware.protect, chatController.getUnreadCount);
 
-// Archive chat
-router.put("/:chatId/archive", chatController.archiveChat);
+// Archive chat (requires auth)
+router.put("/:chatId/archive", authMiddleware.protect, chatController.archiveChat);
 
-// Get archived chats
-router.get("/archived/:userId", chatController.getArchivedChats);
+// Get archived chats (requires auth)
+router.get("/archived/:userId", authMiddleware.protect, chatController.getArchivedChats);
 
 module.exports = router;

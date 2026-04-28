@@ -7,32 +7,32 @@ import SquareUpHero from '../about/squareUpHero';
 
 const sections = [
     {
-        heading: "Welcome to WGTECSOL (Pvt.) Ltd., where talent meets opportunity!",
-        description: "At WGTECSOL (Pvt.) Ltd., we believe that the success of our agency lies in the talent, passion, and dedication of our team members. We are a digital product agency that thrives on innovation, creativity, and collaboration. If you're ready to make a difference and contribute to cutting-edge projects, we invite you to explore career opportunities with us.",
+        heading: "Build your career with WGTECSOL",
+        description: "Join a team focused on real client impact, modern engineering practices, and continuous growth. We work on challenging digital products where your ideas can directly shape outcomes.",
         boxText: "Why Work at WGTECSOL (Pvt.) Ltd.?",
     },
     {
         heading: "Current Openings",
-        description: "We are always on the lookout for talented individuals who are passionate about creating exceptional digital experiences. Whether you're a designer, engineer, project manager, or have skills that align with our agency's mission, we encourage you to explore our open positions.",
+        description: "Explore active roles across engineering, product, and design teams. Select a position that matches your strengths and apply directly through our application form.",
     }
 ];
 
 const features = [
     {
-        title: "Innovative and Impactful Projects",
-        desc: "At WGTECSOL (Pvt.) Ltd., you'll have the opportunity to work on exciting and impactful projects that shape the digital landscape. From designing intuitive user interfaces to developing robust software solutions, you'll be part of a team that creates products that make a difference."
+        title: "Meaningful Client Projects",
+        desc: "Ship production-grade solutions for businesses across industries, with ownership from planning to delivery."
     },
     {
-        title: "Supportive Environment",
-        desc: "At WGTECSOL (Pvt.) Ltd., you'll have the opportunity to work on exciting and impactful projects that shape the digital landscape. From designing intuitive user interfaces to developing robust software solutions, you'll be part of a team that creates products that make a difference."
+        title: "Supportive Team Culture",
+        desc: "Collaborate with experienced teammates in a respectful environment that values communication and accountability."
     },
     {
-        title: "Continuous Learning and Growth",
-        desc: "We believe in investing in our team's growth and development. We provide opportunities for continuous learning, whether it's through workshops, training programs, or attending industry conferences. At WGTECSOL (Pvt.) Ltd., you'll have the chance to expand your skill set and stay up-to-date with the latest trends and technologies."
+        title: "Continuous Learning",
+        desc: "Grow through mentorship, code reviews, and practical problem-solving on modern stacks and workflows."
     },
     {
-        title: "Challenging and Rewarding Work",
-        desc: "Our projects are challenging, but the rewards are even greater. We tackle complex problems and push ourselves to deliver innovative solutions. You'll be empowered to take ownership of your work, make a real impact, and see your ideas come to life."
+        title: "Ownership and Impact",
+        desc: "Take responsibility for features end-to-end and see your work create measurable value for customers."
     }
 ];
 

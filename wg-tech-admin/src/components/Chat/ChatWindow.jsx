@@ -2,13 +2,16 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   Send,
   Paperclip,
-  Phone,
-  Video,
   MoreVertical,
   TrendingUp,
+  FileText,
 } from "lucide-react";
 import MessageList from "./MessageList";
 import ProjectStatusIndicator from "./ProjectStatusIndicator";
+import QuotationDialog from "./QuotationDialog";
+import ClientQuotationSignDialog from "./ClientQuotationSignDialog";
+import AdminQuotationProofsModal from "./AdminQuotationProofsModal";
+import { uploadFile } from "../../utils/upload";
 import "./ChatWindow.css";
 
 const ChatWindow = ({
@@ -19,19 +22,93 @@ const ChatWindow = ({
   onStatusUpdate,
   loading,
   socketRef,
+  meta,
+  userRole,
 }) => {
   const [messageText, setMessageText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [showStatusUpdate, setShowStatusUpdate] = useState(false);
+  const [showQuotationDialog, setShowQuotationDialog] = useState(false);
+  const [showClientQuotationDialog, setShowClientQuotationDialog] =
+    useState(false);
+  const [showProofsModal, setShowProofsModal] = useState(false);
+  const [currentQuotation, setCurrentQuotation] = useState(null);
+  const [selectedProofsQuotationId, setSelectedProofsQuotationId] =
+    useState(null);
+  const [uploadingFile, setUploadingFile] = useState(false);
   const typingTimeoutRef = useRef(null);
   const messagesEndRef = useRef(null);
 
+  const displayName =
+    chat.groupName ||
+    chat.clientId?.username ||
+    chat.clientId?.email ||
+    meta?.clientName ||
+    meta?.clientUsername ||
+    meta?.proposalEmail ||
+    "Client";
+
+  const avatarImage =
+    chat.clientId?.profileImage || meta?.clientProfileImage || null;
+  const avatarInitial = (displayName || "?").charAt(0).toUpperCase();
+
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    try {
+      const container = document.querySelector(".messages-container");
+      if (container) {
+        // ensure scrolling happens inside the messages container
+        container.scrollTop = container.scrollHeight;
+      }
+    } catch (e) {
+      // fallback
+    }
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+    });
   };
 
   useEffect(() => {
     scrollToBottom();
+  }, [messages]);
+
+  // Listen for quotation proofs event from MessageList (admin review flow)
+  useEffect(() => {
+    const handleOpenQuotationProofs = (event) => {
+      const quotationId = event.detail;
+      if (!quotationId) return;
+
+      setSelectedProofsQuotationId(quotationId);
+      setShowProofsModal(true);
+    };
+
+    window.addEventListener("openQuotationProofs", handleOpenQuotationProofs);
+    return () =>
+      window.removeEventListener(
+        "openQuotationProofs",
+        handleOpenQuotationProofs,
+      );
+  }, []);
+
+  // Listen for quotation sign event from MessageList
+  useEffect(() => {
+    const handleQuotationSign = (event) => {
+      const quotationId = event.detail;
+      if (quotationId) {
+        // Fetch the quotation details
+        const quotation = messages?.find(
+          (m) => m.quotationData?._id === quotationId,
+        )?.quotationData;
+        if (quotation) {
+          setCurrentQuotation(quotation);
+          setShowClientQuotationDialog(true);
+        }
+      }
+    };
+
+    window.addEventListener("openQuotationSign", handleQuotationSign);
+    return () =>
+      window.removeEventListener("openQuotationSign", handleQuotationSign);
   }, [messages]);
 
   const handleTyping = () => {
@@ -63,22 +140,115 @@ const ChatWindow = ({
     setIsTyping(false);
   };
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
-    if (file) {
-      // TODO: Upload file to server and get URL
-      // Then send message with file URL
-      console.log("File selected:", file.name);
+    if (!file) return;
+
+    try {
+      setUploadingFile(true);
+      const uploadedUrl = await uploadFile(file);
+
+      const isImage = file.type.startsWith("image/");
+      const isDocument =
+        file.type === "application/pdf" ||
+        file.type === "application/msword" ||
+        file.type ===
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+      if (isImage) {
+        onSendMessage({
+          messageType: "image",
+          content: file.name,
+          imageUrl: uploadedUrl,
+          fileName: file.name,
+        });
+      } else if (isDocument) {
+        onSendMessage({
+          messageType: "document",
+          content: file.name,
+          documentUrl: uploadedUrl,
+          documentName: file.name,
+        });
+      } else {
+        onSendMessage({
+          messageType: "file",
+          content: file.name,
+          fileUrl: uploadedUrl,
+          fileName: file.name,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to upload and send file:", error);
+      alert(error?.message || "Failed to upload file");
+    } finally {
+      setUploadingFile(false);
+      e.target.value = "";
     }
   };
 
-  const handleCallClick = (callType) => {
-    socketRef?.emit("initiate_call", {
-      callerId: userId,
-      receiverId: chat.clientId._id,
-      chatId: chat._id,
-      callType: callType, // 'voice' or 'video'
-    });
+  const renderMediaSection = () => {
+    if (
+      !meta?.progressMedia?.length &&
+      !meta?.documents?.length &&
+      !meta?.comments?.length
+    ) {
+      return null;
+    }
+
+    return (
+      <div className="chat-meta">
+        {meta.progressMedia?.length > 0 && (
+          <div className="meta-block">
+            <div className="meta-title">Project Media</div>
+            <div className="meta-media-grid">
+              {meta.progressMedia.map((item) => (
+                <div
+                  key={`${item.url}-${item.uploadedAt}`}
+                  className="meta-media-item"
+                >
+                  {item.type === "video" ? (
+                    <video src={item.url} controls />
+                  ) : (
+                    <img src={item.url} alt={item.type || "media"} />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {meta.documents?.length > 0 && (
+          <div className="meta-block">
+            <div className="meta-title">Documents</div>
+            <ul className="meta-doc-list">
+              {meta.documents.map((doc) => (
+                <li key={`${doc.url}-${doc.uploadedAt}`}>
+                  <a href={doc.url} target="_blank" rel="noreferrer">
+                    {doc.name || doc.url}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {meta.comments?.length > 0 && (
+          <div className="meta-block">
+            <div className="meta-title">Project Comments</div>
+            <ul className="meta-comment-list">
+              {meta.comments.map((c) => (
+                <li key={c._id || c.timestamp}>
+                  <div className="meta-comment-author">
+                    {c.authorName || "Admin"}
+                  </div>
+                  <div className="meta-comment-text">{c.text}</div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -87,37 +257,25 @@ const ChatWindow = ({
       <div className="chat-window-header">
         <div className="chat-header-info">
           <div className="header-avatar">
-            {chat.clientId?.profileImage ? (
-              <img src={chat.clientId.profileImage} alt="Chat" />
+            {avatarImage ? (
+              <img src={avatarImage} alt="Chat" />
             ) : (
-              <div className="avatar-placeholder">
-                {chat.clientId?.username?.charAt(0).toUpperCase()}
-              </div>
+              <div className="avatar-placeholder">{avatarInitial}</div>
             )}
           </div>
           <div className="header-details">
-            <h2>{chat.clientId?.username}</h2>
+            <h2>{displayName}</h2>
             <p className="chat-status">
-              {chat.chatType === "admin_work" ? "Project Chat" : "Website Support"}
+              {chat.isGroupChat
+                ? "Group Chat"
+                : chat.chatType === "admin_work"
+                  ? "Project Chat"
+                  : "Website Support"}
             </p>
           </div>
         </div>
 
         <div className="chat-header-actions">
-          <button
-            className="header-action-btn"
-            onClick={() => handleCallClick("voice")}
-            title="Voice Call"
-          >
-            <Phone size={20} />
-          </button>
-          <button
-            className="header-action-btn"
-            onClick={() => handleCallClick("video")}
-            title="Video Call"
-          >
-            <Video size={20} />
-          </button>
           {chat.projectId && (
             <button
               className="header-action-btn"
@@ -168,6 +326,82 @@ const ChatWindow = ({
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Project media/documents/comments */}
+      {renderMediaSection()}
+
+      {/* Quotation Dialog for Admin */}
+      {userRole === "admin" && (
+        <QuotationDialog
+          open={showQuotationDialog}
+          onClose={() => setShowQuotationDialog(false)}
+          clientId={chat.clientId?._id}
+          onQuotationSent={(quotationData) => {
+            setShowQuotationDialog(false);
+            // Send quotation message to chat
+            onSendMessage({
+              messageType: "quotation",
+              content: `Quotation: ${quotationData?.title || "New Quotation"}`,
+              quotationData: {
+                _id: quotationData?._id?.toString?.() || quotationData?._id,
+                clientName: displayName,
+                title: quotationData?.title,
+                subTitle: quotationData?.subTitle,
+                shortDescription: quotationData?.shortDescription,
+                longDescription: quotationData?.longDescription,
+                image: quotationData?.image,
+                postedOn: quotationData?.postedOn,
+                items:
+                  quotationData?.quotationDetails?.items ||
+                  quotationData?.items,
+                currency: quotationData?.currency,
+                totalAmount:
+                  quotationData?.quotationDetails?.totalAmount ||
+                  quotationData?.totalAmount,
+                advanceRequired:
+                  quotationData?.quotationDetails?.advanceRequired ||
+                  quotationData?.advanceRequired,
+                createdBy:
+                  quotationData?.mainAdminId || quotationData?.createdBy,
+                createdAt: quotationData?.createdAt || new Date(),
+              },
+            });
+          }}
+        />
+      )}
+
+      {/* Quotation Sign Dialog for Client */}
+      {currentQuotation && (
+        <ClientQuotationSignDialog
+          open={showClientQuotationDialog}
+          onClose={() => {
+            setShowClientQuotationDialog(false);
+            setCurrentQuotation(null);
+          }}
+          quotationId={currentQuotation._id}
+          quotationDetails={currentQuotation.quotationDetails}
+          onSubmitSuccess={() => {
+            setShowClientQuotationDialog(false);
+            setCurrentQuotation(null);
+            onSendMessage({
+              messageType: "system",
+              content: "✅ Quotation signed and submitted successfully!",
+            });
+          }}
+        />
+      )}
+
+      {/* Admin Quotation Proofs Modal */}
+      {userRole === "admin" && (
+        <AdminQuotationProofsModal
+          open={showProofsModal}
+          onClose={() => {
+            setShowProofsModal(false);
+            setSelectedProofsQuotationId(null);
+          }}
+          quotationId={selectedProofsQuotationId}
+        />
+      )}
+
       {/* Message Input */}
       <form className="message-input-form" onSubmit={handleSendMessage}>
         <div className="input-actions">
@@ -176,15 +410,34 @@ const ChatWindow = ({
             <input
               type="file"
               onChange={handleFileUpload}
+              disabled={uploadingFile}
               style={{ display: "none" }}
             />
           </label>
+
+          {/* Sign Your Quotation button - for admin */}
+          {userRole === "admin" && (
+            <button
+              type="button"
+              className="action-btn quotation-action-btn"
+              onClick={() => setShowQuotationDialog(true)}
+              title="Send Quotation"
+            >
+              <FileText size={20} />
+              <span>Send Quotation</span>
+            </button>
+          )}
         </div>
 
         <input
           type="text"
           className="message-input"
-          style={{ color: "#000", backgroundColor: "#fff", caretColor: "#000", WebkitTextFillColor: "#000" }}
+          style={{
+            color: "#000",
+            backgroundColor: "#fff",
+            caretColor: "#000",
+            WebkitTextFillColor: "#000",
+          }}
           placeholder="Type a message..."
           value={messageText}
           onChange={(e) => {
@@ -196,7 +449,7 @@ const ChatWindow = ({
         <button
           type="submit"
           className="send-button"
-          disabled={!messageText.trim()}
+          disabled={!messageText.trim() || uploadingFile}
         >
           <Send size={20} />
         </button>
@@ -206,12 +459,7 @@ const ChatWindow = ({
 };
 
 // Status Update Modal Component
-const StatusUpdateModal = ({
-  chatId,
-  projectId,
-  onStatusUpdate,
-  onClose,
-}) => {
+const StatusUpdateModal = ({ chatId, projectId, onStatusUpdate, onClose }) => {
   const [newStatus, setNewStatus] = useState("Under Review");
   const [reason, setReason] = useState("");
 

@@ -1,12 +1,13 @@
-'use client';
+"use client";
 
 import { useEffect, useState } from "react";
 import { OurServicesSection } from "./components/service";
 import Components from "./components/companies";
 import FAQ from "./components/faq";
 import ThankYouSection from "./components/thankYouSection";
-import TestimonialsCard from './components/clientsCard';
+import TestimonialsCard from "./components/clientsCard";
 import Hero from "./components/hero";
+import HomeHighlightSections from "./components/homeHighlightSections";
 import { getHomeData } from "@/api/module/home";
 import { HomeData } from "./home/types";
 
@@ -23,8 +24,6 @@ export default function Home() {
       const response = await getHomeData();
       if (response.status === 200 || response.status === 201) {
         const data = response?.data?.data || response?.data || {};
-        console.log("Home API Response:", data);
-        console.log("Reviews:", data.reviews);
         setHomeData(data);
       }
     } catch (error) {
@@ -33,8 +32,6 @@ export default function Home() {
       setLoading(false);
     }
   };
-
-  console.log(homeData.services, "homeDatahomeData");
 
   if (loading) {
     return (
@@ -49,6 +46,7 @@ export default function Home() {
       <Hero />
       <OurServicesSection services={homeData.services} />
       <Components advertisements={homeData.advertisements || []} />
+      <HomeHighlightSections stats={homeData.homeStats} />
       <TestimonialsCard reviews={homeData.reviews} />
       <FAQ faqs={homeData.faqs} />
       <ThankYouSection />

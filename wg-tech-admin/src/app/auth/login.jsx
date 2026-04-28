@@ -16,7 +16,7 @@ const Login = () => {
   // Fake admin credentials
   const FAKE_ADMIN = {
     email: "admin@wgtech.com",
-    password: "admin123",
+    password: "Admin@123",
   };
 
   const [formData, setFormData] = useState({
@@ -263,7 +263,7 @@ const Login = () => {
             <motion.div variants={itemVariants}>
               <Box sx={{ mb: 4 }}>
                 <TextInput
-                  placeholder="admin123"
+                  placeholder="Admin@123"
                   name="password"
                   value={formData.password}
                   onChange={handleInputChange}
@@ -304,10 +304,10 @@ const Login = () => {
                     )
                   }
                   sx={{
-                    background: "linear-gradient(135deg, #8CE600, #6BBF00)",
+                    backgroundColor: "#8CE600",
                     boxShadow: "0 8px 25px rgba(140, 230, 0, 0.3)",
                     "&:hover": {
-                      background: "linear-gradient(135deg, #6BBF00, #8CE600)",
+                      backgroundColor: "#7BCC00",
                       boxShadow: "0 12px 35px rgba(140, 230, 0, 0.4)",
                     },
                   }}

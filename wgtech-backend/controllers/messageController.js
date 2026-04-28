@@ -3,11 +3,24 @@ const Chat = require("../model/chatModel");
 const AutoReply = require("../model/autoReplyModel");
 const ProjectStatus = require("../model/projectStatusModel");
 const User = require("../model/userModel");
+const Client = require("../model/clientModel");
+
+const deriveNameFromUrl = (url, fallback) => {
+  try {
+    const raw = String(url || "").split("?")[0].split("#")[0];
+    const lastPart = raw.split("/").pop();
+    const decoded = decodeURIComponent(lastPart || "").trim();
+    if (!decoded) return fallback;
+    return decoded;
+  } catch (error) {
+    return fallback;
+  }
+};
 
 // Send message
 exports.sendMessage = async (req, res) => {
   try {
-    const {
+    let {
       chatId,
       senderId,
       messageType,
@@ -17,11 +30,48 @@ exports.sendMessage = async (req, res) => {
       imageUrl,
       documentUrl,
       documentName,
+      quotationData,
     } = req.body;
+
+    if (messageType === "document") {
+      const safeDocumentName =
+        documentName ||
+        fileName ||
+        (content && String(content).trim()) ||
+        deriveNameFromUrl(documentUrl || fileUrl, "Document");
+      documentName = safeDocumentName;
+      content = safeDocumentName;
+    }
+
+    if (messageType === "file") {
+      const safeFileName =
+        fileName ||
+        documentName ||
+        (content && String(content).trim()) ||
+        deriveNameFromUrl(fileUrl || documentUrl, "File");
+      fileName = safeFileName;
+      content = safeFileName;
+    }
+
+    if (messageType === "image" && (!content || !String(content).trim())) {
+      content = fileName || deriveNameFromUrl(imageUrl || fileUrl, "Image");
+    }
+
+    // Determine sender type (User or Client)
+    let senderType = "User";
+    let sender = await User.findById(senderId);
+    
+    if (!sender) {
+      sender = await Client.findById(senderId);
+      if (sender) {
+        senderType = "Client";
+      }
+    }
 
     const message = new Message({
       chatId,
       senderId,
+      senderType,
       messageType,
       content,
       fileUrl: fileUrl || null,
@@ -29,6 +79,7 @@ exports.sendMessage = async (req, res) => {
       imageUrl: imageUrl || null,
       documentUrl: documentUrl || null,
       documentName: documentName || null,
+      quotationData: quotationData || null,
       readBy: [{ userId: senderId, readAt: new Date() }],
     });
 
@@ -56,7 +107,21 @@ exports.sendMessage = async (req, res) => {
 
     await chat.save();
 
-    const populatedMessage = await message.populate("senderId", "username email profileImage");
+    // Populate with correct model based on senderType
+    let populatedMessage = message;
+    if (senderType === "Client") {
+      populatedMessage = await message.populate({
+        path: "senderId",
+        model: "Client",
+        select: "_id username email profileImage"
+      });
+    } else {
+      populatedMessage = await message.populate({
+        path: "senderId",
+        model: "User",
+        select: "_id username email profileImage"
+      });
+    }
 
     res.status(201).json({
       success: true,
@@ -81,11 +146,31 @@ exports.getMessages = async (req, res) => {
       chatId,
       deleted: false,
     })
-      .populate("senderId", "username email profileImage")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit))
       .exec();
+
+    // Manually populate each message with correct model based on senderType
+    const populatedMessages = await Promise.all(
+      messages.map(async (msg) => {
+        if (!msg.senderId) return msg;
+        
+        if (msg.senderType === "Client") {
+          return await msg.populate({
+            path: "senderId",
+            model: "Client",
+            select: "_id username email profileImage"
+          });
+        } else {
+          return await msg.populate({
+            path: "senderId",
+            model: "User",
+            select: "_id username email profileImage"
+          });
+        }
+      })
+    );
 
     const total = await Message.countDocuments({
       chatId,
@@ -94,7 +179,7 @@ exports.getMessages = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: messages.reverse(),
+      data: populatedMessages.reverse(),
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
@@ -143,7 +228,7 @@ exports.editMessage = async (req, res) => {
 
     await message.save();
 
-    const populatedMessage = await message.populate("senderId", "username email profileImage");
+    const populatedMessage = await message.populate("senderId", "_id _id username email profileImage");
 
     res.status(200).json({
       success: true,
@@ -213,7 +298,7 @@ exports.addReaction = async (req, res) => {
         },
       },
       { new: true }
-    ).populate("senderId", "username email profileImage");
+    ).populate("senderId", "_id username email profileImage");
 
     res.status(200).json({
       success: true,
@@ -243,7 +328,7 @@ exports.removeReaction = async (req, res) => {
         },
       },
       { new: true }
-    ).populate("senderId", "username email profileImage");
+    ).populate("senderId", "_id username email profileImage");
 
     res.status(200).json({
       success: true,
@@ -306,10 +391,22 @@ exports.sendStatusUpdate = async (req, res) => {
       description,
     } = req.body;
 
+    // Determine sender type (User or Client)
+    let senderType = "User";
+    let sender = await User.findById(senderId);
+    
+    if (!sender) {
+      sender = await Client.findById(senderId);
+      if (sender) {
+        senderType = "Client";
+      }
+    }
+
     // Create status update message
     const message = new Message({
       chatId,
       senderId,
+      senderType,
       messageType: "status_update",
       content: `Project status updated: ${oldStatus} → ${newStatus}`,
       statusUpdate: {
@@ -346,7 +443,21 @@ exports.sendStatusUpdate = async (req, res) => {
 
     await projectStatus.save();
 
-    const populatedMessage = await message.populate("senderId", "username email profileImage");
+    // Populate with correct model based on senderType
+    let populatedMessage = message;
+    if (senderType === "Client") {
+      populatedMessage = await message.populate({
+        path: "senderId",
+        model: "Client",
+        select: "_id username email profileImage"
+      });
+    } else {
+      populatedMessage = await message.populate({
+        path: "senderId",
+        model: "User",
+        select: "_id username email profileImage"
+      });
+    }
 
     res.status(201).json({
       success: true,

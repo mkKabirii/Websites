@@ -39,6 +39,10 @@ const settingsRoutes = require("./routes/settingsRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const autoReplyRoutes = require("./routes/autoReplyRoutes");
+const clientsRoutes = require("./routes/clientsRoutes");
+const quotationsRoutes = require("./routes/quotationsRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
+const taskRoutes = require("./routes/taskRoutes");
 
 const app = express();
 
@@ -53,7 +57,7 @@ if (process.env.NODE_ENV === "development") {
 }
 
 // CORS
-const allowedOrigins = ["http://localhost:3000", "http://localhost:5173"];
+const allowedOrigins = ["http://localhost:3000", "http://localhost:5173", "http://localhost:5174", "http://localhost:5175"];
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps or curl) and whitelisted origins
@@ -79,11 +83,30 @@ app.use(compression());
 
 // ----------------------- STATIC FILES ----------------------- //
 // Serve uploaded files
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// ✅ Naya — yeh replace karo
+app.use("/uploads", (req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+  res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  if (req.method === "OPTIONS") return res.sendStatus(200);
+  next();
+}, express.static(path.join(__dirname, "uploads")));
+
+// Create upload directories if they don't exist
+const fs = require("fs");
+const uploadDirs = ["uploads", "uploads/progress", "uploads/documents", "uploads/signatures"];
+uploadDirs.forEach((dir) => {
+  const fullPath = path.join(__dirname, dir);
+  if (!fs.existsSync(fullPath)) {
+    fs.mkdirSync(fullPath, { recursive: true });
+  }
+});
 
 // ----------------------- ROUTES ----------------------- //
-app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/services", serviceRoutes);
 app.use("/api/v1/subservices", subServiceRoutes);
 app.use("/api/v1/userroles", userRoleRoutes);
@@ -108,6 +131,10 @@ app.use("/api/v1/settings", settingsRoutes);
 app.use("/api/v1/chats", chatRoutes);
 app.use("/api/v1/messages", messageRoutes);
 app.use("/api/v1/auto-replies", autoReplyRoutes);
+app.use("/api/v1/clients", clientsRoutes);
+app.use("/api/v1/quotations", quotationsRoutes);
+app.use("/api/v1/notifications", notificationRoutes);
+app.use("/api/v1/tasks", taskRoutes);
 
 // ----------------------- UNHANDLED ROUTES ----------------------- //
 app.all("*", (req, res, next) => {

@@ -28,7 +28,7 @@ const FAQManagement = () => {
   const [editData, setEditData] = useState(null);
   const [isEdit, setIsEdit] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -38,9 +38,9 @@ const FAQManagement = () => {
   useEffect(() => {
     handleGetFaq(currentPage, rowsPerPage);
   }, []);
-  
+
   const handleGetFaq = async (page = 1, limit = 10) => {
-    setIsLoading(true);   
+    setIsLoading(true);
 
     try {
       const response = await getFaq(page, limit);
@@ -55,12 +55,10 @@ const FAQManagement = () => {
       } else {
         enqueueSnackbar(response.data.message, { variant: "error" });
       }
-
     } catch (error) {
       console.log("FAQ Fetch Error:", error);
-
     } finally {
-      setIsLoading(false);   
+      setIsLoading(false);
     }
   };
 
@@ -91,101 +89,94 @@ const FAQManagement = () => {
     }
   };
 
- const handleSaveFAQ = async (formData) => {
-  setIsLoading(true);  
+  const handleSaveFAQ = async (formData) => {
+    setIsLoading(true);
 
-  try {
-    const payload = {
-      title: formData.title,
-      body: formData.body,
-    };
-
-    const response = isEdit
-      ? await updateFaq(editData._id, payload)
-      : await createFaq(payload);
-
-    if (response.status === 200 || response.status === 201) {
-
-      enqueueSnackbar(response.data.message || "FAQ saved successfully!", {
-        variant: "success",
-      });
-
-      await handleGetFaq();
-      setDialogOpen(false);
-
-    } else {
-      enqueueSnackbar(response.data.message || "Failed to save FAQ", {
-        variant: "error",
-      });
-    }
-
-  } catch (error) {
-    console.error("Save FAQ Error:", error);
-    enqueueSnackbar("Something went wrong", { variant: "error" });
-
-  } finally {
-    setIsLoading(false);  
-  }
-};
-
-//  const handleDeleteFaq = async (id) => {
-//   try {
-//     const result = await deleteConfirm({
-//       title: "Delete FAQ?",
-//       text: "Are you sure you want to delete this FAQ?",
-//       confirmButtonText: "Delete"
-//     });
-
-//     if (!result.isConfirmed) return;
-
-//     setIsLoading(true);  
-
-//     const response = await deleteFaq(id);
-
-//     if (response.status === 200 || response.status === 201) {
-
-//       await Swal.fire({
-//         title: "Deleted!",
-//         text: response.data.message,
-//         icon: "success"
-//       });
-
-//       await handleGetFaq();
-
-//     } else {
-//       enqueueSnackbar(response.data.message, { variant: "error" });
-//     }
-    
-
-//   } catch (error) {
-//     console.log("Delete FAQ error:", error);
-
-//   } finally {
-//     setIsLoading(false);  
-//   }
-// };
-
-const handleDeleteFaq = async (id) => {
     try {
-       const result = await deleteConfirm({
-          title: "Delete FAQ?",
-      text: "Are you sure you want to delete this FAQ?",
-      confirmButtonText: "Delete"
+      const payload = {
+        title: formData.title,
+        body: formData.body,
+      };
+
+      const response = isEdit
+        ? await updateFaq(editData._id, payload)
+        : await createFaq(payload);
+
+      if (response.status === 200 || response.status === 201) {
+        enqueueSnackbar(response.data.message || "FAQ saved successfully!", {
+          variant: "success",
+        });
+
+        await handleGetFaq();
+        setDialogOpen(false);
+      } else {
+        enqueueSnackbar(response.data.message || "Failed to save FAQ", {
+          variant: "error",
+        });
+      }
+    } catch (error) {
+      console.error("Save FAQ Error:", error);
+      enqueueSnackbar("Something went wrong", { variant: "error" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  //  const handleDeleteFaq = async (id) => {
+  //   try {
+  //     const result = await deleteConfirm({
+  //       title: "Delete FAQ?",
+  //       text: "Are you sure you want to delete this FAQ?",
+  //       confirmButtonText: "Delete"
+  //     });
+
+  //     if (!result.isConfirmed) return;
+
+  //     setIsLoading(true);
+
+  //     const response = await deleteFaq(id);
+
+  //     if (response.status === 200 || response.status === 201) {
+
+  //       await Swal.fire({
+  //         title: "Deleted!",
+  //         text: response.data.message,
+  //         icon: "success"
+  //       });
+
+  //       await handleGetFaq();
+
+  //     } else {
+  //       enqueueSnackbar(response.data.message, { variant: "error" });
+  //     }
+
+  //   } catch (error) {
+  //     console.log("Delete FAQ error:", error);
+
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
+  const handleDeleteFaq = async (id) => {
+    try {
+      const result = await deleteConfirm({
+        title: "Delete FAQ?",
+        text: "Are you sure you want to delete this FAQ?",
+        confirmButtonText: "Delete",
       });
 
       if (!result.isConfirmed) return;
 
       setIsLoading(true);
 
-      
       const response = await deleteFaq(id);
-        console.log(response, 'delte service');
-        
+      console.log(response, "delte service");
+
       if (response.status === 200 || response.status === 201) {
         enqueueSnackbar(response.data.message, { variant: "sucess" });
-        
 
-         handleGetFaq(currentPage, rowsPerPage);
+        handleGetFaq(currentPage, rowsPerPage);
       } else {
         enqueueSnackbar(response.data.message, { variant: "error" });
       }
@@ -219,31 +210,33 @@ const handleDeleteFaq = async (id) => {
       </Box>
 
       {/* Add Button */}
-      {perms.isCreate && <Box sx={{ mb: 3, display: "flex", justifyContent: "flex-end" }}>
-        <Button
-          variant="contained"
-          startIcon={<Plus size={20} />}
-          onClick={handleAddFAQ}
-          sx={{
-            background: "linear-gradient(135deg, #8CE600 0%, #00D4AA 100%)",
-            color: "#000",
-            fontWeight: 600,
-            px: 3,
-            py: 1.5,
-            borderRadius: "12px",
-            textTransform: "none",
-            fontSize: "16px",
-            "&:hover": {
-              background: "linear-gradient(135deg, #7DD500 0%, #00C4A0 100%)",
-              transform: "translateY(-2px)",
-              boxShadow: "0 8px 25px rgba(140, 230, 0, 0.3)",
-            },
-            transition: "all 0.3s ease",
-          }}
-        >
-          Add New FAQ
-        </Button>
-      </Box>}
+      {perms.isCreate && (
+        <Box sx={{ mb: 3, display: "flex", justifyContent: "flex-end" }}>
+          <Button
+            variant="contained"
+            startIcon={<Plus size={20} />}
+            onClick={handleAddFAQ}
+            sx={{
+              backgroundColor: "#8CE600",
+              color: "#000",
+              fontWeight: 600,
+              px: 3,
+              py: 1.5,
+              borderRadius: "12px",
+              textTransform: "none",
+              fontSize: "16px",
+              "&:hover": {
+                backgroundColor: "#7BCC00",
+                transform: "translateY(-2px)",
+                boxShadow: "0 8px 25px rgba(140, 230, 0, 0.3)",
+              },
+              transition: "all 0.3s ease",
+            }}
+          >
+            Add New FAQ
+          </Button>
+        </Box>
+      )}
 
       {/* Table Container */}
       <Paper

@@ -19,6 +19,12 @@ const chatSchema = new mongoose.Schema(
       ref: "User",
       required: true, // The client/user initiating the chat
     },
+    // Link back to Client collection (for accepted proposal context)
+    clientRef: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Client",
+      default: null,
+    },
     assignedAdmin: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -53,6 +59,25 @@ const chatSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    // Group chat fields
+    isGroupChat: {
+      type: Boolean,
+      default: false,
+    },
+    groupName: {
+      type: String,
+      default: null,
+    },
+    groupDescription: {
+      type: String,
+      default: null,
+    },
+    groupAdmins: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   {
     timestamps: true,
@@ -63,6 +88,8 @@ const chatSchema = new mongoose.Schema(
 // Index for faster queries
 chatSchema.index({ clientId: 1, chatType: 1 });
 chatSchema.index({ assignedAdmin: 1 });
+chatSchema.index({ participants: 1 });
+chatSchema.index({ isGroupChat: 1 });
 chatSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model("Chat", chatSchema);

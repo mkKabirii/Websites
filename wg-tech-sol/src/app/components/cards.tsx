@@ -4,7 +4,7 @@ import { FaMapMarkerAlt } from "react-icons/fa";
 import useEmblaCarousel from "embla-carousel-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { MouseEvent } from "react";
 import { BlogItem } from "../blogs/types";
 import { ProductItem } from "../products/types";
@@ -27,11 +27,15 @@ interface CardsProps {
   onImageClick?: (images: string[], title: string) => void;
 }
 
-export default function Cards({ blogData, basePath, onImageClick }: CardsProps) {
+export default function Cards({
+  blogData,
+  basePath,
+  onImageClick,
+}: CardsProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalImages, setModalImages] = useState<string[]>([]);
   const [modalTitle, setModalTitle] = useState("");
-console.log(blogData , "blogDatablogData");
+  console.log(blogData, "blogDatablogData");
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
     align: "center",
@@ -47,16 +51,56 @@ console.log(blogData , "blogDatablogData");
     if (emblaApi) emblaApi.scrollNext();
   }, [emblaApi]);
 
+  const scrollToHash = useCallback(
+    (hash: string) => {
+      if (!emblaApi || !blogData?.length || !hash) return;
+      const targetIndex = blogData.findIndex(
+        (item) => "anchorId" in item && item.anchorId === hash,
+      );
+      if (targetIndex >= 0) {
+        emblaApi.scrollTo(targetIndex);
+      }
+    },
+    [emblaApi, blogData],
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hash = window.location.hash.replace("#", "");
+    scrollToHash(hash);
+
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent).detail as string;
+      scrollToHash(detail);
+    };
+
+    const onHashChange = () => {
+      const nextHash = window.location.hash.replace("#", "");
+      scrollToHash(nextHash);
+    };
+
+    window.addEventListener("wg-hash-scroll", handler as EventListener);
+    window.addEventListener("hashchange", onHashChange);
+    return () => {
+      window.removeEventListener("wg-hash-scroll", handler as EventListener);
+      window.removeEventListener("hashchange", onHashChange);
+    };
+  }, [scrollToHash]);
+
   const getImage = (item: CardDataItem): string => {
     if (Array.isArray(item.images) && item.images[0]) return item.images[0];
-    if (Array.isArray(item.productImages) && item.productImages[0]) return item.productImages[0];
-    if ("image" in item && typeof item.image === "string" && item.image) return item.image;
+    if (Array.isArray(item.productImages) && item.productImages[0])
+      return item.productImages[0];
+    if ("image" in item && typeof item.image === "string" && item.image)
+      return item.image;
     return "/images/Icon.png";
   };
 
   const getImages = (item: CardDataItem): string[] => {
-    if (Array.isArray(item.images) && item.images.length > 0) return item.images;
-    if (Array.isArray(item.productImages) && item.productImages.length > 0) return item.productImages;
+    if (Array.isArray(item.images) && item.images.length > 0)
+      return item.images;
+    if (Array.isArray(item.productImages) && item.productImages.length > 0)
+      return item.productImages;
     const singleImage = getImage(item);
     return singleImage ? [singleImage] : [];
   };
@@ -125,7 +169,9 @@ console.log(blogData , "blogDatablogData");
               const shortDescription = item?.shortDescription || "";
               const imageSrc = getImage(item);
               const hasImages = getImages(item).length > 0;
-              const formattedDate = formatDate(item?.eventDate || item?.postedOn);
+              const formattedDate = formatDate(
+                item?.eventDate || item?.postedOn,
+              );
               const location = item?.location;
               const productLink = item?.productLink || item?.slug;
 
@@ -133,7 +179,7 @@ console.log(blogData , "blogDatablogData");
                 <div
                   data-aos="fade-up"
                   data-aos-anchor-placement="top-bottom"
-                  className="flex-shrink-0 w-[250px] sm:w-[280px] md:w-[300px] lg:w-[320px] xl:w-[340px] border border-[#232323] rounded-lg flex flex-col p-3 sm:p-4 md:p-5 hover:bg-[#111] transition"
+                  className="wg-card flex-shrink-0 w-[250px] sm:w-[280px] md:w-[300px] lg:w-[320px] xl:w-[340px] border border-[#232323] rounded-lg flex flex-col p-3 sm:p-4 md:p-5 hover:bg-[#111] transition"
                 >
                   <div className="w-full flex flex-col sm:flex-row items-start sm:items-center justify-between mb-2 sm:mb-3 gap-1 sm:gap-2">
                     <h2 className="text-[#bfbfbf] text-xs sm:text-sm md:text-base lg:text-lg font-semibold line-clamp-1 flex-1">
@@ -153,10 +199,14 @@ console.log(blogData , "blogDatablogData");
                       width={400}
                       height={220}
                       className={`w-full h-[140px] sm:h-[160px] md:h-[180px] lg:h-[200px] object-contain ${
-                        hasImages ? "cursor-pointer hover:opacity-90 transition-opacity" : ""
+                        hasImages
+                          ? "cursor-pointer hover:opacity-90 transition-opacity"
+                          : ""
                       }`}
                       priority
-                      onClick={hasImages ? (e) => handleImageClick(e, item) : undefined}
+                      onClick={
+                        hasImages ? (e) => handleImageClick(e, item) : undefined
+                      }
                     />
                   </div>
 
@@ -165,18 +215,16 @@ console.log(blogData , "blogDatablogData");
                       {title}
                     </h3>
                     {basePath && (
-  <div className="group rounded-lg p-2 bg-[#232323] hover:bg-[#9eff00] transition">
-    <Image
-      src="/images/Icon.png"
-      alt="Open Details"
-      width={20}
-      height={20}
-      className="transition group-hover:brightness-0"
-    />
-  </div>
-)}
-
-
+                      <div className="group rounded-lg p-2 bg-[#232323] hover:bg-[#9eff00] transition">
+                        <Image
+                          src="/images/Icon.png"
+                          alt="Open Details"
+                          width={20}
+                          height={20}
+                          className="transition group-hover:brightness-0"
+                        />
+                      </div>
+                    )}
                   </div>
 
                   {location && (
@@ -195,7 +243,7 @@ console.log(blogData , "blogDatablogData");
                     </a>
                   )}
 
-                  {productLink   && (
+                  {productLink && (
                     <div className="flex items-center gap-1 sm:gap-2 mb-2 sm:mb-3">
                       <a
                         target="_blank"
@@ -219,11 +267,19 @@ console.log(blogData , "blogDatablogData");
               );
 
               return basePath ? (
-                <Link key={itemId} href={`${basePath}/${itemId}`} className="flex-shrink-0">
-                  {CardContent}
-                </Link>
+                <div
+                  key={itemId}
+                  id={"anchorId" in item ? item.anchorId : undefined}
+                  className="flex-shrink-0"
+                >
+                  <Link href={`${basePath}/${itemId}`}>{CardContent}</Link>
+                </div>
               ) : (
-                <div key={itemId} className="flex-shrink-0">
+                <div
+                  key={itemId}
+                  id={"anchorId" in item ? item.anchorId : undefined}
+                  className="flex-shrink-0"
+                >
                   {CardContent}
                 </div>
               );

@@ -1,10 +1,11 @@
 import api from "../index";
 import ENDPOINTS from "../endpoint";
 
-const getNotifications = () => api(ENDPOINTS.getNotifications, null, "get");
-const acceptNotification = (id) =>
-  api(`${ENDPOINTS.acceptNotification}/${id}`, null, "put");
-const rejectNotification = (id) =>
-  api(`${ENDPOINTS.rejectNotification}/${id}`, null, "put");
+const getNotifications = (limit = 30) =>
+  api(ENDPOINTS.getNotifications, null, "get", false, { limit });
+const markNotificationRead = (id) =>
+  api(`${ENDPOINTS.markNotificationRead}/${id}/read`, null, "put");
+const markAllNotificationsRead = () =>
+  api(ENDPOINTS.markAllNotificationsRead, null, "put");
 
-export { getNotifications, acceptNotification, rejectNotification };
+export { getNotifications, markNotificationRead, markAllNotificationsRead };

@@ -49,6 +49,8 @@ import ProjectsProgressManagement from "../app/projectsProgressManagement";
 import ProjectsProgressViewDetails from "../app/projectsProgressManagement/viewDetails";
 import ProjectsUpdatesManagement from "../app/projectsUpdatesManagement";
 import ChatPage from "../app/chat";
+import WorkingField from "../app/workingField";
+import TasksManagement from "../app/tasks";
 
 const createDefaultPermissions = () => [
   { isDelete: false, label: "Delete" },
@@ -146,6 +148,26 @@ const ADMIN_ROUTES = [
     path: "/chat",
     activeIcon: <MessageSquare size={20} color="#fff" />,
     inActiveIcon: <MessageSquare size={20} color="#64748b" />,
+    permissions: createDefaultPermissions(),
+  },
+  {
+    id: 1.6,
+    name: "Working Field",
+    component: <WorkingField />,
+    exact: "exact",
+    path: "/working-field",
+    activeIcon: <Briefcase size={20} color="#fff" />,
+    inActiveIcon: <Briefcase size={20} color="#64748b" />,
+    permissions: createDefaultPermissions(),
+  },
+  {
+    id: 1.7,
+    name: "Tasks",
+    component: <TasksManagement />,
+    exact: "exact",
+    path: "/tasks",
+    activeIcon: <ClipboardList size={20} color="#fff" />,
+    inActiveIcon: <ClipboardList size={20} color="#64748b" />,
     permissions: createDefaultPermissions(),
   },
 
@@ -362,8 +384,7 @@ export const buildRoutesFromDesignation = (designation) => {
   const byPath = Object.fromEntries(incoming.map((r) => [r.path, r]));
   const allowedPaths = new Set(incoming.map((r) => r.path));
 
-  return ADMIN_ROUTES
-    .filter((r) => allowedPaths.has(r.path))
+  return ADMIN_ROUTES.filter((r) => allowedPaths.has(r.path))
     .map((r) => {
       const d = byPath[r.path] || {};
       return {
@@ -371,7 +392,9 @@ export const buildRoutesFromDesignation = (designation) => {
         name: d.title || r.name,
         title: d.title || r.title,
         order: d.order ?? r.id ?? r.order,
-        permissions: Array.isArray(d.permissions) ? d.permissions : r.permissions,
+        permissions: Array.isArray(d.permissions)
+          ? d.permissions
+          : r.permissions,
       };
     })
     .sort((a, b) => (a.order || 0) - (b.order || 0));

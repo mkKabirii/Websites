@@ -23,10 +23,10 @@ const theme = createTheme({
       card: "#2A2A2A",
     },
     gradient: {
-      primary: "linear-gradient(90deg,rgb(98, 181, 20),  #8CE600)",
-      secondary: "linear-gradient(135deg, #151515,  #8CE600)",
-      card: "linear-gradient(135deg, #8CE600,  #8CE600)",
-      auth: "linear-gradient(135deg, #151515,#8CE600)",
+      primary: "#8CE600",
+      secondary: "#8CE600",
+      card: "#8CE600",
+      auth: "#8CE600",
     },
     text: {
       primary: "#FFFFFF",
@@ -160,12 +160,12 @@ const theme = createTheme({
         {
           props: { variant: "gradient" },
           style: {
-            background: "linear-gradient(90deg,#8CE600,  #8CE600)",
+            backgroundColor: "#8CE600",
             color: "#ffffff",
             padding: "12px",
             fontSize: "16px",
             "&:hover": {
-              background: "linear-gradient(90deg,  #8CE600,#8CE600)",
+              backgroundColor: "#7BCC00",
               transform: "translateY(-2px)",
               boxShadow: "0 5px 15px rgba(0,0,0,0.2)",
             },
@@ -174,14 +174,14 @@ const theme = createTheme({
         {
           props: { variant: "authbutton" },
           style: {
-            background: "linear-gradient(90deg,rgb(6, 247, 66),  #8CE600)",
+            backgroundColor: "#8CE600",
             color: "#fff",
             padding: "30px 30px",
             fontSize: "18px",
             borderRadius: "8px",
             fontWeight: 700,
             "&:hover": {
-              background: "linear-gradient(90deg,  #8CE600,rgb(77, 169, 11))",
+              backgroundColor: "#7BCC00",
               transform: "translateY(-2px)",
               boxShadow: "0 5px 15px rgba(0,0,0,0.2)",
             },
@@ -209,14 +209,14 @@ const theme = createTheme({
         {
           props: { variant: "webbutton" },
           style: {
-            background: "linear-gradient(90deg,#8CE600, #8CE600)",
+            backgroundColor: "#8CE600",
             color: "#151515",
             padding: "30px 30px",
             fontSize: "18px",
             borderRadius: "12px",
             fontWeight: 500,
             "&:hover": {
-              background: "linear-gradient(90deg,#8CE600, #8CE600)",
+              backgroundColor: "#7BCC00",
               transform: "translateY(-2px)",
               boxShadow: "0 5px 15px rgba(0,0,0,0.2)",
             },
@@ -226,8 +226,7 @@ const theme = createTheme({
         {
           props: { variant: "gradientbtn" },
           style: {
-            background:
-              "linear-gradient(135deg, #8CE600 0%, #6BB314 50%, #4A8B0A 100%)", // 🟢 Multi-stop gradient
+            backgroundColor: "#8CE600",
             color: "#ffffff",
             padding: "12px 24px", // �� Better padding
             fontSize: "16px",
@@ -251,8 +250,7 @@ const theme = createTheme({
             },
 
             "&:hover": {
-              // background:
-              //   "linear-gradient(135deg, #9DFF00 0%, #8CE600 50%, #6BB314 100%)", // �� Brighter on hover
+              backgroundColor: "#7BCC00",
               transform: "translateY(-3px) scale(1.02)", // 🟢 Enhanced lift effect
               // boxShadow:
               //   "0 8px 25px rgba(140, 230, 0, 0.4), 0 0 0 1px rgba(140, 230, 0, 0.1)", // 🟢 Glowing shadow
@@ -270,14 +268,14 @@ const theme = createTheme({
         {
           props: { variant: "errorbtn" },
           style: {
-            background: "linear-gradient(to top, #FDA1A1, #FF0000)",
+            backgroundColor: "#d32f2f",
             color: "#ffff",
             padding: "30px 30px",
             fontSize: "18px",
             borderRadius: "8px",
             fontWeight: 500,
             "&:hover": {
-              background: "linear-gradient(to top, #FDA1A1, #FF0000)",
+              backgroundColor: "#b71c1c",
               transform: "translateY(-2px)",
               boxShadow: "0 5px 15px rgba(0,0,0,0.2)",
             },

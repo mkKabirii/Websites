@@ -16,7 +16,8 @@
 
 import api from "../index";
 
-export const loginUser = (data) => api("v1/users/login", data, "POST"); // ✅ correct endpoint
+// Login: backend returns { client, token } for clients, { user, token } for admins/workers
+export const loginUser = (data) => api("v1/users/login", data, "POST");
 
 export const forgotPasswordApi = (data) =>
   api("v1/users/forgot-password", data, "POST");

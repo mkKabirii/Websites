@@ -6,15 +6,7 @@ import DetailFooter from "../components/detail_footer";
 import { detailFooter } from "../components/detailFooterData";
 import WorkCard from "./WorkCard";
 import { getAllWork } from "../../api/module/work";
-
-const sections = [
-  {
-    heading: "At WGTECSOL (Pvt.) Ltd.",
-    description:
-      "We have had the privilege of working with a diverse range of clients and delivering exceptional digital products that drive success.",
-    boxText: "Here are ten examples of our notable works:",
-  },
-];
+import MagnifyText from "../components/MagnifyText";
 
 // Types import karo from types file
 import { WorkCategory } from "./types";
@@ -27,6 +19,25 @@ function Page() {
     fetchWork();
   }, []);
 
+  useEffect(() => {
+    if (!loading && workData.length) {
+      const hash = typeof window !== "undefined" ? window.location.hash : "";
+      if (hash) {
+        const id = hash.replace("#", "");
+        const target = document.getElementById(id);
+        if (target) {
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+
+        setTimeout(() => {
+          window.dispatchEvent(
+            new CustomEvent("wg-hash-scroll", { detail: id }),
+          );
+        }, 120);
+      }
+    }
+  }, [loading, workData]);
+
   const fetchWork = async () => {
     try {
       const response = await getAllWork();
@@ -34,11 +45,14 @@ function Page() {
         // API structure: response.data.data.works (array of categories)
         // Ya phir: response.data.works
         let workCategories: WorkCategory[] = [];
-        
+
         // Pehle check karo response.data.data.works
-        if (response.data?.data?.works && Array.isArray(response.data.data.works)) {
+        if (
+          response.data?.data?.works &&
+          Array.isArray(response.data.data.works)
+        ) {
           workCategories = response.data.data.works;
-        } 
+        }
         // Phir check karo response.data.works
         else if (response.data?.works && Array.isArray(response.data.works)) {
           workCategories = response.data.works;
@@ -51,13 +65,13 @@ function Page() {
         else if (Array.isArray(response.data)) {
           workCategories = response.data;
         }
-        
+
         // Ensure karo ke workCategories hamesha array hai
         if (!Array.isArray(workCategories)) {
           console.error("Work data is not an array:", workCategories);
           workCategories = [];
         }
-        
+
         setWorkData(workCategories);
       }
     } catch (error) {
@@ -75,23 +89,23 @@ function Page() {
         subheading={banner[1].subheading}
       />
       <div className="w-auto h-auto ">
-        {sections.map((section) => (
-          <section key={section.heading} className="pt-4 md:pt-6 pb-8 md:pb-10">
-            <div className="max-w-[1500px] mx-auto px-4 md:px-6">
-              <h1 className="text-white text-4xl md:text-[56px] font-bold leading-none mb-4">
-                {section.heading}
-              </h1>
-              <p className="text-white text-base md:text-lg font-medium leading-snug mb-6 md:mb-10 max-w-full md:max-w-[1290px]">
-                {section.description}
-              </p>
-              <div className="inline-block bg-[#333333] rounded-lg px-4 py-2 md:px-6 md:py-3 mt-2">
-                <span className="text-white text-lg md:text-2xl font-normal">
-                  {section.boxText}
-                </span>
-              </div>
+        <section className="pt-4 md:pt-6 pb-8 md:pb-10">
+          <div className="max-w-[1500px] mx-auto px-4 md:px-6">
+            <h1 className="text-white text-4xl md:text-[56px] font-bold leading-none mb-4">
+              <MagnifyText text="Our Work Portfolio" />
+            </h1>
+            <p className="text-white text-base md:text-lg font-medium leading-snug mb-6 md:mb-10 max-w-full md:max-w-[1290px]">
+              Explore our delivered projects across multiple categories and industries.
+            </p>
+            <div className="inline-block bg-[#333333] rounded-lg px-4 py-2 md:px-6 md:py-3 mt-2">
+              <span className="text-white text-lg md:text-2xl font-normal">
+                {loading
+                  ? "Loading portfolio categories..."
+                  : `${workData.length} portfolio categories available`}
+              </span>
             </div>
-          </section>
-        ))}
+          </div>
+        </section>
       </div>
       <WorkCard workData={workData} loading={loading} />
 

@@ -335,64 +335,63 @@ const ViewProposals = () => {
           }}
           icon={getStatusIcon(proposalData.status)}
         />
-       
       </Box>
 
       {/* ✅ Dialog yahan — Header Box ke baad */}
 
-       <Dialog
-          open={emailDialog}
-          onClose={() => setEmailDialog(false)}
-          PaperProps={{
-            sx: {
-              backgroundColor: "#1A1A1A",
-              border: "1px solid #333",
-              borderRadius: "12px",
-            },
-          }}
-        >
-          <DialogTitle sx={{ color: "#8CE600" }}>
-            Send Confirmation Email
-          </DialogTitle>
-          <DialogContent>
-            <Typography sx={{ color: "#B0B0B0", mb: 2 }}>
-              Edit email address if needed before sending:
-            </Typography>
-            <TextField
-              fullWidth
-              label="Email Address"
-              value={emailTo}
-              onChange={(e) => setEmailTo(e.target.value)}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  color: "#fff",
-                  "& fieldset": { borderColor: "#333" },
-                },
-                "& .MuiInputLabel-root": { color: "#B0B0B0" },
-              }}
-            />
-          </DialogContent>
-          <DialogActions sx={{ p: 2, gap: 1 }}>
-            <Button
-              onClick={() => setEmailDialog(false)}
-              sx={{ color: "#B0B0B0" }}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSendEmail}
-              disabled={sendingEmail}
-              sx={{
-                backgroundColor: "#8CE600",
-                color: "#000",
-                fontWeight: 600,
-                "&:hover": { backgroundColor: "#00D4AA" },
-              }}
-            >
-              {sendingEmail ? "Sending..." : "Send Email"}
-            </Button>
-          </DialogActions>
-        </Dialog>
+      <Dialog
+        open={emailDialog}
+        onClose={() => setEmailDialog(false)}
+        PaperProps={{
+          sx: {
+            backgroundColor: "#1A1A1A",
+            border: "1px solid #333",
+            borderRadius: "12px",
+          },
+        }}
+      >
+        <DialogTitle sx={{ color: "#8CE600" }}>
+          Send Confirmation Email
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ color: "#B0B0B0", mb: 2 }}>
+            Edit email address if needed before sending:
+          </Typography>
+          <TextField
+            fullWidth
+            label="Email Address"
+            value={emailTo}
+            onChange={(e) => setEmailTo(e.target.value)}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                color: "#fff",
+                "& fieldset": { borderColor: "#333" },
+              },
+              "& .MuiInputLabel-root": { color: "#B0B0B0" },
+            }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button
+            onClick={() => setEmailDialog(false)}
+            sx={{ color: "#B0B0B0" }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSendEmail}
+            disabled={sendingEmail}
+            sx={{
+              backgroundColor: "#8CE600",
+              color: "#000",
+              fontWeight: 600,
+              "&:hover": { backgroundColor: "#00D4AA" },
+            }}
+          >
+            {sendingEmail ? "Sending..." : "Send Email"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* <Container maxWidth="xxl"> */}
       <Box>
@@ -683,7 +682,7 @@ const ViewProposals = () => {
                   px: 4,
                   py: 1.5,
                   "&:hover": {
-                    backgroundColor: "#00D4AA",
+                    backgroundColor: "#7BCC00",
                   },
                 }}
               >

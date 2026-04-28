@@ -53,8 +53,7 @@ const OpportunitiesManagement = () => {
     handleGetOpportunities();
   }, []);
 
-  
-   const handleGetOpportunities = async () => {
+  const handleGetOpportunities = async () => {
     try {
       setIsLoading(true);
       const response = await getAllOpportunities();
@@ -70,7 +69,6 @@ const OpportunitiesManagement = () => {
       setIsLoading(false);
     }
   };
- 
 
   const handleSaveOpportunity = async (formData) => {
     setSaving(true);
@@ -99,7 +97,7 @@ const OpportunitiesManagement = () => {
       if (response.status === 200 || response.status === 201) {
         enqueueSnackbar(
           response.data?.message || "Opportunity saved successfully",
-          { variant: "success" }
+          { variant: "success" },
         );
         await handleGetOpportunities();
         // Close dialog only on successful save
@@ -107,7 +105,7 @@ const OpportunitiesManagement = () => {
       } else {
         enqueueSnackbar(
           response.data?.message || "Failed to save opportunity",
-          { variant: "error" }
+          { variant: "error" },
         );
         // Don't close dialog on error - let user retry or cancel
       }
@@ -115,7 +113,7 @@ const OpportunitiesManagement = () => {
       console.error("Save Opportunity Error:", error);
       enqueueSnackbar(
         error.response?.data?.message || "Something went wrong!",
-        { variant: "error" }
+        { variant: "error" },
       );
       // Don't close dialog on error - let user retry or cancel
     } finally {
@@ -216,31 +214,33 @@ const OpportunitiesManagement = () => {
       </Box>
 
       {/* Add Button */}
-      {perms.isCreate && <Box sx={{ mb: 3, display: "flex", justifyContent: "flex-end" }}>
-        <Button
-          variant="contained"
-          startIcon={<Plus size={20} />}
-          onClick={handleAddOpportunity}
-          sx={{
-            background: "linear-gradient(135deg, #8CE600 0%, #00D4AA 100%)",
-            color: "#000",
-            fontWeight: 600,
-            px: 3,
-            py: 1.5,
-            borderRadius: "12px",
-            textTransform: "none",
-            fontSize: "16px",
-            "&:hover": {
-              background: "linear-gradient(135deg, #7DD500 0%, #00C4A0 100%)",
-              transform: "translateY(-2px)",
-              boxShadow: "0 8px 25px rgba(140, 230, 0, 0.3)",
-            },
-            transition: "all 0.3s ease",
-          }}
-        >
-          Add New Opportunity
-        </Button>
-      </Box>}
+      {perms.isCreate && (
+        <Box sx={{ mb: 3, display: "flex", justifyContent: "flex-end" }}>
+          <Button
+            variant="contained"
+            startIcon={<Plus size={20} />}
+            onClick={handleAddOpportunity}
+            sx={{
+              backgroundColor: "#8CE600",
+              color: "#000",
+              fontWeight: 600,
+              px: 3,
+              py: 1.5,
+              borderRadius: "12px",
+              textTransform: "none",
+              fontSize: "16px",
+              "&:hover": {
+                backgroundColor: "#7BCC00",
+                transform: "translateY(-2px)",
+                boxShadow: "0 8px 25px rgba(140, 230, 0, 0.3)",
+              },
+              transition: "all 0.3s ease",
+            }}
+          >
+            Add New Opportunity
+          </Button>
+        </Box>
+      )}
 
       {/* Table Container */}
       <Paper
@@ -275,7 +275,6 @@ const OpportunitiesManagement = () => {
             setDialogOpen(false);
           }
         }}
-        
         onSave={handleSaveOpportunity}
         editData={editData}
         isEdit={isEdit}

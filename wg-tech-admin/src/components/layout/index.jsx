@@ -27,12 +27,13 @@ import logo from "../../assets/Logo.png";
 import useUserStore from "../../zustand/useUserStore";
 import ActionButtons from "./actionButton";
 import { motion } from "framer-motion";
-import NotificationBadge from "../Chat/NotificationBadge";
+import NotificationBell from "./notifcation";
 
 const drawerWidth = 220;
 const collapsedWidth = 70; // collapsed drawer only icons
 
 export default function MainLayout({ children }) {
+  console.log("🎨 MainLayout rendering with children:", children);
   const navigate = useNavigate();
   const location = useLocation();
   const { clearUserData, user } = useUserStore();
@@ -95,16 +96,17 @@ export default function MainLayout({ children }) {
     clearUserData();
   };
 
-  const computedRoutes = React.useMemo(
-    () => {
-      // If user has designation with routes, use them; otherwise use all admin routes
-      if (user?.designation?.routes && Array.isArray(user.designation.routes) && user.designation.routes.length > 0) {
-        return buildRoutesFromDesignation(user.designation);
-      }
-      return ADMIN_ROUTES;
-    },
-    [user, ADMIN_ROUTES]
-  );
+  const computedRoutes = React.useMemo(() => {
+    // If user has designation with routes, use them; otherwise use all admin routes
+    if (
+      user?.designation?.routes &&
+      Array.isArray(user.designation.routes) &&
+      user.designation.routes.length > 0
+    ) {
+      return buildRoutesFromDesignation(user.designation);
+    }
+    return ADMIN_ROUTES;
+  }, [user, ADMIN_ROUTES]);
 
   const drawerContent = (showText) => (
     <Box sx={{ overflow: "auto", p: 2 }}>
@@ -132,10 +134,11 @@ export default function MainLayout({ children }) {
           return (
             <ListItem key={route.id} disablePadding sx={{ mb: 0.5 }}>
               <ListItemButton
+                className={`admin-nav-item wg-card wg-nav-glow ${isActive ? "active" : ""}`}
                 onClick={() => handleNavigation(route.path)}
                 sx={{
                   background: isActive
-                    ? "linear-gradient(135deg, #8CE600 0%, #00D4AA 100%)"
+                    ? "linear-gradient(90deg,#9EFF00,#3DD400)"
                     : "transparent",
                   color: isActive ? "black" : "white",
                   borderRadius: "12px",
@@ -144,6 +147,7 @@ export default function MainLayout({ children }) {
                   "&:hover": {
                     transform: showText ? "translateX(4px)" : "scale(1.05)",
                     transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    boxShadow: "inset 0 0 60px rgba(158,255,0,0.18)",
                   },
                   transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                 }}
@@ -218,8 +222,8 @@ export default function MainLayout({ children }) {
                     ? "rotate(0deg)"
                     : "rotate(180deg)"
                   : drawerOpen
-                  ? "rotate(0deg)"
-                  : "rotate(180deg)",
+                    ? "rotate(0deg)"
+                    : "rotate(180deg)",
                 transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                 marginLeft: isMobile
                   ? mobileOpen
@@ -228,8 +232,8 @@ export default function MainLayout({ children }) {
                       : "70px"
                     : "0px"
                   : drawerOpen
-                  ? "220px"
-                  : "70px",
+                    ? "220px"
+                    : "70px",
                 "&:hover": {
                   backgroundColor: "#262626",
                   boxShadow: "0 6px 25px rgba(255, 255, 255, 0.2)",
@@ -246,19 +250,20 @@ export default function MainLayout({ children }) {
               handleNavigation={handleNavigation}
               handleLogout={handleLogout}
             />
-            <NotificationBadge />
+            <NotificationBell />
             <Box
               sx={{
                 display: "flex",
                 alignItems: "center",
                 gap: 2,
-                background: "linear-gradient(135deg, #8CE600 0%, #00D4AA 100%)",
+                background: "linear-gradient(90deg,#9EFF00,#3DD400)",
                 borderRadius: "8px",
                 padding: "4px",
                 color: "white",
                 width: "180px",
                 cursor: "pointer",
                 justifyContent: "space-between",
+                boxShadow: "inset 0 0 40px rgba(158,255,0,0.18)",
               }}
               onClick={handleAvatarClick}
             >
@@ -368,15 +373,13 @@ export default function MainLayout({ children }) {
         sx={{
           flexGrow: 1,
           p: { xs: 2, md: 3 },
-          background:
-            "linear-gradient(45deg, transparent, rgba(140, 230, 0, 0.1), transparent)",
+          background: "#0f0f0f",
           minHeight: "100vh",
           overflow: "auto",
           width: "100%",
           transition: "margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
         }}
       >
-        {" "}
         <Toolbar sx={{ minHeight: "70px" }} />
         {children}
       </Box>

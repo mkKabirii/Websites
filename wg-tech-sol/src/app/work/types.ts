@@ -8,7 +8,6 @@ export type WorkItem = {
   url: string; // Project ka URL
   description: string; // Project ki detail
   purpose?: string; // Project ka purpose/subtitle
-  
 };
 
 // Service ID Type: Service information ke liye (display nahi hota)
@@ -50,6 +49,7 @@ export interface WorkCardProps {
 export type TransformedProject = {
   _id: string;
   slug: string;
+  anchorId?: string;
   title: string;
   subTitle: string;
   image: string;
@@ -58,4 +58,3 @@ export type TransformedProject = {
   shortDescription: string;
   longDescription: string;
 };
-

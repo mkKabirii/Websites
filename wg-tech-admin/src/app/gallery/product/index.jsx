@@ -138,9 +138,9 @@ const Product = () => {
       const payload = {
         title: formData.heading,
         subTitle: formData.subTitle,
-        productLink: formData.productLink, 
+        productLink: formData.productLink,
         shortDescription: formData.shortDescription,
-        longDescription: formData.shortDescription, 
+        longDescription: formData.shortDescription,
         productImages: formData.productImages,
         postedOn: formData.postedOn ? formData.postedOn.toISOString() : null,
         type: "product",
@@ -155,7 +155,7 @@ const Product = () => {
           response.data.message || "Product saved successfully!",
           {
             variant: "success",
-          }
+          },
         );
 
         await handleGetProduct();
@@ -296,7 +296,9 @@ const Product = () => {
   // Transform data for table display
   const tableData = filteredProductData.map((product) => ({
     ...product,
-    postedOn: product.postedOn ? new Date(product.postedOn).toLocaleDateString() : "-",
+    postedOn: product.postedOn
+      ? new Date(product.postedOn).toLocaleDateString()
+      : "-",
     productLink: (
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <Typography
@@ -350,31 +352,33 @@ const Product = () => {
         </Box>
 
         {/* Add Button */}
-        {perms.isCreate && <Box>
-          <Button
-            variant="contained"
-            startIcon={<Plus size={20} />}
-            onClick={handleAddProduct}
-            sx={{
-              background: "linear-gradient(135deg, #8CE600 0%, #00D4AA 100%)",
-              color: "#000",
-              fontWeight: 600,
-              px: 3,
-              py: 1.5,
-              borderRadius: "12px",
-              textTransform: "none",
-              fontSize: "16px",
-              "&:hover": {
-                background: "linear-gradient(135deg, #7DD500 0%, #00C4A0 100%)",
-                transform: "translateY(-2px)",
-                boxShadow: "0 8px 25px rgba(140, 230, 0, 0.3)",
-              },
-              transition: "all 0.3s ease",
-            }}
-          >
-            Add New Product
-          </Button>
-        </Box>}
+        {perms.isCreate && (
+          <Box>
+            <Button
+              variant="contained"
+              startIcon={<Plus size={20} />}
+              onClick={handleAddProduct}
+              sx={{
+                backgroundColor: "#8CE600",
+                color: "#000",
+                fontWeight: 600,
+                px: 3,
+                py: 1.5,
+                borderRadius: "12px",
+                textTransform: "none",
+                fontSize: "16px",
+                "&:hover": {
+                  backgroundColor: "#7BCC00",
+                  transform: "translateY(-2px)",
+                  boxShadow: "0 8px 25px rgba(140, 230, 0, 0.3)",
+                },
+                transition: "all 0.3s ease",
+              }}
+            >
+              Add New Product
+            </Button>
+          </Box>
+        )}
       </Box>
 
       {/* Table Container */}

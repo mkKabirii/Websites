@@ -1,8 +1,11 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --app-navbar-height: 4rem;
 }
 
 @theme inline {
@@ -20,9 +23,45 @@
 }
 
 body {
-  background:  #000000;
-  color: #fff;;
+  background: #000000;
+  color: #fff;
   font-family: Arial, Helvetica, sans-serif;
+  padding-top: var(--app-navbar-height);
+}
+
+/* Global inner green glow on hover for card-like boxes */
+.wg-card {
+  position: relative;
+}
+
+.wg-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 200ms ease;
+  box-shadow:
+    inset 0 0 0 1px rgba(158, 255, 0, 0.32),
+    inset 0 0 60px rgba(158, 255, 0, 0.55),
+    inset 0 0 140px rgba(158, 255, 0, 0.25);
+}
+
+.wg-card.no-glow:hover::after {
+  opacity: 0 !important;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --app-navbar-height: 5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  :root {
+    --app-navbar-height: 6rem;
+  }
 }
 
 /* Date input styling for dark theme */
@@ -60,4 +99,566 @@ input[type="date"]::-moz-calendar-picker-indicator {
 
 input[type="date"]::-moz-calendar-picker-indicator:hover {
   opacity: 1;
+}
+
+@keyframes wg-hero-bg-drift {
+  0% {
+    transform: translate3d(-2%, -2%, 0) scale(1);
+    opacity: 0.42;
+  }
+  50% {
+    transform: translate3d(2%, 1%, 0) scale(1.06);
+    opacity: 0.62;
+  }
+  100% {
+    transform: translate3d(-2%, -2%, 0) scale(1);
+    opacity: 0.42;
+  }
+}
+
+.wg-hero-bg-glow {
+  position: absolute;
+  inset: -10%;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    circle at 50% 45%,
+    rgba(158, 255, 0, 0.06),
+    transparent 58%
+  );
+  filter: none;
+}
+
+@keyframes wg-hero-image-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.03);
+    opacity: 1;
+  }
+}
+
+.wg-hero-image-glow {
+  position: absolute;
+  inset: -14%;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(
+    circle,
+    rgba(158, 255, 0, 0.06) 0%,
+    rgba(158, 255, 0, 0.03) 35%,
+    transparent 70%
+  );
+  filter: none;
+}
+
+/* Professional subtle float animation for hero image */
+@keyframes wg-hero-professional-float {
+  0% {
+    transform: translateY(0px) scale(1);
+    opacity: 0.95;
+  }
+  50% {
+    transform: translateY(-6px) scale(1.01);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0px) scale(1);
+    opacity: 0.95;
+  }
+}
+
+.wg-hero-professional {
+  animation: wg-hero-professional-float 6s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wg-hero-bg-glow,
+  .wg-hero-image-glow {
+    animation: none !important;
+  }
+}
+
+.wg-hero-magnify {
+  display: inline-block;
+}
+
+/* Logo spin and reverse smoothly on hover leave */
+.wg-logo {
+  display: inline-block;
+  transition:
+    filter 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.wg-logo img {
+  transition:
+    transform 1.2s cubic-bezier(0.2, 0.9, 0.2, 1),
+    filter 200ms ease;
+  transform: rotate(0deg);
+}
+
+.wg-logo:hover img,
+.wg-logo:focus img {
+  transform: rotate(180deg);
+  filter: brightness(1.12) drop-shadow(0 0 12px rgba(158, 255, 0, 0.85));
+}
+
+/* Apply wg-card inner glow to nav links when needed */
+.wg-nav-glow {
+  position: relative;
+}
+.wg-nav-glow::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 200ms ease;
+  box-shadow:
+    inset 0 0 0 1px rgba(158, 255, 0, 0.32),
+    inset 0 0 60px rgba(158, 255, 0, 0.55),
+    inset 0 0 140px rgba(158, 255, 0, 0.25);
+}
+.wg-nav-glow:hover::after {
+  opacity: 1;
+}
+
+.wg-hero-magnify .wg-hero-char {
+  display: inline-block;
+  transform-origin: center;
+  transition: transform 120ms ease;
+  will-change: transform;
+}
+
+.wg-cursor-spotlight {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 340px;
+  height: 340px;
+  border-radius: 9999px;
+  pointer-events: none;
+  z-index: 40;
+  opacity: 1;
+  transform: translate3d(-9999px, -9999px, 0) translate(-50%, -50%);
+  transition: opacity 180ms ease;
+  will-change: transform;
+  mix-blend-mode: screen;
+  background: radial-gradient(
+    circle,
+    rgba(158, 255, 0, 0.22) 0%,
+    rgba(158, 255, 0, 0.1) 26%,
+    rgba(158, 255, 0, 0.04) 48%,
+    transparent 72%
+  );
+  filter: blur(0.6px);
+}
+
+@keyframes wg-btt-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes wg-btt-wave {
+  0% {
+    transform: translate3d(-18%, 0, 0);
+  }
+  100% {
+    transform: translate3d(18%, 0, 0);
+  }
+}
+
+.wg-btt-pot {
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.wg-btt-pot-rim {
+  border-radius: 9999px;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    inset 0 -10px 18px rgba(158, 255, 0, 0.12);
+}
+
+.wg-btt-water {
+  border-bottom-left-radius: 9999px;
+  border-bottom-right-radius: 9999px;
+  background:
+    radial-gradient(
+      circle at 50% 10%,
+      rgba(255, 255, 255, 0.22),
+      transparent 55%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(158, 255, 0, 0.95) 0%,
+      rgba(140, 230, 0, 0.9) 45%,
+      rgba(90, 150, 0, 0.88) 100%
+    );
+}
+
+.wg-btt-water::before {
+  content: "";
+  position: absolute;
+  left: -30%;
+  right: -30%;
+  top: -10px;
+  height: 18px;
+  border-radius: 9999px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.22) 18%,
+    rgba(255, 255, 255, 0.06) 45%,
+    rgba(255, 255, 255, 0.18) 70%,
+    transparent 100%
+  );
+  filter: blur(0.2px);
+  opacity: 0.9;
+  animation: wg-btt-wave 1.9s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wg-btt-water::before {
+    animation: none !important;
+  }
+}
+
+/* ===== AuthForm: tech background (chip/bus data lines) ===== */
+
+@keyframes wg-auth-tech-scan {
+  0% {
+    transform: translate3d(-22%, 0, 0);
+    opacity: 0.12;
+  }
+  12% {
+    opacity: 0.38;
+  }
+  60% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: translate3d(22%, 0, 0);
+    opacity: 0.12;
+  }
+}
+
+@keyframes wg-auth-tech-flow {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 220px 0;
+  }
+}
+
+@keyframes wg-auth-tech-flow-y {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 0 220px;
+  }
+}
+
+@keyframes wg-auth-tech-corner {
+  0% {
+    transform: translate3d(-28px, 0, 0) rotate(var(--rot, 0deg));
+    opacity: 0.14;
+  }
+  30% {
+    transform: translate3d(10px, 0, 0) rotate(var(--rot, 0deg));
+    opacity: 0.34;
+  }
+  62% {
+    transform: translate3d(10px, 22px, 0) rotate(var(--rot, 0deg));
+    opacity: 0.28;
+  }
+  100% {
+    transform: translate3d(32px, 0, 0) rotate(var(--rot, 0deg));
+    opacity: 0.14;
+  }
+}
+
+@keyframes wg-auth-tech-corner-v {
+  0% {
+    transform: translate3d(0, -28px, 0) rotate(var(--rot, 0deg));
+    opacity: 0.14;
+  }
+  38% {
+    transform: translate3d(0, 12px, 0) rotate(var(--rot, 0deg));
+    opacity: 0.34;
+  }
+  70% {
+    transform: translate3d(22px, 12px, 0) rotate(var(--rot, 0deg));
+    opacity: 0.26;
+  }
+  100% {
+    transform: translate3d(0, 34px, 0) rotate(var(--rot, 0deg));
+    opacity: 0.14;
+  }
+}
+
+.wg-auth-tech-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.wg-auth-tech-glow {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(48px);
+  opacity: 0.55;
+  background: rgba(158, 255, 0, 0.18);
+}
+
+.wg-auth-tech-glow--tr {
+  top: -120px;
+  right: -150px;
+  width: 420px;
+  height: 420px;
+}
+
+.wg-auth-tech-glow--bl {
+  bottom: -160px;
+  left: -140px;
+  width: 520px;
+  height: 520px;
+  opacity: 0.45;
+}
+
+.wg-auth-tech-fade {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 50% 35%,
+    rgba(158, 255, 0, 0.06),
+    transparent 55%
+  );
+}
+
+.wg-auth-tech-lines {
+  position: absolute;
+  inset: 0;
+}
+
+.wg-auth-tech-line {
+  --dur: 4.5s;
+  --delay: 0s;
+
+  position: absolute;
+  left: -60%;
+  width: 220%;
+  height: 2px;
+  border-radius: 9999px;
+  opacity: 0.32;
+  filter: blur(0.15px);
+
+  /* base glow + repeating “data packets” */
+  background-image:
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(158, 255, 0, 0.55) 18%,
+      rgba(158, 255, 0, 0.08) 55%,
+      transparent 100%
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 18px,
+      rgba(158, 255, 0, 0.75) 18px 22px,
+      transparent 22px 58px
+    );
+  background-size:
+    100% 100%,
+    220px 100%;
+  background-position:
+    0 0,
+    0 0;
+
+  animation:
+    wg-auth-tech-scan var(--dur) linear infinite,
+    wg-auth-tech-flow calc(var(--dur) * 0.55) linear infinite;
+  animation-delay: var(--delay), var(--delay);
+}
+
+.wg-auth-tech-vline {
+  --dur: 4.8s;
+  --delay: 0s;
+
+  position: absolute;
+  top: -60%;
+  height: 220%;
+  width: 2px;
+  border-radius: 9999px;
+  opacity: 0.24;
+  filter: blur(0.15px);
+
+  background-image:
+    linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(158, 255, 0, 0.55) 18%,
+      rgba(158, 255, 0, 0.08) 55%,
+      transparent 100%
+    ),
+    repeating-linear-gradient(
+      180deg,
+      transparent 0 18px,
+      rgba(158, 255, 0, 0.75) 18px 22px,
+      transparent 22px 58px
+    );
+  background-size:
+    100% 100%,
+    100% 220px;
+  background-position:
+    0 0,
+    0 0;
+
+  animation:
+    wg-auth-tech-corner-v var(--dur) linear infinite,
+    wg-auth-tech-flow-y calc(var(--dur) * 0.55) linear infinite;
+  animation-delay: var(--delay), var(--delay);
+}
+
+.wg-auth-tech-path {
+  --dur: 6s;
+  --delay: 0s;
+  --w: 220px;
+  --h: 110px;
+  --elbow: 120px;
+  --rot: 0deg;
+
+  position: absolute;
+  width: var(--w);
+  height: var(--h);
+  opacity: 0.22;
+  transform: rotate(var(--rot));
+  animation: wg-auth-tech-corner var(--dur) linear infinite;
+  animation-delay: var(--delay);
+}
+
+.wg-auth-tech-path::before,
+.wg-auth-tech-path::after {
+  content: "";
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(0.15px);
+  background-image:
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(158, 255, 0, 0.52) 18%,
+      rgba(158, 255, 0, 0.08) 55%,
+      transparent 100%
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 18px,
+      rgba(158, 255, 0, 0.75) 18px 22px,
+      transparent 22px 58px
+    );
+  background-size:
+    100% 100%,
+    220px 100%;
+  background-position:
+    0 0,
+    0 0;
+  animation: wg-auth-tech-flow 2.8s linear infinite;
+}
+
+/* horizontal then vertical */
+.wg-auth-tech-path--hv::before {
+  left: 0;
+  top: 0;
+  height: 2px;
+  width: var(--elbow);
+}
+
+.wg-auth-tech-path--hv::after {
+  left: calc(var(--elbow) - 1px);
+  top: 0;
+  width: 2px;
+  height: var(--h);
+  background-image:
+    linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(158, 255, 0, 0.52) 18%,
+      rgba(158, 255, 0, 0.08) 55%,
+      transparent 100%
+    ),
+    repeating-linear-gradient(
+      180deg,
+      transparent 0 18px,
+      rgba(158, 255, 0, 0.75) 18px 22px,
+      transparent 22px 58px
+    );
+  background-size:
+    100% 100%,
+    100% 220px;
+  animation: wg-auth-tech-flow-y 2.6s linear infinite;
+}
+
+/* vertical then horizontal */
+.wg-auth-tech-path--vh {
+  animation-name: wg-auth-tech-corner-v;
+}
+
+.wg-auth-tech-path--vh::before {
+  left: 0;
+  top: 0;
+  width: 2px;
+  height: var(--elbow);
+  background-image:
+    linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(158, 255, 0, 0.52) 18%,
+      rgba(158, 255, 0, 0.08) 55%,
+      transparent 100%
+    ),
+    repeating-linear-gradient(
+      180deg,
+      transparent 0 18px,
+      rgba(158, 255, 0, 0.75) 18px 22px,
+      transparent 22px 58px
+    );
+  background-size:
+    100% 100%,
+    100% 220px;
+  animation: wg-auth-tech-flow-y 2.6s linear infinite;
+}
+
+.wg-auth-tech-path--vh::after {
+  left: 0;
+  top: calc(var(--elbow) - 1px);
+  height: 2px;
+  width: var(--w);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wg-auth-tech-line {
+    animation: none !important;
+  }
+
+  .wg-auth-tech-vline,
+  .wg-auth-tech-path,
+  .wg-auth-tech-path::before,
+  .wg-auth-tech-path::after {
+    animation: none !important;
+  }
 }

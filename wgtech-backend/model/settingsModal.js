@@ -37,7 +37,7 @@ const settingsSchema = new mongoose.Schema(
     proposalEmailTemplate: {
       type: String,
       default: "",
-    },    // ✅ NAYA ADD KARO
+    }, // ✅ NAYA ADD KARO
     senderEmail: {
       type: String,
       default: "",
@@ -45,6 +45,21 @@ const settingsSchema = new mongoose.Schema(
     applicationEmailTemplate: {
       type: String,
       default: "",
+    },
+    homeStats: {
+      type: [
+        {
+          label: { type: String, default: "" },
+          value: { type: Number, default: 0 },
+          suffix: { type: String, default: "+" },
+        },
+      ],
+      default: [
+        { label: "Happy Clients", value: 2654, suffix: "+" },
+        { label: "Projects Completed", value: 1520, suffix: "+" },
+        { label: "Awards Won", value: 120, suffix: "+" },
+        { label: "Positive Reviews", value: 50, suffix: "+" },
+      ],
     },
   },
   {

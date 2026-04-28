@@ -68,7 +68,7 @@ const AdvertisementManagement = () => {
   const handleGetAdvertisement = async () => {
     setIsLoading(true);
     try {
-    const response = await getAllAdvertisement();
+      const response = await getAllAdvertisement();
       console.log(response?.data?.data?.advertisements, "responcsssss");
       if (response.status == 200 || response.status == 201) {
         setAdvertisementData(response?.data?.data?.advertisements || []);
@@ -139,7 +139,7 @@ const AdvertisementManagement = () => {
   //     setIsLoading(false);
   //   }
   // };
-const handleDeleteAdvertisement = async (id) => {
+  const handleDeleteAdvertisement = async (id) => {
     try {
       const result = await deleteConfirm({
         title: "Delete Advertiseement?",
@@ -151,15 +151,13 @@ const handleDeleteAdvertisement = async (id) => {
 
       setIsLoading(true);
 
-      
       const response = await deleteAdvertisement(id);
-        console.log(response, 'delte service');
-        
+      console.log(response, "delte service");
+
       if (response.status === 200 || response.status === 201) {
         enqueueSnackbar(response.data.message, { variant: "sucess" });
-        
 
-         handleGetAdvertisement();
+        handleGetAdvertisement();
       } else {
         enqueueSnackbar(response.data.message, { variant: "error" });
       }
@@ -171,7 +169,7 @@ const handleDeleteAdvertisement = async (id) => {
   };
   const handleEditAdvertisement = (advertisementId) => {
     const advertisement = advertisementData.find(
-      (s) => s._id === advertisementId
+      (s) => s._id === advertisementId,
     );
     if (advertisement) {
       setEditData(advertisement);
@@ -256,31 +254,33 @@ const handleDeleteAdvertisement = async (id) => {
       </Box> */}
 
       {/* Add Button */}
-      {perms.isCreate && <Box sx={{ mb: 3, display: "flex", justifyContent: "flex-end" }}>
-        <Button
-          variant="contained"
-          startIcon={<Plus size={20} />}
-          onClick={handleAddAdvertisement}
-          sx={{
-            background: "linear-gradient(135deg, #8CE600 0%, #00D4AA 100%)",
-            color: "#000",
-            fontWeight: 600,
-            px: 3,
-            py: 1.5,
-            borderRadius: "12px",
-            textTransform: "none",
-            fontSize: "16px",
-            "&:hover": {
-              background: "linear-gradient(135deg, #7DD500 0%, #00C4A0 100%)",
-              transform: "translateY(-2px)",
-              boxShadow: "0 8px 25px rgba(140, 230, 0, 0.3)",
-            },
-            transition: "all 0.3s ease",
-          }}
-        >
-          Add New Advertisement
-        </Button>
-      </Box>}
+      {perms.isCreate && (
+        <Box sx={{ mb: 3, display: "flex", justifyContent: "flex-end" }}>
+          <Button
+            variant="contained"
+            startIcon={<Plus size={20} />}
+            onClick={handleAddAdvertisement}
+            sx={{
+              backgroundColor: "#8CE600",
+              color: "#000",
+              fontWeight: 600,
+              px: 3,
+              py: 1.5,
+              borderRadius: "12px",
+              textTransform: "none",
+              fontSize: "16px",
+              "&:hover": {
+                backgroundColor: "#7BCC00",
+                transform: "translateY(-2px)",
+                boxShadow: "0 8px 25px rgba(140, 230, 0, 0.3)",
+              },
+              transition: "all 0.3s ease",
+            }}
+          >
+            Add New Advertisement
+          </Button>
+        </Box>
+      )}
 
       {/* Table Container */}
       <Paper

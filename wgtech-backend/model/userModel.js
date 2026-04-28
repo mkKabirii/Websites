@@ -111,6 +111,24 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // For workers: clients assigned to them
+    assignedClients: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Client",
+      },
+    ],
+    // For workers: their department
+    assignedDepartment: {
+      type: String,
+      default: null,
+    },
+    // User role for role-based access
+    role: {
+      type: String,
+      enum: ["admin", "worker", "client", "user"],
+      default: "user",
+    },
   },
   {
     timestamps: true,

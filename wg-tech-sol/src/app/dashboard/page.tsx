@@ -1,85 +1,19 @@
-// "use client";
-// import { useEffect } from "react";
-// import { useRouter } from "next/navigation";
-// import Link from "next/link";
-// import { useAuthStore } from "@/zustand/authStore";
-
-// export default function Dashboard() {
-//   const { user, clearAuth } = useAuthStore();
-//   const router = useRouter();
-
-//   useEffect(() => {
-//     const token = localStorage.getItem("token");
-//     if (!token) router.push("/wgAuthForm");
-//   }, []);
-
-//   const handleLogout = () => {
-//     localStorage.removeItem("token");
-//     clearAuth();
-//     router.push("/wgAuthForm");
-//   };
-
-//   return (
-//     <div className="min-h-screen bg-black text-white pt-28 px-4">
-//       <div className="max-w-4xl mx-auto">
-
-//         {/* Header */}
-//         <div className="mb-8">
-//           <h1 className="text-4xl font-bold text-[#9EFF00]">Dashboard</h1>
-//           <p className="text-gray-400 mt-2">Welcome back, {user?.fullname || "User"} 👋</p>
-//         </div>
-
-//         {/* Cards */}
-//         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-//           {/* Profile Card */}
-//           <Link href="/dashboard/profile">
-//             <div className="border border-[#333] rounded-xl p-6 hover:border-[#9EFF00] transition-all cursor-pointer bg-[#111]">
-//               <div className="flex items-center gap-4 mb-4">
-//                 <div className="w-14 h-14 rounded-full bg-[#9EFF00] flex items-center justify-center text-black text-2xl font-bold">
-//                   {user?.fullname?.charAt(0)?.toUpperCase() || "U"}
-//                 </div>
-//                 <div>
-//                   <h2 className="text-xl font-semibold">{user?.fullname}</h2>
-//                   <p className="text-gray-400 text-sm">{user?.email}</p>
-//                 </div>
-//               </div>
-//               <p className="text-[#9EFF00] text-sm font-medium">Edit Profile →</p>
-//             </div>
-//           </Link>
-
-//           {/* Proposals Card */}
-//           <div className="border border-[#333] rounded-xl p-6 bg-[#111]">
-//             <h2 className="text-xl font-semibold mb-2">My Proposals</h2>
-//             <p className="text-gray-400 text-sm">View your submitted proposals and their status.</p>
-//             <p className="text-[#9EFF00] text-sm font-medium mt-4">Coming Soon →</p>
-//           </div>
-
-//         </div>
-
-//         {/* Logout */}
-//         <div className="mt-10">
-//           <button
-//             onClick={handleLogout}
-//             className="border border-red-500 text-red-500 px-6 py-2 rounded-lg hover:bg-red-500 hover:text-white transition-all"
-//           >
-//             Logout
-//           </button>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
 "use client";
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/zustand/authStore";
-import { Settings, LogOut, User, FileText } from "lucide-react";
+import MagnifyText from "@/app/components/MagnifyText";
+import {
+  ChartBarSquareIcon,
+  ChatBubbleOvalLeftEllipsisIcon,
+  UserIcon,
+  DocumentTextIcon,
+  Cog6ToothIcon,
+} from "@heroicons/react/24/outline";
 
-export default function Dashboard() {
-  const { user, clearAuth } = useAuthStore();
+export default function DashboardPage() {
+  const { user } = useAuthStore();
   const router = useRouter();
 
   useEffect(() => {
@@ -87,77 +21,163 @@ export default function Dashboard() {
     if (!token) router.push("/wgAuthForm");
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    clearAuth();
-    router.push("/wgAuthForm");
-  };
+  const stats = [
+    {
+      id: "chats",
+      icon: (
+        <ChatBubbleOvalLeftEllipsisIcon className="h-8 w-8 text-[#9EFF00]" />
+      ),
+      label: "Active Chats",
+      value: "2",
+      href: "/dashboard/chat",
+      color: "bg-[#0f0f0f] text-[#9EFF00]",
+    },
+    {
+      id: "proposals",
+      icon: <DocumentTextIcon className="h-8 w-8 text-[#9EFF00]" />,
+      label: "Proposals",
+      value: "1",
+      href: "/dashboard/proposals",
+      color: "bg-[#0f0f0f] text-[#9EFF00]",
+    },
+    {
+      id: "completed",
+      icon: <ChartBarSquareIcon className="h-8 w-8 text-[#9EFF00]" />,
+      label: "Completed",
+      value: "3",
+      href: "/dashboard/proposals",
+      color: "bg-[#0f0f0f] text-[#9EFF00]",
+    },
+    {
+      id: "pending",
+      icon: <Cog6ToothIcon className="h-8 w-8 text-[#9EFF00]" />,
+      label: "Pending",
+      value: "1",
+      href: "/dashboard/proposals",
+      color: "bg-[#0f0f0f] text-[#9EFF00]",
+    },
+  ];
+
+  const quickActions = [
+    {
+      icon: (
+        <ChatBubbleOvalLeftEllipsisIcon className="h-7 w-7 text-[#9EFF00]" />
+      ),
+      title: "Chat with Admin",
+      description: "Send messages and get support",
+      href: "/dashboard/chat",
+      color: "bg-[#0f0f0f] border border-[#9EFF00]/20",
+    },
+    {
+      icon: <UserIcon className="h-7 w-7 text-[#9EFF00]" />,
+      title: "Edit Profile",
+      description: "Update your account information",
+      href: "/dashboard/profile",
+      color: "bg-[#0f0f0f] border border-[#9EFF00]/20",
+    },
+    {
+      icon: <DocumentTextIcon className="h-7 w-7 text-[#9EFF00]" />,
+      title: "View Proposals",
+      description: "Track your submitted proposals",
+      href: "/dashboard/proposals",
+      color: "bg-[#0f0f0f] border border-[#9EFF00]/20",
+    },
+    {
+      icon: <Cog6ToothIcon className="h-7 w-7 text-[#9EFF00]" />,
+      title: "Settings",
+      description: "Manage your preferences",
+      href: "/dashboard/settings",
+      color: "bg-[#0f0f0f] border border-[#9EFF00]/20",
+    },
+  ];
 
   return (
-    <div className="min-h-screen bg-black text-white pt-24 px-4 pb-10">
-      <div className="max-w-4xl mx-auto">
+    <div className="space-y-8">
+      {/* Welcome Card */}
+      <div className="wg-card bg-[#0f0f0f] border border-[#9EFF00]/30 rounded-xl p-8">
+        <h1 className="text-4xl font-bold text-[#9EFF00] mb-2">
+          <MagnifyText
+            text={`Welcome back, ${user?.fullname?.split(" ")[0] ?? "there"}!`}
+          />
+        </h1>
+        <p className="text-gray-400">
+          Here's your personal dashboard to manage your account and communicate
+          with our team.
+        </p>
+      </div>
 
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-[#9EFF00]">Dashboard</h1>
-            <p className="text-gray-400 mt-1">Welcome back, <span className="text-white font-medium">{user?.fullname || "User"}</span> 👋</p>
-          </div>
-          <Link href="/dashboard/profile"
-            className="flex items-center gap-2 bg-[#1a1a1a] border border-[#333] hover:border-[#9EFF00] px-4 py-2 rounded-xl transition-all text-sm text-gray-400 hover:text-white">
-            <Settings size={16} />
-            Settings
-          </Link>
-        </div>
-
-        {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-          {/* Profile Card */}
-          <Link href="/dashboard/profile">
-            <div className="border border-[#222] rounded-2xl p-6 hover:border-[#9EFF00] transition-all cursor-pointer bg-[#0d0d0d] group">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-14 h-14 rounded-full bg-[#9EFF00] flex items-center justify-center text-black text-2xl font-bold overflow-hidden border-2 border-[#9EFF00]">
-                  {user?.profilePicture ? (
-                    <img src={`http://localhost:8003${user.profilePicture}`}
-                      alt="Profile" className="w-full h-full object-cover" />
-                  ) : (
-                    <span>{user?.fullname?.charAt(0)?.toUpperCase() || "U"}</span>
-                  )}
-                </div>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats.map((stat) => (
+          <Link key={stat.id} href={stat.href}>
+            <div
+              className={`wg-card ${stat.color} border border-[#9EFF00]/20 rounded-lg p-6 cursor-pointer hover:scale-105 hover:border-[#9EFF00]/40 transition-all`}
+            >
+              <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-semibold text-white">{user?.fullname || "—"}</h2>
-                  <p className="text-gray-400 text-sm">{user?.email || "—"}</p>
+                  <p className="text-gray-400 text-sm mb-1">{stat.label}</p>
+                  <p className="text-3xl font-bold">{stat.value}</p>
                 </div>
-              </div>
-              <div className="flex items-center gap-2 text-[#9EFF00] text-sm font-medium group-hover:gap-3 transition-all">
-                <User size={14} />
-                Edit Profile →
+                <span className="text-4xl">{stat.icon}</span>
               </div>
             </div>
           </Link>
+        ))}
+      </div>
 
-          {/* Proposals Card */}
-          <div className="border border-[#222] rounded-2xl p-6 bg-[#0d0d0d]">
-            <div className="flex items-center gap-2 mb-3">
-              <FileText size={18} className="text-[#9EFF00]" />
-              <h2 className="text-lg font-semibold">My Proposals</h2>
+      {/* Quick Actions */}
+      <div>
+        <h2 className="text-2xl font-bold text-white mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {quickActions.map((action, index) => (
+            <Link key={index} href={action.href}>
+              <div
+                className={`wg-card ${action.color} rounded-lg p-6 cursor-pointer hover:shadow-lg hover:shadow-[#9EFF00]/20 transition-all group`}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <span className="text-4xl">{action.icon}</span>
+                  <span className="text-white/60 group-hover:text-white transition-all">
+                    →
+                  </span>
+                </div>
+                <h3 className="text-lg font-bold text-white mb-1">
+                  {action.title}
+                </h3>
+                <p className="text-white/70 text-sm">{action.description}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* Recent Activity */}
+      <div className="wg-card bg-[#111] border border-[#333] rounded-lg p-6">
+        <h2 className="text-2xl font-bold text-white mb-4">Recent Activity</h2>
+        <div className="space-y-3">
+          <div className="wg-card flex items-center justify-between p-4 bg-[#1a1a1a] rounded-lg hover:bg-[#222] transition-all">
+            <div>
+              <p className="text-white font-medium">New message from admin</p>
+              <p className="text-gray-400 text-sm">About your proposal</p>
             </div>
-            <p className="text-gray-400 text-sm mb-4">View your submitted proposals and their status.</p>
-            <span className="text-[#9EFF00] text-sm font-medium">Coming Soon →</span>
+            <span className="text-gray-500 text-sm">2 hours ago</span>
           </div>
-
+          <div className="wg-card flex items-center justify-between p-4 bg-[#1a1a1a] rounded-lg hover:bg-[#222] transition-all">
+            <div>
+              <p className="text-white font-medium">Proposal submitted</p>
+              <p className="text-gray-400 text-sm">
+                Your proposal has been received
+              </p>
+            </div>
+            <span className="text-gray-500 text-sm">1 day ago</span>
+          </div>
+          <div className="wg-card flex items-center justify-between p-4 bg-[#1a1a1a] rounded-lg hover:bg-[#222] transition-all">
+            <div>
+              <p className="text-white font-medium">Account created</p>
+              <p className="text-gray-400 text-sm">Welcome to WG Tech Sol</p>
+            </div>
+            <span className="text-gray-500 text-sm">5 days ago</span>
+          </div>
         </div>
-
-        {/* Logout */}
-        <div className="mt-8">
-          <button onClick={handleLogout}
-            className="flex items-center gap-2 bg-[#1a1a1a] border border-red-500/30 text-red-400 px-6 py-3 rounded-xl hover:bg-red-500/10 hover:border-red-500 transition-all text-sm font-medium">
-            <LogOut size={16} />
-            Sign Out
-          </button>
-        </div>
-
       </div>
     </div>
   );

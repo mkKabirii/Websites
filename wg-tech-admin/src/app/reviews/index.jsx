@@ -144,9 +144,9 @@ const ReviewsManagement = () => {
   //     setIsLoading(false);
   //   }
   // };
-const handleDeleteReveiw = async (id) => {
+  const handleDeleteReveiw = async (id) => {
     try {
-       const result = await deleteConfirm({
+      const result = await deleteConfirm({
         title: "Delete Review?",
         text: "Are you sure you want to delete this review?",
         confirmButtonText: "Delete",
@@ -156,15 +156,13 @@ const handleDeleteReveiw = async (id) => {
 
       setIsLoading(true);
 
-      
       const response = await deleteReview(id);
-        console.log(response, 'delte service');
-        
+      console.log(response, "delte service");
+
       if (response.status === 200 || response.status === 201) {
         enqueueSnackbar(response.data.message, { variant: "sucess" });
-        
 
-         handleGetReveiw();
+        handleGetReveiw();
       } else {
         enqueueSnackbar(response.data.message, { variant: "error" });
       }
@@ -197,31 +195,33 @@ const handleDeleteReveiw = async (id) => {
         </Typography>
 
         {/* Add Button */}
-        {perms.isCreate && <Box sx={{ mb: 3, display: "flex", justifyContent: "flex-end" }}>
-          <Button
-            variant="contained"
-            startIcon={<Plus size={20} />}
-            onClick={handleAddReview}
-            sx={{
-              background: "linear-gradient(135deg, #8CE600 0%, #00D4AA 100%)",
-              color: "#000",
-              fontWeight: 600,
-              px: 3,
-              py: 1.5,
-              borderRadius: "12px",
-              textTransform: "none",
-              fontSize: "16px",
-              "&:hover": {
-                background: "linear-gradient(135deg, #7DD500 0%, #00C4A0 100%)",
-                transform: "translateY(-2px)",
-                boxShadow: "0 8px 25px rgba(140, 230, 0, 0.3)",
-              },
-              transition: "all 0.3s ease",
-            }}
-          >
-            Add New Review
-          </Button>
-        </Box>}
+        {perms.isCreate && (
+          <Box sx={{ mb: 3, display: "flex", justifyContent: "flex-end" }}>
+            <Button
+              variant="contained"
+              startIcon={<Plus size={20} />}
+              onClick={handleAddReview}
+              sx={{
+                backgroundColor: "#8CE600",
+                color: "#000",
+                fontWeight: 600,
+                px: 3,
+                py: 1.5,
+                borderRadius: "12px",
+                textTransform: "none",
+                fontSize: "16px",
+                "&:hover": {
+                  backgroundColor: "#7BCC00",
+                  transform: "translateY(-2px)",
+                  boxShadow: "0 8px 25px rgba(140, 230, 0, 0.3)",
+                },
+                transition: "all 0.3s ease",
+              }}
+            >
+              Add New Review
+            </Button>
+          </Box>
+        )}
       </Box>
 
       <Paper

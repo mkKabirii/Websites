@@ -1,5 +1,4 @@
 "use client";
-import processData from "./processData";
 type OurStoryType = {
   _id: string;
   title?: string;

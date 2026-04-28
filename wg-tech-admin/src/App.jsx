@@ -40,6 +40,7 @@ function App() {
               />
             ))}
             <Route path="access-denied" element={<AccessDenied />} />
+            <Route path="access-granted" element={<AccessGranted />} />
           </Route>
 
           {/* Protected Routes */}
@@ -51,7 +52,6 @@ function App() {
                 element={<MainLayout>{route.component}</MainLayout>}
               />
             ))}
-            <Route path="access-granted" element={<AccessGranted />} />
             <Route
               path="view-project-progress/:id"
               element={

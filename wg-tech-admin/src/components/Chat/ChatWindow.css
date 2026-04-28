@@ -3,18 +3,18 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: #fff;
+  background: #0b0b0b;
   min-width: 0;
 }
 
 .chat-window-header {
   padding: 12px 20px;
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid #1c1c1c;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #fff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  background: #0f0f0f;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
 .chat-header-info {
@@ -43,13 +43,13 @@
   margin: 0;
   font-size: 15px;
   font-weight: 600;
-  color: #000;
+  color: #f5f5f5;
 }
 
 .chat-status {
   margin: 2px 0 0 0;
   font-size: 12px;
-  color: #54656f;
+  color: #9aa0a6;
 }
 
 .chat-header-actions {
@@ -65,14 +65,14 @@
   padding: 8px;
   border-radius: 50%;
   transition: background-color 0.2s;
-  color: #54656f;
+  color: #b7b7b7;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .header-action-btn:hover {
-  background-color: #f0f0f0;
+  background-color: #1a1a1a;
 }
 
 /* Messages Container */
@@ -82,7 +82,7 @@
   padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><defs><pattern id="pattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M0 0 L40 40 M40 0 L0 40" stroke="%23f0f0f0" stroke-width="1"/></pattern></defs><rect width="1200" height="800" fill="white"/><rect width="1200" height="800" fill="url(%23pattern)" opacity="0.02"/></svg>');
+  background: #0b0b0b;
   background-attachment: fixed;
 }
 
@@ -95,8 +95,9 @@
 }
 
 .messages-container::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 4px;
+  background: linear-gradient(180deg, #bffb5a, #34c400);
+  border-radius: 6px;
+  border: 2px solid rgba(0, 0, 0, 0.16);
 }
 
 .loading-messages,
@@ -105,18 +106,18 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #999;
+  color: #8d8d8d;
   font-size: 14px;
 }
 
 /* Message Input */
 .message-input-form {
   padding: 12px 20px;
-  border-top: 1px solid #e5e5e5;
+  border-top: 1px solid #1c1c1c;
   display: flex;
   gap: 10px;
   align-items: flex-end;
-  background: #fff;
+  background: #0f0f0f;
 }
 
 .input-actions {
@@ -129,7 +130,7 @@
   border: none;
   cursor: pointer;
   padding: 8px;
-  color: #54656f;
+  color: #b7b7b7;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -137,13 +138,13 @@
 }
 
 .file-upload-btn:hover {
-  color: #00a884;
+  color: #8ce600;
 }
 
 .message-input {
   flex: 1;
   padding: 10px 14px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #2a2a2a;
   border-radius: 20px;
   outline: none;
   font-size: 14px;
@@ -151,18 +152,19 @@
   resize: none;
   max-height: 100px;
   transition: border-color 0.3s;
-  color: #000000 !important;
-  background-color: #ffffff !important;
-  caret-color: #000000;
-  -webkit-text-fill-color: #000000;
+  color: #9eff00 !important;
+  background-color: #9eff00  !important;
+  caret-color: #8ce600;
+  -webkit-text-fill-color: #f5f5f5;
 }
 
 .message-input::placeholder {
-  color: #666666 !important;
+  color: #9aa0a6 !important;
 }
 
 .message-input:focus {
-  border-color: #00a884;
+  border-color: #8ce600;
+  box-shadow: 0 0 0 2px rgba(140, 230, 0, 0.2);
 }
 
 .send-button {
@@ -170,7 +172,7 @@
   border: none;
   cursor: pointer;
   padding: 8px;
-  color: #54656f;
+  color: #b7b7b7;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -178,7 +180,7 @@
 }
 
 .send-button:hover:not(:disabled) {
-  color: #00a884;
+  color: #8ce600;
 }
 
 .send-button:disabled {
@@ -201,9 +203,9 @@
 }
 
 .modal-content {
-  background: white;
+  background: #0b0b0b;
   border-radius: 12px;
-  box-shadow: 0 5px 40px rgba(0, 0, 0, 0.16);
+  box-shadow: 0 5px 40px rgba(0, 0, 0, 0.4);
   padding: 24px;
   max-width: 500px;
   width: 90%;
@@ -215,7 +217,7 @@
   margin: 0 0 20px 0;
   font-size: 20px;
   font-weight: 600;
-  color: #000;
+  color: #f5f5f5;
 }
 
 .form-group {
@@ -226,7 +228,7 @@
   display: block;
   font-size: 14px;
   font-weight: 500;
-  color: #333;
+  color: #d4d4d4;
   margin-bottom: 8px;
 }
 
@@ -235,7 +237,9 @@
 .form-group select {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #2a2a2a;
+  background-color: #101010;
+  color: #f2f2f2;
   border-radius: 8px;
   font-size: 14px;
   font-family: inherit;

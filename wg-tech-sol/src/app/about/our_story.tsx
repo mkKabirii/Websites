@@ -1,5 +1,7 @@
 "use client";
 
+import MagnifyText from "../components/MagnifyText";
+
 type OurStoryType = {
   _id: string;
   title?: string;
@@ -13,7 +15,7 @@ export default function Our_Story({ ourStoryData }: OurStoryProps) {
   return (
     <section className="w-full min-h-screen px-2 sm:px-4 md:px-8">
       <h1 className=" text-[58px] ml-2 font-semibold sm:text-left text-center">
-        Our Story
+        <MagnifyText text="Our Story" />
       </h1>
       <div className="mx-auto grid grid-cols-1 md:grid-cols-2 gap-0 border-t border-l border-[#232323]">
         {ourStoryData.map((step, index) => (

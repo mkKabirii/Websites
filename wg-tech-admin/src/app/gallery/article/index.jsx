@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Button, Paper, Tooltip, IconButton } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Button,
+  Paper,
+  Tooltip,
+  IconButton,
+} from "@mui/material";
 import { Plus, Eye, FileText, Search } from "lucide-react";
 import TextInput from "../../../components/textInput";
 import DateRangeFilter from "../../../components/dateRangeFilter";
@@ -7,17 +14,22 @@ import PaginatedTable from "../../../components/dynamicTable";
 import AddEditArticleDialog from "./addEditArticle";
 import ViewImageAndVideoDialog from "../ViewImageAndVideoDialog";
 import { useSnackbar } from "notistack";
-import { createResource, deleteResource, getAllArticles, updateResource } from "../../../api/module/resource";
+import {
+  createResource,
+  deleteResource,
+  getAllArticles,
+  updateResource,
+} from "../../../api/module/resource";
 import { deleteConfirm } from "../../../components/customSweetAlert";
 import useUserStore from "../../../zustand/useUserStore";
 import { useLocation } from "react-router-dom";
 
 const Article = () => {
   // Table headers configuration
-    const { enqueueSnackbar } = useSnackbar();
-    const location = useLocation();
-    const perms = useUserStore((s) => s.getRoutePermissions(location.pathname));
-  
+  const { enqueueSnackbar } = useSnackbar();
+  const location = useLocation();
+  const perms = useUserStore((s) => s.getRoutePermissions(location.pathname));
+
   const tableHeaders = [
     { id: "id", title: "ID", align: "center" },
     { id: "title", title: "Title", align: "center" },
@@ -29,7 +41,15 @@ const Article = () => {
     { id: "actions", title: "Actions", align: "center" },
   ];
 
-  const displayRows = ["id", "title", "subTitle", "shortDescription", "postedOn", "image", "actions"];
+  const displayRows = [
+    "id",
+    "title",
+    "subTitle",
+    "shortDescription",
+    "postedOn",
+    "image",
+    "actions",
+  ];
 
   // Sample data
   const [articleData, setArticleData] = useState([
@@ -38,14 +58,27 @@ const Article = () => {
       title: "Sample Article",
       subTitle: "A sample subtitle",
       shortDescription: "This is a short description of the article",
-      longDescription: "<p>This is the long description with rich text content</p>",
+      longDescription:
+        "<p>This is the long description with rich text content</p>",
       image: [
-        { name: "article1.jpg", url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&h=300&fit=crop" },
-        { name: "article2.jpg", url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=500&h=300&fit=crop" }
+        {
+          name: "article1.jpg",
+          url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&h=300&fit=crop",
+        },
+        {
+          name: "article2.jpg",
+          url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=500&h=300&fit=crop",
+        },
       ],
       video: [
-        { name: "article1.mp4", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" },
-        { name: "article2.mp4", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" }
+        {
+          name: "article1.mp4",
+          url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+        },
+        {
+          name: "article2.mp4",
+          url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+        },
       ],
     },
     {
@@ -55,10 +88,16 @@ const Article = () => {
       shortDescription: "Another short description",
       longDescription: "<p>Another long description</p>",
       image: [
-        { name: "article3.jpg", url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&h=300&fit=crop" }
+        {
+          name: "article3.jpg",
+          url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&h=300&fit=crop",
+        },
       ],
       video: [
-        { name: "article3.mp4", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" }
+        {
+          name: "article3.mp4",
+          url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+        },
       ],
     },
   ]);
@@ -72,11 +111,14 @@ const Article = () => {
 
   // State for search and filters
   const [searchTerm, setSearchTerm] = useState("");
-  const [dateRange, setDateRange] = useState({ startDate: null, endDate: null, hasRange: false });
+  const [dateRange, setDateRange] = useState({
+    startDate: null,
+    endDate: null,
+    hasRange: false,
+  });
   const [isLoading, setIsLoading] = useState(false);
 
-
-useEffect(() => {
+  useEffect(() => {
     handleGetArticle();
   }, []);
   const handleGetArticle = async () => {
@@ -116,9 +158,12 @@ useEffect(() => {
         : await createResource(payload);
 
       if (response.status === 200 || response.status === 201) {
-        enqueueSnackbar(response.data.message || "Articles saved successfully!", {
-          variant: "success",
-        });
+        enqueueSnackbar(
+          response.data.message || "Articles saved successfully!",
+          {
+            variant: "success",
+          },
+        );
 
         await handleGetArticle();
         setDialogOpen(false);
@@ -166,27 +211,25 @@ useEffect(() => {
   //     setIsLoading(false);
   //   }
   // };
-const handleDeleteArticles = async (id) => {
+  const handleDeleteArticles = async (id) => {
     try {
       const confirmation = await deleteConfirm({
-     title: "Delete Article?",
-      text: "Are you sure you want to delete this Article?",
-       confirmButtonText: "Delete"
-     });
+        title: "Delete Article?",
+        text: "Are you sure you want to delete this Article?",
+        confirmButtonText: "Delete",
+      });
 
       if (!confirmation.isConfirmed) return;
 
       setIsLoading(true);
 
-      
       const response = await deleteResource(id);
-        console.log(response, 'delete  Work Category');
-        
+      console.log(response, "delete  Work Category");
+
       if (response.status === 200 || response.status === 201) {
         enqueueSnackbar(response.data.message, { variant: "sucess" });
-        
 
-         handleGetArticle();
+        handleGetArticle();
       } else {
         enqueueSnackbar(response.data.message, { variant: "error" });
       }
@@ -247,15 +290,17 @@ const handleDeleteArticles = async (id) => {
 
   // Filter data based on search and date range
   const filteredArticleData = articleData.filter((article) => {
-    const matchesSearch = 
+    const matchesSearch =
       article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       article.subTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
       article.shortDescription.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesDate = !dateRange.hasRange || 
-      (dateRange.startDate && dateRange.endDate && 
-       new Date(article.createdAt || new Date()) >= dateRange.startDate &&
-       new Date(article.createdAt || new Date()) <= dateRange.endDate);
+    const matchesDate =
+      !dateRange.hasRange ||
+      (dateRange.startDate &&
+        dateRange.endDate &&
+        new Date(article.createdAt || new Date()) >= dateRange.startDate &&
+        new Date(article.createdAt || new Date()) <= dateRange.endDate);
 
     return matchesSearch && matchesDate;
   });
@@ -263,13 +308,23 @@ const handleDeleteArticles = async (id) => {
   // Transform data for table display
   const tableData = filteredArticleData.map((article) => ({
     ...article,
-    postedOn: article.postedOn ? new Date(article.postedOn).toLocaleDateString() : "-",
+    postedOn: article.postedOn
+      ? new Date(article.postedOn).toLocaleDateString()
+      : "-",
   }));
 
   return (
     <Box sx={{ p: 3 }}>
       {/* Search and Filter Section */}
-      <Box sx={{ mb: 3, display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap" }}>
+      <Box
+        sx={{
+          mb: 3,
+          display: "flex",
+          gap: 2,
+          alignItems: "center",
+          flexWrap: "wrap",
+        }}
+      >
         {/* Search Input */}
         <Box sx={{ flex: 1, minWidth: "300px" }}>
           <TextInput
@@ -291,31 +346,33 @@ const handleDeleteArticles = async (id) => {
         </Box>
 
         {/* Add Button */}
-        {perms.isCreate && <Box>
-          <Button
-            variant="contained"
-            startIcon={<Plus size={20} />}
-            onClick={handleAddArticle}
-            sx={{
-              background: "linear-gradient(135deg, #8CE600 0%, #00D4AA 100%)",
-              color: "#000",
-              fontWeight: 600,
-              px: 3,
-              py: 1.5,
-              borderRadius: "12px",
-              textTransform: "none",
-              fontSize: "16px",
-              "&:hover": {
-                background: "linear-gradient(135deg, #7DD500 0%, #00C4A0 100%)",
-                transform: "translateY(-2px)",
-                boxShadow: "0 8px 25px rgba(140, 230, 0, 0.3)",
-              },
-              transition: "all 0.3s ease",
-            }}
-          >
-            Add New Article
-          </Button>
-        </Box>}
+        {perms.isCreate && (
+          <Box>
+            <Button
+              variant="contained"
+              startIcon={<Plus size={20} />}
+              onClick={handleAddArticle}
+              sx={{
+                backgroundColor: "#8CE600",
+                color: "#000",
+                fontWeight: 600,
+                px: 3,
+                py: 1.5,
+                borderRadius: "12px",
+                textTransform: "none",
+                fontSize: "16px",
+                "&:hover": {
+                  backgroundColor: "#7BCC00",
+                  transform: "translateY(-2px)",
+                  boxShadow: "0 8px 25px rgba(140, 230, 0, 0.3)",
+                },
+                transition: "all 0.3s ease",
+              }}
+            >
+              Add New Article
+            </Button>
+          </Box>
+        )}
       </Box>
 
       {/* Table Container */}

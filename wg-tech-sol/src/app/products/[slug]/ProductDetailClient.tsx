@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { getProductById } from "../../../api/module/product";
 import { ProductItem } from "../types";
 import Image from "next/image";
+import MagnifyText from "@/app/components/MagnifyText";
 
 type ProductDetailClientProps = {
   slug: string;
@@ -93,7 +94,9 @@ export default function ProductDetailClient({
       <article id="product-detail">
         <div className="flex items-center justify-between mb-4 sm:mb-6 gap-2">
           <div className="flex flex-col items-start justify-between mb-4 sm:mb-6 gap-2">
-            <h1 className="text-2xl font-bold mb-4">{product.title}</h1>
+            <h1 className="text-2xl font-bold mb-4">
+              <MagnifyText text={String(product.title ?? "")} />
+            </h1>
             {product.subTitle && (
               <h2 className="text-2xl font-semibold text-gray-400 mb-4">
                 {product.subTitle}
@@ -110,7 +113,7 @@ export default function ProductDetailClient({
             alt={product.title}
             width={1000}
             height={300}
-           className="w-full sm:h-[350px] md:h-[500px] lg:h-[550px] object-cover rounded mb-4"
+            className="w-full sm:h-[350px] md:h-[500px] lg:h-[550px] object-cover rounded mb-4"
             src={product.productImages[0]}
           />
         )}

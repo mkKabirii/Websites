@@ -5,6 +5,7 @@ import { getEventById } from "../../../api/module/events";
 import { EventItem } from "../types";
 import Image from "next/image";
 import CarouselModal from "@/app/components/CarouselModal";
+import MagnifyText from "@/app/components/MagnifyText";
 
 export default function EventDetailClient() {
   const params = useParams();
@@ -95,7 +96,9 @@ export default function EventDetailClient() {
       <article id="event-detail">
         <div className="flex items-center justify-between mb-4 sm:mb-6 gap-2">
           <div className="flex flex-col items-start justify-between mb-4 sm:mb-6 gap-2">
-            <h1 className="text-4xl font-bold mb-4">{event.title}</h1>
+            <h1 className="text-4xl font-bold mb-4">
+              <MagnifyText text={String(event.title ?? "")} />
+            </h1>
             {event.subTitle && (
               <h2 className="text-xl font-semibold text-gray-400 mb-4">
                 {event.subTitle}

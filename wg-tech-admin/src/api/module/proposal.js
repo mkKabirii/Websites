@@ -1,10 +1,10 @@
 import ENDPOINTS from "../endpoint";
 import api from "../index";
 
-const getProposal = (page = 1, limit = 10) => {
+const getProposal = (page = 1, limit = 10, filters = {}) => {
   // Remove hardcoded pagination from endpoint and use query params
   const endpoint = ENDPOINTS.getProposal.split('?')[0];
-  return api(endpoint, null, "get", false, { page, limit });
+  return api(endpoint, null, "get", false, { page, limit, ...filters });
 };
 const createProposal = (payload) =>
   api(ENDPOINTS.createProposal, payload, "post");

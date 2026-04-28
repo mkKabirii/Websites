@@ -9,12 +9,17 @@ const messageSchema = new mongoose.Schema(
     },
     senderId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
       required: true,
+      // Can reference either User or Client - senderType determines which
+    },
+    senderType: {
+      type: String,
+      enum: ["User", "Client"],
+      default: "User",
     },
     messageType: {
       type: String,
-      enum: ["text", "file", "image", "document", "call", "status_update"],
+      enum: ["text", "file", "image", "document", "call", "status_update", "quotation"],
       default: "text",
     },
     content: {
@@ -71,6 +76,31 @@ const messageSchema = new mongoose.Schema(
       },
       description: String,
     },
+    quotationData: {
+      _id: String,
+      title: String,
+      subTitle: String,
+      shortDescription: String,
+      longDescription: String,
+      image: String,
+      postedOn: Date,
+      items: [
+        {
+          description: String,
+          unitPrice: Number,
+          quantity: Number,
+        },
+      ],
+      currency: String,
+      totalAmount: Number,
+      advanceRequired: Number,
+      createdBy: mongoose.Schema.Types.ObjectId,
+      createdAt: Date,
+    },
+    isAutoReply: {
+      type: Boolean,
+      default: false,
+    },
     editedAt: {
       type: Date,
       default: null,
@@ -114,5 +144,22 @@ const messageSchema = new mongoose.Schema(
 messageSchema.index({ chatId: 1, createdAt: -1 });
 messageSchema.index({ senderId: 1 });
 messageSchema.index({ createdAt: -1 });
+
+// Pre-save middleware to ensure senderType is set
+messageSchema.pre("save", function(next) {
+  if (!this.senderType) {
+    this.senderType = "User"; // Default to User for backward compatibility
+  }
+  next();
+});
+
+// Pre-find middleware to ensure senderType is set for existing documents
+messageSchema.pre(/^find/, function(next) {
+  if (!this.options.skipSenderTypeDefault) {
+    // This runs before querying - we can't modify the results here
+    // But we've set the default in schema, so it should be fine
+  }
+  next();
+});
 
 module.exports = mongoose.model("Message", messageSchema);

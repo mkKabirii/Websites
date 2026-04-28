@@ -58,6 +58,10 @@ const proposalSchema = new Schema(
       type: String,
       default: null,
     },
+    password: {
+      type: String,
+      default: null,
+    },
     status: {
       type: String,
       enum: ["Pending", "Accepted", "Rejected", "In Progress", "Completed"],
