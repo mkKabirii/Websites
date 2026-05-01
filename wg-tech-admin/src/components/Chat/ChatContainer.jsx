@@ -24,13 +24,14 @@ const ChatContainer = ({ userId, adminId, userRole, source = "accepted" }) => {
   const navigate = useNavigate();
   const normalizeId = (value) => {
     if (!value) return "";
-    if (typeof value === "string") return value;
+    if (typeof value === "string") return value.trim();
     if (typeof value === "object") {
-      if (value._id) return String(value._id);
-      if (value.$oid) return String(value.$oid);
-      if (typeof value.toString === "function") return String(value.toString());
+      if (value._id) return String(value._id).trim();
+      if (value.$oid) return String(value.$oid).trim();
+      const str = value.toString();
+      if (str !== "[object Object]") return str.trim();
     }
-    return String(value);
+    return String(value).trim();
   };
 
   const getChatActivityTime = (chat) => {
@@ -94,16 +95,26 @@ const ChatContainer = ({ userId, adminId, userRole, source = "accepted" }) => {
       query: { userId },
       transports: ["polling", "websocket"],
       upgrade: true,
-      reconnect: true,
-      reconnectDelay: 1000,
-      reconnectDelayMax: 5000,
-      reconnectAttempts: 20,
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: 20,
       withCredentials: true,
       timeout: 10000,
     });
 
     socketRef.current.on("connect", () => {
       console.log("✅ Connected to socket server");
+      // Re-join the active chat room after a reconnect so room membership is restored
+      const activeChat = selectedChatRef.current;
+      if (activeChat?._id && userId) {
+        console.log("🔄 Admin socket reconnected — re-joining room:", activeChat._id);
+        socketRef.current?.emit(
+          "join_chat",
+          { chatId: activeChat._id, userId },
+          (ack) => console.log("✅ Admin reconnect join_chat ack:", ack),
+        );
+      }
     });
 
     socketRef.current.on("disconnect", () => {
@@ -129,32 +140,47 @@ const ChatContainer = ({ userId, adminId, userRole, source = "accepted" }) => {
     });
 
     socketRef.current.on("message_received", (message) => {
-      console.log("📨 Message received on admin:", message);
-      console.log(
-        "📨 Admin message chatId:",
-        message.chatId,
-        "Selected chatId:",
-        selectedChatRef.current?._id,
-      );
+      console.log("📨 Admin message received:", message._id, "chatId:", message.chatId, "activeChatId:", selectedChatRef.current?._id);
 
       const activeChat = selectedChatRef.current;
       const incomingChatId = normalizeId(message?.chatId);
       const activeChatId = normalizeId(activeChat?._id);
       const isActiveChatMessage = Boolean(
-        activeChatId && incomingChatId && incomingChatId === activeChatId,
+        activeChatId &&
+        incomingChatId &&
+        (
+          incomingChatId === activeChatId ||
+          String(message?.chatId).includes(activeChatId) ||
+          activeChatId.includes(incomingChatId)
+        )
       );
       const senderId = normalizeId(message?.senderId);
       const isOwnMessage = senderId === normalizeId(userId);
 
       // Deduplicate: only add to message list if it belongs to active chat
+      // Also handles temp-message replacement for optimistic updates
       if (isActiveChatMessage) {
         setMessages((prev) => {
+          // If a real message arrived, replace any matching temp message (same content + chatId)
+          const hasTempMatch = prev.some(
+            (msg) =>
+              msg._id?.startsWith("temp_") &&
+              msg.content === message.content &&
+              String(msg.chatId) === String(message.chatId)
+          );
+          if (hasTempMatch) {
+            // Replace the temp message with the real one
+            return prev.map((msg) =>
+              msg._id?.startsWith("temp_") &&
+                msg.content === message.content &&
+                String(msg.chatId) === String(message.chatId)
+                ? message
+                : msg
+            );
+          }
+          // Standard dedup by _id
           const messageExists = prev.some((msg) => msg._id === message._id);
           if (messageExists) {
-            console.log(
-              "⚠️ Message already exists, skipping duplicate:",
-              message._id,
-            );
             return prev;
           }
           return [...prev, message];
@@ -262,12 +288,11 @@ const ChatContainer = ({ userId, adminId, userRole, source = "accepted" }) => {
             for (const entry of data.data) {
               const placeholderKey =
                 entry.chat?._id ||
-                `placeholder_${
-                  entry.clientUserId ||
-                  entry.clientId ||
-                  entry.proposalId ||
-                  entry.proposalEmail ||
-                  "unknown"
+                `placeholder_${entry.clientUserId ||
+                entry.clientId ||
+                entry.proposalId ||
+                entry.proposalEmail ||
+                "unknown"
                 }`;
               const chatId = placeholderKey;
               if (!seen.has(chatId)) {
@@ -276,7 +301,23 @@ const ChatContainer = ({ userId, adminId, userRole, source = "accepted" }) => {
               }
             }
 
-            const mapped = deduplicated.map((entry) => {
+            // ── Fix #5: filter out guest / non-client users on the "clients" tab ──
+            const clientEntries =
+              source === "clients"
+                ? deduplicated.filter((entry) => {
+                  const role = (entry.clientRole || "").toLowerCase();
+                  // If the backend sends a role, keep only "client"
+                  if (role && role !== "client") return false;
+                  // Drop entries with no real user identity
+                  if (!entry.clientId && !entry.clientUserId) return false;
+                  // Drop obvious guest entries by username pattern
+                  const uname = (entry.clientUsername || entry.clientName || "").toLowerCase();
+                  if (uname.startsWith("guest")) return false;
+                  return true;
+                })
+                : deduplicated;
+
+            const mapped = clientEntries.map((entry) => {
               const baseMeta = {
                 proposalId: entry.proposalId,
                 proposalTitle: entry.proposalTitle,
@@ -311,13 +352,12 @@ const ChatContainer = ({ userId, adminId, userRole, source = "accepted" }) => {
 
               // Placeholder chat with UNIQUE ID (not null!)
               return {
-                _id: `placeholder_${
-                  entry.clientUserId ||
+                _id: `placeholder_${entry.clientUserId ||
                   entry.clientId ||
                   entry.proposalId ||
                   entry.proposalEmail ||
                   "unknown"
-                }`,
+                  }`,
                 chatType: "admin_work",
                 clientId: {
                   _id: entry.clientUserId || entry.clientId,
@@ -371,11 +411,11 @@ const ChatContainer = ({ userId, adminId, userRole, source = "accepted" }) => {
           const scopedUnreadByChat =
             source === "website"
               ? Object.keys(unreadByChat).reduce((acc, chatId) => {
-                  if (visibleChatIds.has(String(chatId))) {
-                    acc[chatId] = unreadByChat[chatId];
-                  }
-                  return acc;
-                }, {})
+                if (visibleChatIds.has(String(chatId))) {
+                  acc[chatId] = unreadByChat[chatId];
+                }
+                return acc;
+              }, {})
               : unreadByChat;
 
           const scopedTotalUnread = Object.values(scopedUnreadByChat).reduce(
@@ -435,6 +475,9 @@ const ChatContainer = ({ userId, adminId, userRole, source = "accepted" }) => {
 
   const handleSelectChat = async (chat) => {
     try {
+      // Clear stale messages immediately so old chat doesn't bleed through
+      setMessages([]);
+
       // Ensure chat exists if placeholder
       let resolvedChat = chat;
       const isPlaceholder =
@@ -531,6 +574,17 @@ const ChatContainer = ({ userId, adminId, userRole, source = "accepted" }) => {
       chatId: selectedChat._id,
       senderId: userId,
     };
+
+    // Optimistically add own message immediately so it renders without waiting for socket echo
+    const tempId = `temp_${Date.now()}`;
+    const tempMessage = {
+      ...payload,
+      _id: tempId,
+      createdAt: new Date().toISOString(),
+      readBy: [],
+      senderId: { _id: userId },
+    };
+    setMessages((prev) => [...prev, tempMessage]);
 
     console.log("📤 Sending message from admin:", payload);
     socketRef.current.emit("send_message", payload, (response) => {

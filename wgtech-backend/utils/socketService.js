@@ -186,11 +186,28 @@ const initializeSocket = (server, corsOptions) => {
         }
 
         const senderRole = getRole(sender);
+
         const isParticipant = existingChat.participants.some(
           (participantId) => String(participantId) === String(senderId),
         );
 
-        if (!isParticipant && senderRole !== "admin") {
+        // Also check clientRef/clientId — handles the case where the chat was created
+        // with a different ID than the user's actual login ID.
+        const isClientRefMatch =
+          String(existingChat.clientRef) === String(senderId) ||
+          String(existingChat.clientId) === String(senderId);
+
+        if (!isParticipant && isClientRefMatch) {
+          // Auto-fix: add the real login ID to participants so future checks pass.
+          await Chat.findByIdAndUpdate(existingChat._id, {
+            $addToSet: { participants: senderId },
+          });
+          existingChat.participants.push(senderId);
+          console.log(`✅ Auto-fixed: added ${senderId} to chat participants`);
+        }
+
+        if (!isParticipant && !isClientRefMatch && senderRole !== "admin") {
+          console.error(`❌ Sender ${senderId} not participant in chat ${existingChat._id}`);
           socket.emit("message_error", {
             error: "You are not a participant in this chat",
           });
@@ -804,9 +821,9 @@ const notifyChatMessageByEmail = async ({
   const senderUser =
     senderType === "User"
       ? users.find((user) => String(user._id) === String(senderId)) ||
-        (await User.findById(senderId).select(
-          "_id email role username fullname",
-        ))
+      (await User.findById(senderId).select(
+        "_id email role username fullname",
+      ))
       : null;
 
   const senderClient =

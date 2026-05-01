@@ -3,6 +3,9 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  height: 100%;
+  /* ✅ ADD THIS */
+
   background: #0b0b0b;
   min-width: 0;
 }
@@ -79,6 +82,9 @@
 .messages-container {
   flex: 1;
   overflow-y: auto;
+  min-height: 0;
+  /* ADD THIS */
+
   padding: 16px 20px;
   display: flex;
   flex-direction: column;
@@ -152,14 +158,15 @@
   resize: none;
   max-height: 100px;
   transition: border-color 0.3s;
-  color: #9eff00 !important;
-  background-color: #9eff00  !important;
+  color: #f5f5f5;
+  background-color: #1a1a1a;
   caret-color: #8ce600;
   -webkit-text-fill-color: #f5f5f5;
 }
 
 .message-input::placeholder {
-  color: #9aa0a6 !important;
+  color: #9aa0a6;
+  -webkit-text-fill-color: #9aa0a6;
 }
 
 .message-input:focus {

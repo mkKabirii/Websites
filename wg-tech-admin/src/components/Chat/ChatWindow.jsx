@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import {
   Send,
@@ -39,6 +40,7 @@ const ChatWindow = ({
   const [uploadingFile, setUploadingFile] = useState(false);
   const typingTimeoutRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const messagesRef = useRef(null);
 
   const displayName =
     chat.groupName ||
@@ -54,22 +56,18 @@ const ChatWindow = ({
   const avatarInitial = (displayName || "?").charAt(0).toUpperCase();
 
   const scrollToBottom = () => {
-    try {
-      const container = document.querySelector(".messages-container");
-      if (container) {
-        // ensure scrolling happens inside the messages container
-        container.scrollTop = container.scrollHeight;
-      }
-    } catch (e) {
-      // fallback
-    }
-    messagesEndRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "end",
-    });
+    const el = messagesRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   };
 
+  const prevMessageCountRef = useRef(0);
+
+  // Scroll to bottom whenever messages load or a new message arrives
   useEffect(() => {
+    const curr = (messages || []).length;
+    prevMessageCountRef.current = curr;
+    if (curr === 0) return;
     scrollToBottom();
   }, [messages]);
 
@@ -154,7 +152,7 @@ const ChatWindow = ({
         file.type === "application/pdf" ||
         file.type === "application/msword" ||
         file.type ===
-          "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
       if (isImage) {
         onSendMessage({
@@ -318,7 +316,7 @@ const ChatWindow = ({
       )}
 
       {/* Messages */}
-      <div className="messages-container">
+      <div className="messages-container" ref={messagesRef}>
         {loading ? (
           <div className="loading-messages">
             <p>Loading messages...</p>
@@ -330,14 +328,15 @@ const ChatWindow = ({
             <p>No messages yet. Start the conversation!</p>
           </div>
         )}
+
+        {/* Project media/documents/comments */}
+        {renderMediaSection()}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Project media/documents/comments */}
-      {renderMediaSection()}
 
-      {/* Quotation Dialog for Admin */}
-      {userRole === "admin" && (
+      {/* Quotation Dialog for Admin - only in non-group chats */}
+      {userRole === "admin" && !chat.isGroupChat && (
         <QuotationDialog
           open={showQuotationDialog}
           onClose={() => setShowQuotationDialog(false)}
@@ -422,8 +421,8 @@ const ChatWindow = ({
             />
           </label>
 
-          {/* Sign Your Quotation button - for admin */}
-          {userRole === "admin" && (
+          {/* Send Quotation button - for admin, non-group chats only */}
+          {userRole === "admin" && !chat.isGroupChat && (
             <button
               type="button"
               className="action-btn quotation-action-btn"
@@ -439,12 +438,6 @@ const ChatWindow = ({
         <input
           type="text"
           className="message-input"
-          style={{
-            color: "#000",
-            backgroundColor: "#fff",
-            caretColor: "#000",
-            WebkitTextFillColor: "#000",
-          }}
           placeholder="Type a message..."
           value={messageText}
           onChange={(e) => {

@@ -22,6 +22,7 @@ const ChatPage = () => {
           value={source}
           onChange={(_, value) => setSource(value)}
           sx={{
+            mt: 2,
             mb: 2,
             "& .MuiTab-root": { color: "#B0B0B0", textTransform: "none" },
             "& .Mui-selected": { color: "#8CE600 !important" },

@@ -44,19 +44,37 @@ const buildAcceptedClientEntries = async () => {
     proposals.map(async (proposal) => {
       const { client, user } = await resolveClientUser(proposal.email);
 
-      // Find existing admin_work chat for this client user (if any)
       let chat = null;
       const participantId = user?._id || client?._id;
       if (participantId) {
-        chat = await Chat.findOne({
-          chatType: "admin_work",
-          isGroupChat: { $ne: true },
-          participants: participantId,
-        })
-          .populate("clientId", "username email profileImage")
-          .populate("assignedAdmin", "username email profileImage")
-          .populate("lastMessage")
-          .lean();
+        // PRIORITY 1: Find by user._id (real login ID) first
+        if (user?._id) {
+          chat = await Chat.findOne({
+            chatType: "admin_work",
+            isGroupChat: { $ne: true },
+            participants: user._id,
+          })
+            .populate("clientId", "username email profileImage")
+            .populate("assignedAdmin", "username email profileImage")
+            .populate("lastMessage")
+            .lean();
+        }
+
+        // PRIORITY 2: Fallback to client._id only if no chat found
+        if (!chat && client?._id) {
+          chat = await Chat.findOne({
+            chatType: "admin_work",
+            isGroupChat: { $ne: true },
+            $or: [
+              { participants: client._id },
+              { clientRef: client._id },
+            ],
+          })
+            .populate("clientId", "username email profileImage")
+            .populate("assignedAdmin", "username email profileImage")
+            .populate("lastMessage")
+            .lean();
+        }
       }
 
       return {
@@ -92,15 +110,34 @@ const buildAllClientEntries = async () => {
 
       let chat = null;
       if (participantId) {
-        chat = await Chat.findOne({
-          chatType: "admin_work",
-          isGroupChat: { $ne: true },
-          participants: participantId,
-        })
-          .populate("clientId", "username email profileImage")
-          .populate("assignedAdmin", "username email profileImage")
-          .populate("lastMessage")
-          .lean();
+        // PRIORITY 1: Find by user._id (the real login ID) first
+        if (user?._id) {
+          chat = await Chat.findOne({
+            chatType: "admin_work",
+            isGroupChat: { $ne: true },
+            participants: user._id,
+          })
+            .populate("clientId", "username email profileImage")
+            .populate("assignedAdmin", "username email profileImage")
+            .populate("lastMessage")
+            .lean();
+        }
+
+        // PRIORITY 2: Fallback to client._id only if no chat found by user._id
+        if (!chat && client._id) {
+          chat = await Chat.findOne({
+            chatType: "admin_work",
+            isGroupChat: { $ne: true },
+            $or: [
+              { participants: client._id },
+              { clientRef: client._id },
+            ],
+          })
+            .populate("clientId", "username email profileImage")
+            .populate("assignedAdmin", "username email profileImage")
+            .populate("lastMessage")
+            .lean();
+        }
       }
 
       return {
@@ -143,7 +180,7 @@ exports.getUserChats = async (req, res) => {
     const userRole = getRole(user);
 
     let query = { isActive: true };
-    
+
     if (userRole === "admin") {
       query = { isActive: true };
     } else if (userRole === "worker") {
@@ -151,7 +188,24 @@ exports.getUserChats = async (req, res) => {
       query.isGroupChat = true;
       query.participants = userId;
     } else {
-      query.participants = userId;
+      // Find the client's linked profile to match by both login ID and client profile ID
+      const clientProfile = await Client.findOne({
+        $or: [
+          { userId: userId },
+          { _id: userId },
+        ],
+      }).lean();
+
+      if (clientProfile) {
+        query.$or = [
+          { participants: userId },
+          { participants: clientProfile._id },
+          { clientRef: clientProfile._id },
+          { clientId: userId },
+        ];
+      } else {
+        query.participants = userId;
+      }
       query.chatType = "admin_work";
     }
 
@@ -281,7 +335,7 @@ exports.createChat = async (req, res) => {
     }
 
     const participants = [clientId];
-    
+
     // Auto-assign an admin if none provided for website chats.
     let admin = assignedAdmin;
     if (!admin && chatType === "website") {
@@ -532,7 +586,7 @@ exports.listAcceptedClientChats = async (req, res) => {
     }
 
     const entries = await buildAcceptedClientEntries();
-    
+
     // Also fetch group chats for the current user
     const userId = req.user?._id;
     let groupChats = [];
@@ -549,7 +603,7 @@ exports.listAcceptedClientChats = async (req, res) => {
         .populate("lastMessage")
         .lean();
     }
-    
+
     // Transform group chats to match the entry format
     const groupChatEntries = groupChats.map(chat => ({
       proposalId: null,
@@ -566,10 +620,10 @@ exports.listAcceptedClientChats = async (req, res) => {
       comments: [],
       isGroupChat: true
     }));
-    
+
     // Combine entries with group chats
     const allEntries = [...entries, ...groupChatEntries];
-    
+
     res.status(200).json({ success: true, data: allEntries });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -587,7 +641,7 @@ exports.listClientChats = async (req, res) => {
     }
 
     const entries = await buildAllClientEntries();
-    
+
     // Also fetch group chats for the current user
     const userId = req.user?._id;
     let groupChats = [];
@@ -604,7 +658,7 @@ exports.listClientChats = async (req, res) => {
         .populate("lastMessage")
         .lean();
     }
-    
+
     // Transform group chats to match the entry format
     const groupChatEntries = groupChats.map(chat => ({
       clientId: chat.clientId?._id || null,
@@ -618,10 +672,10 @@ exports.listClientChats = async (req, res) => {
       comments: [],
       isGroupChat: true
     }));
-    
+
     // Combine entries with group chats
     const allEntries = [...entries, ...groupChatEntries];
-    
+
     res.status(200).json({ success: true, data: allEntries });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -690,11 +744,42 @@ exports.ensureChatForClient = async (req, res) => {
       return res.status(404).json({ success: false, message: "Client identity not found" });
     }
 
-    let chat = await Chat.findOne({
-      chatType,
-      participants: participantId,
-      projectId: projectId || null,
-    });
+    // Search by user._id first (the real login ID)
+    let chat = null;
+    if (resolvedUser?._id) {
+      chat = await Chat.findOne({
+        chatType,
+        isGroupChat: { $ne: true },
+        participants: resolvedUser._id,
+        projectId: projectId || null,
+      });
+    }
+
+    // If not found by user._id, fall back to clientRef
+    if (!chat && resolvedClient?._id) {
+      chat = await Chat.findOne({
+        chatType,
+        isGroupChat: { $ne: true },
+        $or: [
+          { participants: resolvedClient._id },
+          { clientRef: resolvedClient._id },
+        ],
+        projectId: projectId || null,
+      });
+
+      // If found, ensure user._id is also in participants for future lookups
+      if (chat && resolvedUser?._id) {
+        const alreadyIn = chat.participants.some(
+          (p) => String(p) === String(resolvedUser._id)
+        );
+        if (!alreadyIn) {
+          await Chat.findByIdAndUpdate(chat._id, {
+            $addToSet: { participants: resolvedUser._id }
+          });
+          console.log(`✅ ensureChatForClient: added ${resolvedUser._id} to participants`);
+        }
+      }
+    }
 
     let created = false;
     if (!chat) {
@@ -705,15 +790,36 @@ exports.ensureChatForClient = async (req, res) => {
         participants.push(req.user._id);
       }
 
+      // Include both user._id and client._id in participants
+      const allParticipants = [...participants];
+
+      // Also ensure admin is a participant
+      const adminUser = await User.findOne({ role: "admin", isActive: true }).select("_id");
+      if (adminUser && !allParticipants.some(p => String(p) === String(adminUser._id))) {
+        allParticipants.push(adminUser._id);
+      }
+
+      // Also add client._id if it differs from user._id
+      if (
+        resolvedClient?._id &&
+        resolvedUser?._id &&
+        String(resolvedClient._id) !== String(resolvedUser._id) &&
+        !allParticipants.some(p => String(p) === String(resolvedClient._id))
+      ) {
+        allParticipants.push(resolvedClient._id);
+      }
+
       chat = await Chat.create({
-        participants,
+        participants: allParticipants,
         chatType,
         clientId: resolvedUser?._id || participantId,
         clientRef: resolvedClient?._id || null,
-        assignedAdmin: req.userType === "user" && req.user?._id ? req.user._id : null,
+        assignedAdmin: adminUser?._id || null,
         projectId: projectId || null,
         unreadCount: new Map(),
       });
+
+      console.log(`✅ Chat created with participants:`, allParticipants);
       created = true;
     }
 

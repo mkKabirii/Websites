@@ -4,7 +4,6 @@ import io, { Socket } from "socket.io-client";
 import { Paperclip } from "lucide-react";
 import { useAuthStore } from "@/zustand/authStore";
 import { useRouter } from "next/navigation";
-import ClientChatWindow from "../../../../Chat/ClientChatWindow";
 import ClientQuotationSignDialog from "../../../../Chat/ClientQuotationSignDialog";
 import { upload } from "@/utils/helper";
 import MagnifyText from "@/app/components/MagnifyText";
@@ -105,13 +104,15 @@ export default function ChatPage() {
   const [currentQuotationData, setCurrentQuotationData] = useState<any>(null);
   const normalizeId = (value: any): string => {
     if (!value) return "";
-    if (typeof value === "string") return value;
+    if (typeof value === "string") return value.trim();
     if (typeof value === "object") {
-      if (value._id) return String(value._id);
-      if (value.$oid) return String(value.$oid);
-      if (typeof value.toString === "function") return String(value.toString());
+      if (value._id) return String(value._id).trim();
+      if (value.$oid) return String(value.$oid).trim();
+      // Handle MongoDB ObjectId toString()
+      const str = value.toString();
+      if (str !== "[object Object]") return str.trim();
     }
-    return String(value);
+    return String(value).trim();
   };
 
   const getChatActivityTime = (chat: Chat): number => {
@@ -186,7 +187,10 @@ export default function ChatPage() {
   }, [messages]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    // Small timeout to let DOM update before scrolling
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 50);
   };
 
   const markChatAsRead = async (chatId: string) => {
@@ -227,7 +231,12 @@ export default function ChatPage() {
       process.env.NEXT_PUBLIC_API_URL || "http://localhost:8003",
       {
         query: { userId: user._id },
-        transports: ["websocket", "polling"],
+        transports: ["polling", "websocket"],
+        upgrade: true,
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionAttempts: 20,
+        withCredentials: true,
       },
     );
 
@@ -242,9 +251,7 @@ export default function ChatPage() {
     });
 
     socketRef.current.on("message_received", (message: Message) => {
-      console.log("📨 Dashboard received message_received:", message);
-      console.log("📊 Current selectedChatRef:", selectedChatRef.current?._id);
-      console.log("📊 Message chatId:", message.chatId);
+      console.log("📨 Dashboard received message_received:", message._id, "chatId:", message.chatId);
 
       // Validate message object
       if (!message || typeof message !== "object" || !message._id) {
@@ -258,12 +265,31 @@ export default function ChatPage() {
         return;
       }
 
+      // Always update the chat list sidebar preview regardless of selected chat
+      // This ensures the sidebar stays current even if the ref is momentarily stale
+      setChats((prev) => {
+        const existing = Array.isArray(prev) ? prev : [];
+        const idx = existing.findIndex(
+          (chat) => String(chat?._id) === String(message?.chatId),
+        );
+        if (idx === -1) return existing;
+        const updated = [...existing];
+        updated[idx] = {
+          ...updated[idx],
+          lastMessage: message.content || updated[idx].lastMessage,
+          lastMessageTime: message.createdAt || new Date().toISOString(),
+          updatedAt: message.createdAt || updated[idx].updatedAt,
+        } as Chat;
+        return sortChatsByLatest(updated);
+      });
+
       // Use ref to avoid stale closure issue
       const currentChat = selectedChatRef.current;
       const senderId = normalizeId(message.senderId);
       const isOwnMessage = senderId === normalizeId(user?._id);
 
       if (!currentChat) {
+        // No chat open — just track unread count
         if (!isOwnMessage && message.chatId) {
           setUnreadCountByChat((prev) => ({
             ...prev,
@@ -271,42 +297,43 @@ export default function ChatPage() {
               (prev[message.chatId as string] || 0) + 1,
           }));
         }
-        console.warn("⚠️ No chat selected, storing unread count only");
+        console.warn("⚠️ No chat selected, sidebar updated but message not displayed");
         return;
       }
 
-      if (normalizeId(message.chatId) === normalizeId(currentChat._id)) {
+      const incomingChatId = normalizeId(message.chatId);
+      const activeChatId = normalizeId(currentChat._id);
+
+      const chatIdsMatch =
+        incomingChatId === activeChatId ||
+        String(message.chatId).includes(activeChatId) ||
+        activeChatId.includes(String(incomingChatId));
+
+      if (chatIdsMatch) {
         console.log("✅ Message matches current chat, adding to messages");
+
         setMessages((prev) => {
           // Helper to extract sender ID (avoid stale closure)
-          const extractSenderId = (senderId: any): string | null => {
-            if (!senderId) return null;
-            if (typeof senderId === "string") return senderId;
-            if (typeof senderId === "object" && senderId._id)
-              return senderId._id;
+          const extractSenderId = (sid: any): string | null => {
+            if (!sid) return null;
+            if (typeof sid === "string") return sid;
+            if (typeof sid === "object" && sid._id) return sid._id;
             return null;
           };
 
-          // Check if this is a real message replacing an optimistic one
-          // Match by content, senderId, and timestamp (within 5 seconds)
+          // Replace optimistic (temp) message if content + sender + timing match
           const optimisticIndex = prev.findIndex((m) => {
-            if (!m._id.startsWith("temp_")) return false; // Not an optimistic message
-            if (m.content !== message.content) return false; // Different content
-            if (
-              extractSenderId(m.senderId) !== extractSenderId(message.senderId)
-            )
-              return false; // Different sender
-
-            // Check timestamp is within 5 seconds (to account for processing delays)
-            const optimisticTime = parseInt(m._id.replace("temp_", ""));
+            if (!m._id.startsWith("temp_")) return false;
+            if (m.content !== message.content) return false;
+            if (extractSenderId(m.senderId) !== extractSenderId(message.senderId))
+              return false;
+            const optimisticTime = parseInt(m._id.replace("temp_", ""), 10);
             const messageTime = new Date(message.createdAt).getTime();
             const timeDiff = messageTime - optimisticTime;
-
             return timeDiff >= -5000 && timeDiff <= 5000;
           });
 
           if (optimisticIndex !== -1) {
-            // Replace the optimistic message with the real one
             console.log(
               "✅ Replacing optimistic message at index",
               optimisticIndex,
@@ -317,7 +344,7 @@ export default function ChatPage() {
             return updated;
           }
 
-          // Check if real message already exists (shouldn't happen but be safe)
+          // Dedup: skip if real message already exists
           const exists = prev.some(
             (m) => m._id === message._id && !m._id.startsWith("temp_"),
           );
@@ -336,6 +363,7 @@ export default function ChatPage() {
           setUnreadCountByChat((prev) => ({ ...prev, [currentChat._id]: 0 }));
         }
       } else {
+        // Message belongs to a different chat — update unread count only
         console.log(
           `⚠️ Message chatId (${message.chatId}) doesn't match current chat (${currentChat._id})`,
         );
@@ -347,23 +375,19 @@ export default function ChatPage() {
           }));
         }
       }
+    });
 
-      setChats((prev) => {
-        const existing = Array.isArray(prev) ? prev : [];
-        const idx = existing.findIndex(
-          (chat) => String(chat?._id) === String(message?.chatId),
+    // Re-join the active chat room after reconnect so room membership is restored
+    socketRef.current.on("connect", () => {
+      const activeChat = selectedChatRef.current;
+      if (activeChat?._id && user?._id) {
+        console.log("🔄 Socket reconnected — re-joining room:", activeChat._id);
+        socketRef.current?.emit(
+          "join_chat",
+          { chatId: activeChat._id, userId: user._id },
+          (ack: any) => console.log("✅ Reconnect join_chat ack:", ack),
         );
-        if (idx === -1) return existing;
-
-        const updated = [...existing];
-        updated[idx] = {
-          ...updated[idx],
-          lastMessage: message.content || updated[idx].lastMessage,
-          lastMessageTime: message.createdAt || new Date().toISOString(),
-          updatedAt: message.createdAt || updated[idx].updatedAt,
-        } as Chat;
-        return sortChatsByLatest(updated);
-      });
+      }
     });
 
     socketRef.current.on("connect_error", (error) => {
@@ -376,21 +400,26 @@ export default function ChatPage() {
   }, [user]); // ✅ REMOVED selectedChat from dependencies - socket stays connected
 
   // Separate effect to manage chat room joins/leaves
+  // Fires whenever selectedChat changes OR the socket (re)connects
   useEffect(() => {
-    if (!socketRef.current || !socketConnected || !selectedChat) return;
+    if (!socketRef.current || !selectedChat) return;
 
-    console.log("🔗 Joining chat room:", selectedChat._id);
+    // If socket is not yet connected, wait — the reconnect handler above
+    // and fetchMessages will call join_chat once it does connect.
+    if (!socketConnected) return;
+
+    console.log("🔗 Joining chat room (effect):", selectedChat._id);
     socketRef.current.emit(
       "join_chat",
       { chatId: selectedChat._id, userId: user?._id },
       (ack: any) => {
-        console.log("✅ join_chat acknowledged:", ack);
+        console.log("✅ join_chat (effect) acknowledged:", ack);
       },
     );
 
     return () => {
-      // Leave room when chat is deselected or component unmounts
-      if (socketRef.current) {
+      // Leave previous room when chat changes or component unmounts
+      if (socketRef.current?.connected) {
         console.log("🚪 Leaving chat room:", selectedChat._id);
         socketRef.current.emit("leave_chat", {
           chatId: selectedChat._id,
@@ -581,6 +610,19 @@ export default function ChatPage() {
         setMessages(validMessages);
         scrollToBottom();
       }
+
+      // Always join the chat room after loading messages so we receive real-time
+      // events even if the separate useEffect fires before socketConnected is set.
+      if (socketRef.current?.connected && chatId) {
+        console.log("🔗 fetchMessages: joining chat room:", chatId);
+        socketRef.current.emit(
+          "join_chat",
+          { chatId, userId: user?._id },
+          (ack: any) => {
+            console.log("✅ fetchMessages join_chat ack:", ack);
+          },
+        );
+      }
     } catch (error) {
       console.error("Error fetching messages:", error);
     }
@@ -613,9 +655,9 @@ export default function ChatPage() {
               {
                 headers: authToken
                   ? {
-                      Authorization: `Bearer ${authToken}`,
-                      "Content-Type": "application/json",
-                    }
+                    Authorization: `Bearer ${authToken}`,
+                    "Content-Type": "application/json",
+                  }
                   : undefined,
               },
             );
@@ -736,7 +778,7 @@ export default function ChatPage() {
         file.type === "application/pdf" ||
         file.type === "application/msword" ||
         file.type ===
-          "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
       if (isImage) {
         sendSocketMessage({
@@ -1053,11 +1095,10 @@ export default function ChatPage() {
                 <button
                   key={chat._id}
                   onClick={() => handleSelectChat(chat)}
-                  className={`w-full text-left p-3 rounded-lg transition-all ${
-                    selectedChat?._id === chat._id
-                      ? "bg-[#9EFF00] text-black"
-                      : "bg-[#1a1a1a] text-white hover:bg-[#222]"
-                  }`}
+                  className={`w-full text-left p-3 rounded-lg transition-all ${selectedChat?._id === chat._id
+                    ? "bg-[#9EFF00] text-black"
+                    : "bg-[#1a1a1a] text-white hover:bg-[#222]"
+                    }`}
                 >
                   <p className="font-semibold text-sm truncate">
                     {getChatTitle(chat)}
@@ -1125,11 +1166,10 @@ export default function ChatPage() {
                       return (
                         <div
                           key={message._id}
-                          className={`flex ${
-                            isCurrentUserMessage(message)
-                              ? "justify-end"
-                              : "justify-start"
-                          }`}
+                          className={`flex ${isCurrentUserMessage(message)
+                            ? "justify-end"
+                            : "justify-start"
+                            }`}
                         >
                           <div className="max-w-sm lg:max-w-md bg-gradient-to-br from-[#1a1a1a] to-[#0d0d0d] border border-[#444] rounded-lg overflow-hidden shadow-lg">
                             {/* Quotation Header */}
@@ -1288,11 +1328,10 @@ export default function ChatPage() {
                       return (
                         <div
                           key={message._id}
-                          className={`flex ${
-                            isCurrentUserMessage(message)
-                              ? "justify-end"
-                              : "justify-start"
-                          }`}
+                          className={`flex ${isCurrentUserMessage(message)
+                            ? "justify-end"
+                            : "justify-start"
+                            }`}
                         >
                           <div className="max-w-xs lg:max-w-md bg-[#222] rounded-lg p-2">
                             <img
@@ -1316,8 +1355,8 @@ export default function ChatPage() {
                                   handleDownloadAttachment(
                                     message.imageUrl as string,
                                     message.fileName ||
-                                      message.content ||
-                                      "image",
+                                    message.content ||
+                                    "image",
                                   )
                                 }
                                 className="px-3 py-1 text-xs font-semibold rounded bg-emerald-700 text-white hover:bg-emerald-600"
@@ -1340,11 +1379,10 @@ export default function ChatPage() {
                       return (
                         <div
                           key={message._id}
-                          className={`flex ${
-                            isCurrentUserMessage(message)
-                              ? "justify-end"
-                              : "justify-start"
-                          }`}
+                          className={`flex ${isCurrentUserMessage(message)
+                            ? "justify-end"
+                            : "justify-start"
+                            }`}
                         >
                           <a
                             href="#"
@@ -1353,9 +1391,9 @@ export default function ChatPage() {
                               handleDownloadAttachment(
                                 message.documentUrl as string,
                                 message.documentName ||
-                                  message.fileName ||
-                                  message.content ||
-                                  "document.pdf",
+                                message.fileName ||
+                                message.content ||
+                                "document.pdf",
                               );
                             }}
                             className="max-w-xs lg:max-w-md px-4 py-3 rounded-lg bg-[#222] text-white border border-[#333]"
@@ -1373,11 +1411,10 @@ export default function ChatPage() {
                       return (
                         <div
                           key={message._id}
-                          className={`flex ${
-                            isCurrentUserMessage(message)
-                              ? "justify-end"
-                              : "justify-start"
-                          }`}
+                          className={`flex ${isCurrentUserMessage(message)
+                            ? "justify-end"
+                            : "justify-start"
+                            }`}
                         >
                           <a
                             href="#"
@@ -1386,9 +1423,9 @@ export default function ChatPage() {
                               handleDownloadAttachment(
                                 message.fileUrl as string,
                                 message.fileName ||
-                                  message.documentName ||
-                                  message.content ||
-                                  "file",
+                                message.documentName ||
+                                message.content ||
+                                "file",
                               );
                             }}
                             className="max-w-xs lg:max-w-md px-4 py-3 rounded-lg bg-[#222] text-white border border-[#333]"
@@ -1403,18 +1440,16 @@ export default function ChatPage() {
                     return (
                       <div
                         key={message._id}
-                        className={`flex ${
-                          isCurrentUserMessage(message)
-                            ? "justify-end"
-                            : "justify-start"
-                        }`}
+                        className={`flex ${isCurrentUserMessage(message)
+                          ? "justify-end"
+                          : "justify-start"
+                          }`}
                       >
                         <div
-                          className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                            isCurrentUserMessage(message)
-                              ? "bg-[#9EFF00] text-black"
-                              : "bg-[#222] text-white"
-                          }`}
+                          className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${isCurrentUserMessage(message)
+                            ? "bg-[#9EFF00] text-black"
+                            : "bg-[#222] text-white"
+                            }`}
                         >
                           <p className="text-xs opacity-70 mb-1">
                             {getSenderName(message)}
@@ -1507,8 +1542,8 @@ export default function ChatPage() {
                       status: "signed",
                       clientSubmission: submittedQuotation?.clientSubmission ||
                         msg?.quotationData?.clientSubmission || {
-                          submittedAt: new Date().toISOString(),
-                        },
+                        submittedAt: new Date().toISOString(),
+                      },
                     },
                   };
                 }

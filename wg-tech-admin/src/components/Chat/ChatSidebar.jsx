@@ -29,10 +29,43 @@ const ChatSidebar = ({
   };
 
   const renderAvatarInitial = (chat) => {
-    const initial = (chat.meta?.clientName || chat.clientId?.username || chat.clientId?.email || "?")
+    const initial = (chat.groupName || chat.meta?.clientName || chat.clientId?.username || chat.clientId?.email || "?")
       .charAt(0)
       .toUpperCase();
     return initial;
+  };
+
+  // Build a readable display name for any chat, with role labels for group chats
+  const getChatDisplayName = (chat) => {
+    if (chat.isGroupChat) {
+      // Try to build from participants array (non-admin members)
+      if (Array.isArray(chat.participants) && chat.participants.length > 0) {
+        const members = chat.participants.filter((p) => {
+          const role = (p.role || p.userRole || "").toLowerCase();
+          return role !== "admin";
+        });
+        if (members.length > 0) {
+          return members
+            .map((p) => {
+              const name = p.username || p.name || p.email || "User";
+              const role = (p.role || p.userRole || "").toLowerCase();
+              if (role === "client") return `${name} (Client)`;
+              if (role === "worker") return `${name} (Worker)`;
+              return name;
+            })
+            .join(", ");
+        }
+      }
+      // Fallback: groupName or meta clientName
+      return chat.groupName || chat.meta?.clientName || "Group Chat";
+    }
+    // Individual chat
+    return (
+      chat.meta?.clientName ||
+      chat.clientId?.username ||
+      chat.clientId?.email ||
+      "Unknown"
+    );
   };
 
   return (
@@ -79,8 +112,12 @@ const ChatSidebar = ({
 
               <div className="chat-info">
                 <div className="chat-header-row">
-                  <h3 className="chat-name">{String(chat.meta?.clientName || chat.clientId?.username || chat.clientId?.email || "Unknown")}</h3>
-                  <span className="chat-type">{String(chat.chatType || "Chat")}</span>
+                  <h3 className="chat-name" title={getChatDisplayName(chat)}>
+                    {getChatDisplayName(chat)}
+                  </h3>
+                  <span className="chat-type">
+                    {chat.isGroupChat ? "Group" : String(chat.chatType || "Chat")}
+                  </span>
                 </div>
                 <p className="chat-preview">
                   {getLastMessagePreview(chat)}
