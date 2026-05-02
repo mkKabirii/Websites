@@ -720,6 +720,9 @@ const ClientChatButton = ({
             </button>
           </div>
 
+          <div className="chat-modal-body">
+
+          
           {isLoading ? (
             <div className="chat-loading">
               <p>Loading chat...</p>
@@ -735,6 +738,8 @@ const ClientChatButton = ({
               isSupportTyping={supportTyping}
             />
           )}
+
+          </div>
         </div>
       )}
 

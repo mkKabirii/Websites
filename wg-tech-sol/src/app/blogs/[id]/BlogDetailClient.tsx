@@ -103,7 +103,7 @@ export default function BlogDetailClient() {
             alt={blog.title}
             width={1000}
             height={300}
-            className="w-full sm:h-[350px] md:h-[500px] lg:h-[550px] object-contain rounded mb-4"
+            className="w-full sm:h-[350px] md:h-[500px] lg:h-[550px] object-cover rounded mb-4"
             src={blog.image}
           />
         )}

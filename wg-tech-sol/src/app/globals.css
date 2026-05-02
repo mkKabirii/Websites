@@ -662,3 +662,52 @@ input[type="date"]::-moz-calendar-picker-indicator:hover {
     animation: none !important;
   }
 }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  globals.css میں یہ CSS add کریں:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+ 
+.magic-card {
+  position: relative;
+  overflow: hidden;
+}
+ 
+.magic-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: radial-gradient(
+    120px circle at var(--mx, 50%) var(--my, 50%),
+    #9eff00,
+    transparent 70%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+ 
+.magic-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    200px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(158, 255, 0, 0.07),
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+ 
+.magic-card:hover::before,
+.magic-card:hover::after {
+  opacity: 1;
+}

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Box, Typography, Link, IconButton, Divider } from "@mui/material";
+import { Box, Typography, Link, IconButton , Divider } from "@mui/material";
 import { motion } from "framer-motion";
 import { Mail, Lock, Eye, EyeOff, LogIn, Shield } from "lucide-react";
 import TextInput from "../../components/textInput";
@@ -14,10 +14,10 @@ const Login = () => {
   const { setUserData } = useUserStore();
 
   // Fake admin credentials
-  const FAKE_ADMIN = {
-    email: "admin@wgtech.com",
-    password: "Admin@123",
-  };
+  // const FAKE_ADMIN = {
+  //   email: "admin@wgtech.com",
+  //   password: "Admin@123",
+  // };
 
   const [formData, setFormData] = useState({
     email: "",
@@ -275,8 +275,8 @@ const Login = () => {
                       <Lock size={20} color="#8CE600" />
                     </Box>
                   }
-                  showPassIcon={true}
-                />
+                  showPassIcon={false}
+                  />
               </Box>
             </motion.div>
 

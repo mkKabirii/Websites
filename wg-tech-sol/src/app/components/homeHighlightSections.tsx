@@ -6,6 +6,13 @@ import AOS from "aos";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { HomeStatItem } from "../home/types";
 import MagnifyText from "./MagnifyText";
+import MagicCard from "./MagicCard";
+
+// کسی بھی card کو wrap کریں
+<MagicCard   className="rounded-2xl border p-6 bg-white">
+  <h3>میرا card</h3>
+  <p>کوئی بھی content</p>
+</MagicCard>
 
 const chooseItems = [
   {
@@ -251,7 +258,7 @@ export default function HomeHighlightSections({
           </div>
           <div ref={statsRef} className="grid gap-6 sm:grid-cols-2">
             {resolvedStats.map((stat) => (
-              <div
+              <MagicCard
                 key={stat.label}
                 className="wg-card rounded-2xl border border-[#9EFF00]/30 bg-gradient-to-br from-[#9EFF00]/20 via-white/5 to-transparent p-6 text-center shadow-lg shadow-[#9EFF00]/10"
               >
@@ -266,7 +273,7 @@ export default function HomeHighlightSections({
                 <p className="mt-2 text-xs sm:text-sm text-gray-300">
                   {stat.label}
                 </p>
-              </div>
+              </MagicCard>
             ))}
           </div>
         </div>

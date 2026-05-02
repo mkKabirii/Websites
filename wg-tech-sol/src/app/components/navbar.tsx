@@ -46,7 +46,12 @@ const baseNavItems: NavItem[] = [
     ],
   },
   { href: "/about", label: "About" },
-  { href: "/careers", label: "Careers" },
+  { href: "/careers", label: "Careers",dropdown: [
+      { href: "/careers", label: "All Jobs" },
+      { href: "/careers/Marketing", label: "Marketing" },
+      { href: "/careers/IoT & Advanced Technology", label: "IoT & Advanced Technology" },
+      { href: "/careers/Designer", label: "Designer" },
+    ], },
   // { href: "/privacy-policy", label: "Privacy Policy" },
 ];
 
