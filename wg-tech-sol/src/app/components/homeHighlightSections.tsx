@@ -136,12 +136,12 @@ export default function HomeHighlightSections({
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20 space-y-16 sm:space-y-20 lg:space-y-24">
         <div
           data-aos="fade-up"
-          className="relative min-h-screen overflow-hidden rounded-2xl border border-white/10 bg-black bg-no-repeat flex items-center"
+          className="relative min-h-[400px] sm:min-h-screen overflow-hidden rounded-2xl border border-white/10 bg-black bg-no-repeat flex items-center"
           style={{
             backgroundImage:
               "url('/images/Enhance_the_provided_202604171543 (1).png')",
             backgroundPosition: "right center",
-            backgroundSize: "contain",
+            backgroundSize: "cover",
           }}
         >
           <div className="absolute inset-0 z-0 bg-black/60" />
@@ -185,30 +185,30 @@ export default function HomeHighlightSections({
               <div className="hidden lg:block flex-1" />
 
               {/* Right: all text and icons */}
-              <div className="w-full lg:w-1/2 z-20 p-6 lg:p-12 flex flex-col justify-center text-right wg-hero-professional">
-                <h3 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white">
+              <div className="w-full lg:w-1/2 z-20 p-4 sm:p-6 lg:p-12 flex flex-col justify-center text-center lg:text-right wg-hero-professional">
+                <h3 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-white">
                   <MagnifyText text="Why Choose WG Tech Sol?" />
                 </h3>
 
-                <h4 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold text-white">
+                <h4 className="mt-4 text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-white">
                   A partner built for ambitious teams
                 </h4>
 
-                <p className="mt-4 text-base sm:text-lg text-gray-200">
+                <p className="mt-4 text-sm sm:text-base lg:text-lg text-gray-200">
                   We blend strategy, experience design, and engineering to
                   deliver measurable growth.
-                  <br />
+                  <br className="hidden sm:block" />
                   Every project is built with performance, security, and clarity
                   in mind.
                 </p>
 
-                <div className="mt-8 space-y-6">
+                <div className="mt-8 space-y-8 sm:space-y-6">
                   {chooseItems.map((item) => (
                     <div
                       key={item.title}
-                      className="flex items-start gap-4 justify-end"
+                      className="flex flex-col sm:flex-row items-center sm:items-start lg:justify-end gap-4"
                     >
-                      <div className="h-14 w-14 flex items-center justify-center rounded-full bg-[#9EFF00]/20 border-2 border-[#9EFF00] shadow-[0_0_24px_rgba(158,255,0,0.28)]">
+                      <div className="sm:order-2 h-14 w-14 flex items-center justify-center rounded-full bg-[#9EFF00]/20 border-2 border-[#9EFF00] shadow-[0_0_24px_rgba(158,255,0,0.28)] shrink-0">
                         <Image
                           src={item.icon}
                           alt=""
@@ -217,11 +217,11 @@ export default function HomeHighlightSections({
                           className="h-7 w-7 object-contain drop-shadow-[0_0_8px_rgba(158,255,0,0.6)]"
                         />
                       </div>
-                      <div className="max-w-[360px]">
-                        <h4 className="text-lg sm:text-xl font-semibold text-white text-right">
+                      <div className="max-w-[360px] sm:order-1 text-center sm:text-left lg:text-right">
+                        <h4 className="text-lg sm:text-xl font-semibold text-white">
                           {item.title}
                         </h4>
-                        <p className="mt-1 text-sm sm:text-base text-gray-200 text-right">
+                        <p className="mt-1 text-sm sm:text-base text-gray-200">
                           {item.description}
                         </p>
                       </div>
@@ -235,7 +235,7 @@ export default function HomeHighlightSections({
 
         <div
           data-aos="fade-up"
-          className="grid min-h-screen gap-8 lg:grid-cols-[1fr_1.1fr] items-center"
+          className="grid min-h-[400px] sm:min-h-screen gap-8 lg:grid-cols-[1fr_1.1fr] items-center text-center lg:text-left"
         >
           <div className="space-y-4">
             <p className="text-sm uppercase tracking-widest text-[#9EFF00]">

@@ -92,9 +92,17 @@ export default function Our_Teams({ ourTeamData }: OurTeamsProps) {
                     data-aos="fade-down"
                     data-aos-delay={Math.min(idx * 120, 480)}
                   >
-                    {/* Avatar */}
-                    {member?.role?.role === "Director & CEO" && (
-                      <div className="relative h-28 w-28 sm:h-32 sm:w-32 rounded-full overflow-hidden bg-[#0d0d0d] ring-1 ring-[#232323] mb-4">
+                    {/* Avatar with Ring */}
+                    <div className="relative flex justify-center items-center h-32 w-32 sm:h-40 sm:w-40 mb-4">
+                      {/* Ring Frame */}
+                      <Image
+                        src="/ring.png"
+                        alt="Ring Frame"
+                        fill
+                        className="object-contain z-10 pointer-events-none"
+                      />
+                      {/* Inner Avatar */}
+                      <div className="relative h-[72%] w-[72%] rounded-full overflow-hidden bg-[#0d0d0d] z-0">
                         <Image
                           src={memberImage}
                           alt={memberName}
@@ -102,13 +110,9 @@ export default function Our_Teams({ ourTeamData }: OurTeamsProps) {
                           sizes="128px"
                           className="object-cover"
                         />
-                        <div className="w-full h-full flex items-center justify-center">
-                          <span className="text-white text-2xl font-bold">
-                            {initials(member.name)}
-                          </span>
-                        </div>
+
                       </div>
-                    )}
+                    </div>
 
                     {/* Name + Role */}
                     <div className="space-y-1 mb-4">
@@ -116,8 +120,13 @@ export default function Our_Teams({ ourTeamData }: OurTeamsProps) {
                         {memberName}
                       </h3>
                       <p className="text-[#9EFF00] font-medium text-xs sm:text-sm uppercase tracking-wide">
-                        {section?.role?.role}
+                        {member.designation || section?.role?.role}
                       </p>
+                      {member.department && (
+                        <p className="text-[#B0B0B0] font-medium text-xs">
+                          {member.department}
+                        </p>
+                      )}
                     </div>
 
                     {/* Bio */}
@@ -126,50 +135,52 @@ export default function Our_Teams({ ourTeamData }: OurTeamsProps) {
                     </p>
 
                     {/* 🔥 Social Icons (FIXED ROW) */}
-                    <div className="flex items-center justify-center flex-row gap-4 mt-6">
-                      {socialLinks.map((item, index) => (
-                        <div key={`${item.siteName ?? "link"}-${index}`}>
-                          {item.siteName === "LinkedIn" && (
-                            <Link
-                              href={item.link}
-                              target="_blank"
-                              className="inline-flex h-10 w-10 items-center justify-center hover:bg-lime-400 transition group rounded-lg bg-[#232323]"
-                            >
-                              <FaLinkedinIn className="h-4 w-4 text-lime-400 group-hover:text-black" />
-                            </Link>
-                          )}
+                    {section?.role?.role === "Director & CEO" && (
+                      <div className="flex items-center justify-center flex-row gap-4 mt-6">
+                        {socialLinks.map((item, index) => (
+                          <div key={`${item.siteName ?? "link"}-${index}`}>
+                            {item.siteName === "LinkedIn" && (
+                              <Link
+                                href={item.link}
+                                target="_blank"
+                                className="inline-flex h-10 w-10 items-center justify-center hover:bg-lime-400 transition group rounded-lg bg-[#232323]"
+                              >
+                                <FaLinkedinIn className="h-4 w-4 text-lime-400 group-hover:text-black" />
+                              </Link>
+                            )}
 
-                          {item.siteName === "Facebook" && (
-                            <Link
-                              href={item.link}
-                              target="_blank"
-                              className="inline-flex h-10 w-10 items-center justify-center hover:bg-lime-400 transition group rounded-lg bg-[#232323]"
-                            >
-                              <FaFacebookF className="h-4 w-4 text-lime-400 group-hover:text-black" />
-                            </Link>
-                          )}
+                            {item.siteName === "Facebook" && (
+                              <Link
+                                href={item.link}
+                                target="_blank"
+                                className="inline-flex h-10 w-10 items-center justify-center hover:bg-lime-400 transition group rounded-lg bg-[#232323]"
+                              >
+                                <FaFacebookF className="h-4 w-4 text-lime-400 group-hover:text-black" />
+                              </Link>
+                            )}
 
-                          {item.siteName === "Instagram" && (
-                            <Link
-                              href={item.link}
-                              target="_blank"
-                              className="inline-flex h-10 w-10 items-center justify-center hover:bg-lime-400 transition group rounded-lg bg-[#232323]"
-                            >
-                              <FaInstagram className="h-4 w-4 text-lime-400 group-hover:text-black" />
-                            </Link>
-                          )}
-                          {item.siteName === "X" && (
-                            <Link
-                              href={item.link}
-                              target="_blank"
-                              className="inline-flex h-10 w-10 items-center justify-center hover:bg-lime-400 transition group rounded-lg bg-[#232323]"
-                            >
-                              <FaXTwitter className="h-4 w-4 text-lime-400 group-hover:text-black" />
-                            </Link>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+                            {item.siteName === "Instagram" && (
+                              <Link
+                                href={item.link}
+                                target="_blank"
+                                className="inline-flex h-10 w-10 items-center justify-center hover:bg-lime-400 transition group rounded-lg bg-[#232323]"
+                              >
+                                <FaInstagram className="h-4 w-4 text-lime-400 group-hover:text-black" />
+                              </Link>
+                            )}
+                            {item.siteName === "X" && (
+                              <Link
+                                href={item.link}
+                                target="_blank"
+                                className="inline-flex h-10 w-10 items-center justify-center hover:bg-lime-400 transition group rounded-lg bg-[#232323]"
+                              >
+                                <FaXTwitter className="h-4 w-4 text-lime-400 group-hover:text-black" />
+                              </Link>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })}

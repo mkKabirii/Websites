@@ -14,12 +14,14 @@ import type {
   SelectedServiceItem,
   ProposalPayload,
 } from "./ContactForm.types";
+import MagnifyText from "@/app/components/MagnifyText";
+import { Loader2, Paperclip, X } from "lucide-react";
 
 export default function ContactForm() {
   const searchParams = useSearchParams();
   const [fullname, setFullname] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState(""); //naya Add kia ha?
+  const [password, setPassword] = useState("");
   const [budget, setBudget] = useState(1000);
   const [message, setMessage] = useState("");
   const [selectedServiceId, setSelectedServiceId] = useState("");
@@ -34,7 +36,6 @@ export default function ContactForm() {
   const [subServices, setSubServices] = useState<SubService[]>([]);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
-  // existing states ke baad yeh add karo
   const [nationalId, setNationalId] = useState("");
   const [document, setDocument] = useState<File | null>(null);
   const [manualBudget, setManualBudget] = useState<string>("");
@@ -52,7 +53,6 @@ export default function ContactForm() {
     }
   }, [selectedServiceId]);
 
-  // Auto-select from URL params (simplified)
   useEffect(() => {
     const serviceId = searchParams.get("serviceId");
     if (serviceId && services.length > 0 && !selectedServiceId) {
@@ -93,13 +93,7 @@ export default function ContactForm() {
         });
       }
     }
-  }, [
-    subServices,
-    selectedServiceId,
-    selectedSubServiceId,
-    services,
-    searchParams,
-  ]);
+  }, [subServices, selectedServiceId, selectedSubServiceId, services, searchParams]);
 
   const fetchServices = async () => {
     setIsLoadingServices(true);
@@ -149,9 +143,7 @@ export default function ContactForm() {
 
     if (selectedServiceId && subServiceId) {
       const selectedService = services.find((s) => s._id === selectedServiceId);
-      const selectedSubService = subServices.find(
-        (s) => s._id === subServiceId,
-      );
+      const selectedSubService = subServices.find((s) => s._id === subServiceId);
 
       if (selectedService && selectedSubService) {
         const serviceItem: SelectedServiceItem = {
@@ -186,17 +178,26 @@ export default function ContactForm() {
       toast.error("Full name must be at least 3 characters");
       return false;
     }
-
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       toast.error("Please enter a valid email address");
       return false;
     }
-
+    if (!password.trim() || password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return false;
+    }
+    if (!nationalId.trim()) {
+      toast.error("National ID Number is required");
+      return false;
+    }
     if (!termsAccepted) {
       toast.error("Please accept the Terms and Conditions");
       return false;
     }
-
+    if (selectedServices.length === 0) {
+      toast.error("Please select at least one service.");
+      return false;
+    }
     return true;
   };
 
@@ -204,20 +205,13 @@ export default function ContactForm() {
     const payload: ProposalPayload = {
       fullname: fullname.trim(),
       email: email.trim(),
-      password: password.trim(), // ✅ ADD THIS
+      password: password.trim(),
     };
 
     if (selectedServices.length > 0) {
-      payload.services = [
-        ...new Set(selectedServices.map((item) => item.serviceId)),
-      ];
+      payload.services = [...new Set(selectedServices.map((item) => item.serviceId))];
       payload.subServices = selectedServices.map((item) => item.subServiceId);
     }
-
-    // payload.budget = budget ? budget.toString() : null;
-    // payload.messages = message.trim() || null;
-
-    // return payload;
 
     payload.budget = manualBudget
       ? manualBudget
@@ -225,8 +219,6 @@ export default function ContactForm() {
         ? budget.toString()
         : null;
     payload.messages = message.trim() || null;
-
-    // ✅ NAYA ADD KARO
     payload.nationalId = nationalId.trim() || null;
     payload.document = document || null;
 
@@ -244,7 +236,6 @@ export default function ContactForm() {
     setSelectedServices([]);
     setSubServices([]);
     setTermsAccepted(false);
-    // ✅ NAYA ADD KARO
     setNationalId("");
     setDocument(null);
     setManualBudget("");
@@ -252,15 +243,9 @@ export default function ContactForm() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    // if (!validateForm()) return;
-    if (!password.trim() || password.length < 6) {
-      toast.error("Password must be at least 6 characters");
-      return false;
-    }
+    if (!validateForm()) return;
 
     setIsSubmitting(true);
-
     try {
       const payload = buildPayload();
       const response = await createProposal(payload);
@@ -274,293 +259,297 @@ export default function ContactForm() {
     } catch (error: unknown) {
       console.error("Submission error:", error);
       const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "An error occurred while submitting";
+        error instanceof Error ? error.message : "An error occurred while submitting";
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  // Modern input classes
+  const labelClass = "text-gray-400 text-xs font-medium mb-1.5 block uppercase tracking-wider";
+  const inputClass = "w-full bg-[#141414] border border-[rgba(255,255,255,0.07)] rounded-xl px-4 py-3.5 text-white outline-none focus:border-[#9EFF00] focus:shadow-[0_0_15px_rgba(158,255,0,0.15)] transition-all placeholder-gray-600 text-sm";
+  const selectClass = "w-full bg-[#141414] border border-[rgba(255,255,255,0.07)] rounded-xl px-4 py-3.5 text-white text-sm outline-none focus:border-[#9EFF00] focus:shadow-[0_0_15px_rgba(158,255,0,0.15)] transition-all appearance-none pr-10 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer";
+
   return (
-    <div className="min-h-auto mt-26 sm:mt-16 md:mt-20 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+    <div className="min-h-auto mt-26 sm:mt-16 md:mt-24 flex items-center justify-center px-4 sm:px-6 lg:px-8 mb-20 relative">
+      {/* Background glow effects */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#9EFF00] rounded-full mix-blend-multiply filter blur-[128px] opacity-5 pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#9EFF00] rounded-full mix-blend-multiply filter blur-[128px] opacity-5 pointer-events-none" />
+
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-[700px] border border-[#454545] p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12 space-y-4 sm:space-y-6 md:space-y-8 rounded-lg"
+        className="w-full max-w-[840px] border border-white/[0.06] bg-[#0a0a0a]/95 backdrop-blur-xl shadow-[0_30px_80px_rgba(0,0,0,0.7)] p-8 sm:p-10 md:p-12 space-y-8 rounded-3xl relative z-10"
       >
-        {/* <div className="flex flex-col sm:flex-row gap-4 sm:gap-6"> */}
-        <div className="flex-1 bg-[#232323] rounded-lg p-4 sm:p-5 md:p-6">
-          <label className="block text-white text-base sm:text-lg mb-2">
-            Full Name
-          </label>
-          <input
-            type="text"
-            placeholder="Type here"
-            value={fullname}
-            onChange={(e) => setFullname(e.target.value)}
-            required
-            minLength={3}
-            maxLength={120}
-            className="w-full bg-transparent border-none outline-none text-white placeholder-gray-500 text-sm sm:text-base"
-          />
+        <div className="text-center mb-8">
+          <h2 className="text-4xl font-bold text-white mb-3">
+            <MagnifyText text="Start Your Project" />
+          </h2>
+          <p className="text-gray-400 text-sm md:text-base max-w-lg mx-auto">
+            Fill out the details below and let's build something extraordinary together.
+          </p>
         </div>
 
-        <div className="flex-1 bg-[#232323] rounded-lg p-4 sm:p-5 md:p-6">
-          <label className="block text-white text-base sm:text-lg mb-2">
-            Email
-          </label>
-          <input
-            type="email"
-            placeholder="Type here"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full bg-transparent border-none outline-none text-white placeholder-gray-500 text-sm sm:text-base"
-          />
-        </div>
-        {/* </div> */}
-
-        {/* PASSWORD */}
-        <div className="bg-[#232323] rounded-lg p-4 sm:p-5 md:p-6">
-          <label className="block text-white text-base sm:text-lg mb-2">
-            Password
-          </label>
-          <input
-            type="password"
-            placeholder="Enter password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={6}
-            className="w-full bg-transparent border-none outline-none text-white placeholder-gray-500 text-sm sm:text-base"
-          />
-        </div>
-
-        {/* ✅ NATIONAL ID — Full Name/Email block ke baad */}
-        <div className="bg-[#232323] rounded-lg p-4 sm:p-5 md:p-6">
-          <label className="block text-white text-base sm:text-lg mb-2">
-            National ID Number
-          </label>
-          <input
-            type="text"
-            placeholder="Type here"
-            value={nationalId}
-            onChange={(e) => setNationalId(e.target.value)}
-            maxLength={20}
-            className="w-full bg-transparent border-none outline-none text-white placeholder-gray-500 text-sm sm:text-base"
-          />
+        {/* Name & Email */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div>
+            <label className={labelClass}>
+              Full Name <span className="text-[#9EFF00]">*</span>
+            </label>
+            <input
+              type="text"
+              placeholder="John Doe"
+              value={fullname}
+              onChange={(e) => setFullname(e.target.value)}
+              required
+              minLength={3}
+              maxLength={120}
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <label className={labelClass}>
+              Email Address <span className="text-[#9EFF00]">*</span>
+            </label>
+            <input
+              type="email"
+              placeholder="john@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className={inputClass}
+            />
+          </div>
         </div>
 
-        <div className="bg-[#232323] rounded-lg p-4 sm:p-5 md:p-6">
-          <label className="block text-white text-base sm:text-lg mb-3 sm:mb-4">
-            Select Services
+        {/* Password & ID */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div>
+            <label className={labelClass}>
+              Account Password <span className="text-[#9EFF00]">*</span>
+            </label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <label className={labelClass}>
+              National ID Number <span className="text-[#9EFF00]">*</span>
+            </label>
+            <input
+              type="text"
+              placeholder="00000-0000000-0"
+              value={nationalId}
+              onChange={(e) => setNationalId(e.target.value)}
+              required
+              maxLength={20}
+              className={inputClass}
+            />
+          </div>
+        </div>
+
+        {/* Services Dropdowns */}
+        <div>
+          <label className={labelClass}>
+            Select Services <span className="text-[#9EFF00]">*</span>
           </label>
           <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative w-full">
-                <select
-                  value={selectedServiceId}
-                  onChange={(e) => handleServiceChange(e.target.value)}
-                  disabled={isLoadingServices}
-                  className="w-full bg-[#1a1a1a] border border-gray-600 rounded-lg px-4 py-3 text-white text-sm sm:text-base outline-none focus:border-lime-400 transition-all duration-300 appearance-none pr-10 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <option value="">
-                    {isLoadingServices ? "Loading..." : "Choose service..."}
+            <div className="flex-1 relative group">
+              <select
+                value={selectedServiceId}
+                onChange={(e) => handleServiceChange(e.target.value)}
+                disabled={isLoadingServices}
+                className={selectClass}
+              >
+                <option value="">
+                  {isLoadingServices ? "Loading..." : "Choose service..."}
+                </option>
+                {services.map((service) => (
+                  <option key={service._id} value={service._id} className="bg-[#1a1a1a] text-white">
+                    {service.title}
                   </option>
-                  {services.map((service) => (
-                    <option
-                      key={service._id}
-                      value={service._id}
-                      className="bg-[#1a1a1a] text-white"
-                    >
-                      {service.title}
-                    </option>
-                  ))}
-                </select>
-                <span className="absolute inset-y-0 right-3 text-xs flex items-center pointer-events-none text-white">
-                  ▼
-                </span>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-500 group-hover:text-[#9EFF00] transition-colors">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
               </div>
             </div>
-            <div className="flex-1">
-              <div className="relative w-full">
-                <select
-                  value={selectedSubServiceId}
-                  onChange={(e) => handleSubServiceChange(e.target.value)}
-                  disabled={!selectedServiceId || isLoadingSubServices}
-                  className="w-full bg-[#1a1a1a] border border-gray-600 rounded-lg px-4 py-3 text-white text-sm sm:text-base outline-none focus:border-lime-400 transition-all duration-300 appearance-none pr-10 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <option value="">
-                    {isLoadingSubServices
-                      ? "Loading..."
-                      : !selectedServiceId
-                        ? "Select service first..."
-                        : "Choose sub-service..."}
+            <div className="flex-1 relative group">
+              <select
+                value={selectedSubServiceId}
+                onChange={(e) => handleSubServiceChange(e.target.value)}
+                disabled={!selectedServiceId || isLoadingSubServices}
+                className={selectClass}
+              >
+                <option value="">
+                  {isLoadingSubServices
+                    ? "Loading..."
+                    : !selectedServiceId
+                      ? "Select service first..."
+                      : "Choose sub-service..."}
+                </option>
+                {subServices.map((subService) => (
+                  <option key={subService._id} value={subService._id} className="bg-[#1a1a1a] text-white">
+                    {subService.title}
                   </option>
-                  {subServices.map((subService) => (
-                    <option
-                      key={subService._id}
-                      value={subService._id}
-                      className="bg-[#1a1a1a] text-white"
-                    >
-                      {subService.title}
-                    </option>
-                  ))}
-                </select>
-                <span className="absolute inset-y-0 right-3 text-xs flex items-center pointer-events-none text-white">
-                  ▼
-                </span>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-500 group-hover:text-[#9EFF00] transition-colors">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
               </div>
             </div>
           </div>
         </div>
 
-        {/* ✅ UPLOAD DOCUMENT — Select Services ke baad */}
-        <div className="bg-[#232323] rounded-lg p-4 sm:p-5 md:p-6">
-          <label className="block text-white text-base sm:text-lg mb-2">
-            Upload Document
-          </label>
-          <span className="block text-gray-400 mb-4 text-xs sm:text-sm">
-            Upload your requirements document (PDF, DOC, DOCX)
-          </span>
-          <label className="cursor-pointer inline-flex items-center gap-2 border border-gray-600 rounded-lg px-4 py-2 text-white text-sm hover:border-lime-400 transition-all duration-300">
-            <span>📎</span>
-            <span>{document ? document.name : "Upload Document"}</span>
-            <input
-              type="file"
-              accept=".pdf,.doc,.docx"
-              className="hidden"
-              onChange={(e) => setDocument(e.target.files?.[0] || null)}
-            />
-          </label>
-          {document && (
-            <button
-              type="button"
-              onClick={() => setDocument(null)}
-              className="ml-3 text-red-400 text-sm hover:text-red-300"
-            >
-              ✕ Remove
-            </button>
-          )}
-        </div>
-
+        {/* Selected Services Chips */}
         {selectedServices.length > 0 && (
-          <div className="bg-[#232323] rounded-lg p-4 sm:p-5 md:p-6">
-            <label className="block text-white text-base sm:text-lg mb-3 sm:mb-4">
-              Selected Services
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {selectedServices.map((serviceItem, index) => (
-                <div
-                  key={index}
-                  className="bg-lime-400 text-black px-3 py-1 rounded-full text-sm flex items-center gap-2"
+          <div className="p-4 rounded-xl border border-[#9EFF00]/20 bg-[#9EFF00]/5 flex flex-wrap gap-2">
+            {selectedServices.map((serviceItem, index) => (
+              <div
+                key={index}
+                className="bg-[#9EFF00] text-black px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 shadow-[0_0_10px_rgba(158,255,0,0.2)]"
+              >
+                <span>{serviceItem.displayText}</span>
+                <button
+                  type="button"
+                  onClick={() => removeServiceChip(index)}
+                  className="hover:bg-black/10 rounded-full p-0.5 transition-colors"
                 >
-                  <span>{serviceItem.displayText}</span>
-                  <button
-                    type="button"
-                    onClick={() => removeServiceChip(index)}
-                    className="text-black hover:text-red-600 font-bold text-lg leading-none"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
+                  <X size={14} />
+                </button>
+              </div>
+            ))}
           </div>
         )}
 
-        <div className="bg-[#232323] rounded-lg p-4 sm:p-5 md:p-6">
-          <label className="block text-white text-base sm:text-lg mb-2">
-            Your Budget
-          </label>
-          <span className="block text-gray-400 mb-4 sm:mb-6 text-xs sm:text-sm">
-            Slide to indicate your budget range
-          </span>
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-white text-xs sm:text-sm md:text-base whitespace-nowrap">
-              $500
-            </span>
-            <div className="flex-1 mx-2 sm:mx-4">
-              <input
-                type="range"
-                min={500}
-                max={50000}
-                value={budget}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setBudget(Number(e.target.value))
-                }
-                className="w-full accent-lime-400 cursor-pointer"
-                style={{
-                  height: "6px",
-                  background: `linear-gradient(to right, #bfff00 0%, #bfff00 ${
-                    ((budget - 500) / (50000 - 500)) * 100
-                  }%, #4a4a4a ${
-                    ((budget - 500) / (50000 - 500)) * 100
-                  }%, #4a4a4a 100%)`,
-                }}
-              />
-              <div className="text-center mt-2 text-lime-400 font-semibold text-sm sm:text-base">
+        {/* Budget */}
+        <div>
+          <label className={labelClass}>Your Budget</label>
+          <div className="bg-[#141414] border border-[rgba(255,255,255,0.07)] rounded-xl p-5 shadow-sm transition-all hover:border-[rgba(255,255,255,0.15)]">
+            <div className="flex items-center justify-between gap-4 mb-4">
+              <span className="text-gray-400 text-xs font-medium">$500</span>
+              <div className="flex-1 px-2">
+                <input
+                  type="range"
+                  min={500}
+                  max={50000}
+                  value={budget}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setBudget(Number(e.target.value))
+                  }
+                  className="w-full accent-[#9EFF00] cursor-pointer h-1.5 bg-gray-800 rounded-lg appearance-none outline-none"
+                  style={{
+                    background: `linear-gradient(to right, #9EFF00 0%, #9EFF00 ${((budget - 500) / (50000 - 500)) * 100}%, #333 ${((budget - 500) / (50000 - 500)) * 100}%, #333 100%)`,
+                  }}
+                />
+              </div>
+              <span className="text-gray-400 text-xs font-medium">$50k+</span>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-[#9EFF00] font-bold text-lg tracking-wide bg-[#9EFF00]/10 px-4 py-1.5 rounded-lg border border-[#9EFF00]/20">
                 ${budget.toLocaleString()}
               </div>
-            </div>
-            <span className="text-white text-xs sm:text-sm md:text-base whitespace-nowrap">
-              $50,000
-            </span>
-          </div>
-
-          {/* ✅ MANUAL BUDGET INPUT — slider ke bilkul neeche */}
-          <div className="mt-4">
-            <label className="block text-gray-400 text-xs sm:text-sm mb-2">
-              Or enter manually
-            </label>
-            <div className="flex items-center gap-2 bg-[#1a1a1a] border border-gray-600 rounded-lg px-4 py-2 focus-within:border-lime-400 transition-all duration-300">
-              <span className="text-gray-400 text-sm">$</span>
-              <input
-                type="number"
-                placeholder="Enter your budget"
-                value={manualBudget}
-                min={0}
-                onChange={(e) => {
-                  setManualBudget(e.target.value);
-                  if (e.target.value) setBudget(Number(e.target.value));
-                }}
-                className="w-full bg-transparent border-none outline-none text-white placeholder-gray-500 text-sm sm:text-base"
-              />
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <span className="text-gray-500 text-xs uppercase tracking-wider">Or enter manually</span>
+                <div className="flex items-center gap-1 border-b border-gray-700 focus-within:border-[#9EFF00] transition-colors pb-1">
+                  <span className="text-[#9EFF00] font-medium text-sm">$</span>
+                  <input
+                    type="number"
+                    placeholder="0"
+                    value={manualBudget}
+                    min={0}
+                    onChange={(e) => {
+                      setManualBudget(e.target.value);
+                      if (e.target.value) setBudget(Number(e.target.value));
+                    }}
+                    className="w-20 bg-transparent outline-none text-white text-sm"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-[#232323] rounded-lg p-4 sm:p-5 md:p-6">
-          <label className="block text-white text-base sm:text-lg mb-2">
-            Your Message
-          </label>
+        {/* Message */}
+        <div>
+          <label className={labelClass}>Project Description</label>
           <textarea
-            placeholder="Type here"
+            placeholder="Tell us about your requirements..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            className="w-full bg-transparent border-none outline-none text-white placeholder-gray-500 resize-none h-20 sm:h-24 md:h-28 text-sm sm:text-base"
+            className={`${inputClass} resize-none min-h-[120px]`}
           />
         </div>
 
-        <label className="flex gap-3 items-start text-sm text-[#9aa3ad] mb-4">
-          <input
-            type="checkbox"
-            name="termsAccepted"
-            checked={termsAccepted}
-            onChange={(e) => setTermsAccepted(e.target.checked)}
-            required
-            className="mt-1 h-4 w-4 accent-[#9EFF00]"
-          />
-          <span>
-            I accept the{" "}
+        {/* Document Upload */}
+        <div>
+          <label className={labelClass}>Upload Document <span className="text-gray-500 normal-case">(Optional)</span></label>
+          <div className="flex items-center gap-3">
+            <label className="cursor-pointer group relative overflow-hidden rounded-xl bg-[#141414] border border-[rgba(255,255,255,0.07)] px-5 py-3.5 hover:border-[#9EFF00]/50 transition-all">
+              <div className="flex items-center gap-2 relative z-10">
+                <Paperclip size={16} className="text-gray-400 group-hover:text-[#9EFF00] transition-colors" />
+                <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">
+                  {document ? document.name : "Attach File"}
+                </span>
+              </div>
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx"
+                className="hidden"
+                onChange={(e) => setDocument(e.target.files?.[0] || null)}
+              />
+              <div className="absolute inset-0 bg-[#9EFF00]/5 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+            </label>
+            {document && (
+              <button
+                type="button"
+                onClick={() => setDocument(null)}
+                className="text-red-400 hover:text-red-300 hover:bg-red-400/10 p-2 rounded-lg transition-colors flex items-center gap-1 text-sm font-medium"
+              >
+                <X size={14} /> Remove
+              </button>
+            )}
+          </div>
+          <p className="text-xs text-gray-500 mt-2">Accepted formats: PDF, DOC, DOCX</p>
+        </div>
+
+        {/* Terms */}
+        <label className="flex items-start gap-3 p-4 rounded-xl border border-[rgba(255,255,255,0.04)] bg-[#141414]/50 cursor-pointer group hover:bg-[#141414] transition-colors">
+          <div className="relative flex items-center justify-center mt-0.5">
+            <input
+              type="checkbox"
+              checked={termsAccepted}
+              onChange={(e) => setTermsAccepted(e.target.checked)}
+              required
+              className="peer appearance-none w-5 h-5 border-2 border-gray-600 rounded cursor-pointer checked:bg-[#9EFF00] checked:border-[#9EFF00] transition-colors"
+            />
+            <svg
+              className="absolute w-3 h-3 text-black opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <span className="text-sm text-gray-400 leading-snug">
+            By submitting this proposal, I acknowledge that I have read and agree to the{" "}
             <button
               type="button"
-              onClick={() => setIsTermsModalOpen(true)}
-              className="text-[#9EFF00] hover:text-[#9EFF00]/80 underline font-semibold"
+              onClick={(e) => { e.preventDefault(); setIsTermsModalOpen(true); }}
+              className="text-[#9EFF00] hover:text-white underline decoration-[#9EFF00]/50 underline-offset-4 transition-colors font-medium"
             >
-              Terms and Conditions
+              Terms & Conditions
             </button>
+            {" "}of WG Tech Solutions.
           </span>
         </label>
 
@@ -569,15 +558,21 @@ export default function ContactForm() {
           onClose={() => setIsTermsModalOpen(false)}
         />
 
-        <div className="flex justify-center pt-2 sm:pt-4">
+        {/* Submit */}
+        <div className="pt-4">
           <button
             type="submit"
             disabled={isSubmitting || !termsAccepted}
-            className="relative block mx-auto w-full sm:w-auto overflow-hidden rounded-2xl border border-gray-500 bg-transparent text-xl sm:text-2xl text-white cursor-pointer transition-colors duration-300 hover:text-black hover:border-[#9eff00] focus:text-black focus:border-[#9eff00] active:text-black active:border-[#9eff00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9eff00] focus-visible:ring-offset-2 focus-visible:ring-offset-black before:absolute before:inset-y-0 before:left-0 before:w-0 before:bg-[#9eff00] before:content-[''] before:transition-all before:duration-300 before:ease-out hover:before:w-full focus:before:w-full active:before:w-full disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full relative overflow-hidden rounded-xl bg-[#9EFF00] text-black font-bold text-sm tracking-widest uppercase py-4 shadow-[0_0_20px_rgba(158,255,0,0.2)] hover:shadow-[0_0_30px_rgba(158,255,0,0.4)] hover:bg-[#a8ff1a] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2"
           >
-            <span className="relative z-10 px-8 sm:px-12 md:px-16 py-2">
-              {isSubmitting ? "Submitting..." : "Submit"}
-            </span>
+            {isSubmitting ? (
+              <>
+                <Loader2 size={18} className="animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              "Submit Proposal"
+            )}
           </button>
         </div>
       </form>

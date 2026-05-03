@@ -23,6 +23,8 @@ export type SocialLink = {
 export type TeamMember = {
   _id?: string;
   name?: string;
+  designation?: string;
+  department?: string;
   shortDescription?: string;
   image?: string;
   role?: TeamRole;

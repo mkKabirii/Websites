@@ -45,7 +45,8 @@ function Page() {
         const services = Array.isArray(response?.data.data)
           ? (response.data.data as OurServiceType[])
           : [];
-        setServicesData(services);
+        const activeServices = services.filter((s: any) => !s.status || s.status.toLowerCase() === "active");
+        setServicesData(activeServices);
       }
     } catch (error) {
       console.error("Error fetching Services data:", error);

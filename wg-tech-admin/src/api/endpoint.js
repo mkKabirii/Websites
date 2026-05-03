@@ -1,6 +1,8 @@
 const ENDPOINTS = {
   // Auth Endpoints
   loginUser: "v1/users/login",
+  forgotPassword: "v1/users/forgot-password",
+  resetPassword: "v1/users/reset-password",
   getNotifications: "v1/notifications",
   markNotificationRead: "v1/notifications",
   markAllNotificationsRead: "v1/notifications/read-all",

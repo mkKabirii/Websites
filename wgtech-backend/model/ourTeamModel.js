@@ -12,6 +12,16 @@ const teamMemberSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    designation: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    department: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     image: {
       type: String,
       required: true,

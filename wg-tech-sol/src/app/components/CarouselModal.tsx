@@ -275,10 +275,10 @@ const CarouselModal: React.FC<CarouselModalProps> = ({
                   <div
                     className={`rounded-xl overflow-hidden cursor-pointer transition-all duration-300 ${
                       activeIndex === index
-                        ? "w-102 h-72 scale-105"
+                        ? "w-96 h-72 scale-105"
                         : "w-80 h-60 scale-100"
                     }`}
-                    style={{ boxShadow: 'none' }}
+                    style={{ boxShadow: "none" }}
                     onClick={() => handleItemClick(index)}
                   >
                     {item.type === "image" ? (
@@ -290,7 +290,13 @@ const CarouselModal: React.FC<CarouselModalProps> = ({
                         className="w-auto h-auto object-contain transition-all duration-300"
                       />
                     ) : (
-                      <div className="w-full h-full relative">
+                      <div
+                        className="relative"
+                        style={{
+                          width: activeIndex === index ? 384 : 320,
+                          height: activeIndex === index ? 288 : 240,
+                        }}
+                      >
                         {item.src.includes("youtube.com") ? (
                           <iframe
                             src={
@@ -305,7 +311,9 @@ const CarouselModal: React.FC<CarouselModalProps> = ({
                                   }`
                             }
                             title={item.alt}
-                            className="w-full h-full rounded-xl"
+                            width={activeIndex === index ? 384 : 320}
+                            height={activeIndex === index ? 288 : 240}
+                            className="rounded-xl"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
                           />
@@ -313,7 +321,12 @@ const CarouselModal: React.FC<CarouselModalProps> = ({
                           <video
                             src={item.src}
                             controls
-                            className="w-full h-full object-contain rounded-xl"
+                            preload="metadata"
+                            width={activeIndex === index ? 384 : 320}
+                            height={activeIndex === index ? 288 : 240}
+                            className="rounded-xl object-contain bg-black"
+                            style={{ display: "block" }}
+                            onClick={(e) => e.stopPropagation()}
                           >
                             Your browser does not support the video tag.
                           </video>

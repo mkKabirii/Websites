@@ -75,7 +75,7 @@ const FaqSection = ({ faqs }: FaqSectionProps) => {
 
     return (
         <section className="bg-black py-16">
-            <div className="mx-auto grid grid-cols-1 md:grid-cols-2 gap-20 px-10">
+            <div className="mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-20 px-4 sm:px-6 md:px-10">
                 {[column1, column2].map((column, colIndex) => (
                     <div key={colIndex} className={`flex flex-col space-y-6 ${colIndex === 1 ? 'md:pl-10 md:border-l md:border-gray-950' : ''
                         }`}>

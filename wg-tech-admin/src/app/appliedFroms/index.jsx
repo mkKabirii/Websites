@@ -7,7 +7,9 @@ import {
   getAllAppliedForms,
   updateStatus,
   getAppliedFormById,
+  deleteAppliedForm,
 } from "../../api/module/application";
+import { deleteConfirm } from "../../components/customSweetAlert";
 import { useSnackbar } from "notistack";
 // import AddEditAppliedFormDialog from "./addEditAppliedForm"; // Future use ke liye
 
@@ -22,6 +24,7 @@ const AppliedFormsManagement = () => {
     { id: "education", title: "Education", align: "left" },
     { id: "skills", title: "Skills", align: "center" },
     { id: "selectStatus", title: "Status", align: "center" },
+    { id: "view", title: "View", align: "center" },
     { id: "actions", title: "Actions", align: "center" },
   ];
 
@@ -33,6 +36,7 @@ const AppliedFormsManagement = () => {
     "skills",
     "selectStatus",
     "view",
+    "actions",
   ];
 
   const [appliedFormsData, setAppliedFormsData] = useState([]);
@@ -173,9 +177,44 @@ const AppliedFormsManagement = () => {
     }
   };
 
-  const handleBackToList = () => {
+  const handleDeleteAppliedForm = async (id) => {
+    try {
+      const result = await deleteConfirm({
+        title: "Delete Application?",
+        text: "Are you sure you want to delete this application?",
+        confirmButtonText: "Delete",
+      });
+
+      if (!result.isConfirmed) return;
+
+      setIsLoading(true);
+
+      const response = await deleteAppliedForm(id);
+
+      if (response.status === 200 || response.status === 201) {
+        enqueueSnackbar("Application deleted successfully", {
+          variant: "success",
+        });
+        await handleGetAppliedForms(currentPage, rowsPerPage);
+      } else {
+        enqueueSnackbar(response.data?.message || "Failed to delete application", {
+          variant: "error",
+        });
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      enqueueSnackbar("Something went wrong", { variant: "error" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleBackToList = (shouldRefresh = false) => {
     setShowViewForm(false);
     setViewData(null);
+    if (shouldRefresh === true) {
+      handleGetAppliedForms(currentPage, rowsPerPage);
+    }
   };
 
   const handlePageChange = (newPage, newRowsPerPage) => {
@@ -245,6 +284,8 @@ const AppliedFormsManagement = () => {
           handleChangeStatus={handleChangeStatus}
           statusOptions={statusOptions}
           handleViewService={handleViewForm}
+          showEdit={false}
+          handleDeleteService={handleDeleteAppliedForm}
           // Server-side pagination props
           totalPages={totalPages}
           currentPage={currentPage}

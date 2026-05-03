@@ -10,5 +10,8 @@ const updateStatus = (id, status) =>
 const getAppliedFormById = (id) =>
   api(`${ENDPOINTS.getAppliedFormById}/${id}`, null, "get");
 
-export { getAllAppliedForms, updateStatus, getAppliedFormById };
+const deleteAppliedForm = (id) =>
+  api(`${ENDPOINTS.getAppliedFormById}/${id}`, null, "delete");
+
+export { getAllAppliedForms, updateStatus, getAppliedFormById, deleteAppliedForm };
 

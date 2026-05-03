@@ -37,6 +37,7 @@ const AddEditOurTeamDialog = ({
   const [formData, setFormData] = useState({
     designation: "",
     name: "",
+    department: "",
     shortDescription: "",
     url: SOCIALS,
     role: "",
@@ -59,6 +60,7 @@ const AddEditOurTeamDialog = ({
         setFormData({
           designation: editData.designation || "",
           name: editData.name || "",
+          department: editData.department || "",
           shortDescription: editData.shortDescription || "",
           url: filledSocials,
           role: editData.role?._id || "",
@@ -68,6 +70,7 @@ const AddEditOurTeamDialog = ({
         setFormData({
           designation: "",
           name: "",
+          department: "",
           shortDescription: "",
           url: SOCIALS,
           role: "",
@@ -130,6 +133,7 @@ const AddEditOurTeamDialog = ({
     const newErrors = {};
 
     if (!formData.name.trim()) newErrors.name = "Name is required";
+    if (!formData.designation.trim()) newErrors.designation = "Designation is required";
     if (!formData.shortDescription.trim())
       newErrors.shortDescription = "Short description is required";
     if (!formData.role) newErrors.role = "Role is required";
@@ -145,6 +149,7 @@ const AddEditOurTeamDialog = ({
     setFormData({
       designation: "",
       name: "",
+      department: "",
       shortDescription: "",
       url: SOCIALS,
       role: "",
@@ -243,7 +248,7 @@ const AddEditOurTeamDialog = ({
             </DialogTitle>
 
             {/* CONTENT */}
-            <DialogContent sx={{ p: 4 , mt: 2 }}>
+            <DialogContent sx={{ p: { xs: 2, sm: 4 }, mt: 2 }}>
               {/* Image Upload */}
 
               <Typography variant="body2" fontSize={12} color="#FFFFFF" sx={{ mb: 2 }}>
@@ -351,6 +356,28 @@ const AddEditOurTeamDialog = ({
                   error={errors.name}
                   helperText={errors.name}
                   showLabel="Name *"
+                  inputBgColor="#2A2A2A"
+                />
+
+                {/* DEPARTMENT */}
+                <TextInput
+                  placeholder="Enter department (e.g., Department of AI)"
+                  value={formData.department}
+                  onChange={(e) => handleInputChange("department", e.target.value)}
+                  error={errors.department}
+                  helperText={errors.department}
+                  showLabel="Department (Optional)"
+                  inputBgColor="#2A2A2A"
+                />
+
+                {/* DESIGNATION */}
+                <TextInput
+                  placeholder="Enter designation (e.g., HEADS OF DEPARTMENTS)"
+                  value={formData.designation}
+                  onChange={(e) => handleInputChange("designation", e.target.value)}
+                  error={errors.designation}
+                  helperText={errors.designation}
+                  showLabel="Designation/Role Label *"
                   inputBgColor="#2A2A2A"
                 />
 

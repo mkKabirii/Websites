@@ -45,6 +45,11 @@ const workSchema = new mongoose.Schema(
         purpose:{
           type: String,
           required: true,
+        },
+        status: {
+          type: String,
+          enum: ["Active", "Inactive", "active", "inactive"],
+          default: "Active",
         }
       },
     ],

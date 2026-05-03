@@ -36,52 +36,34 @@ export default function ProposalsPage() {
   const fetchProposals = async () => {
     try {
       setLoading(true);
-      // Mock data - replace with actual API call
-      const mockProposals: Proposal[] = [
-        {
-          _id: "prop1",
-          title: "Web Development Project",
-          description: "Custom website development for e-commerce",
-          status: "approved",
-          submittedDate: new Date(
-            Date.now() - 7 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
-          budget: "$5,000 - $8,000",
-          timeline: "3-4 weeks",
-          lastUpdate: new Date(
-            Date.now() - 2 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
-        },
-        {
-          _id: "prop2",
-          title: "Mobile App Design",
-          description: "UI/UX design for iOS and Android app",
-          status: "pending",
-          submittedDate: new Date(
-            Date.now() - 14 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
-          budget: "$3,000 - $5,000",
-          timeline: "2-3 weeks",
-          lastUpdate: new Date(
-            Date.now() - 3 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
-        },
-        {
-          _id: "prop3",
-          title: "Content Writing",
-          description: "SEO-optimized blog posts and content",
-          status: "completed",
-          submittedDate: new Date(
-            Date.now() - 30 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
-          budget: "$1,000 - $2,000",
-          timeline: "1-2 weeks",
-          lastUpdate: new Date(
-            Date.now() - 1 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
-        },
-      ];
-      setProposals(mockProposals);
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8003";
+      
+      // Fetch only the user's proposals by searching their email
+      const res = await fetch(`${API_URL}/api/v1/proposals?search=${encodeURIComponent(user?.email || "")}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        const apiProposals = json.data?.proposals || [];
+        
+        // Map backend model to frontend Proposal interface
+        const mappedProposals: Proposal[] = apiProposals.map((p: any) => ({
+          _id: p._id,
+          title: p.company || p.fullname || "Proposal",
+          description: p.messages || p.company || "Project request",
+          status: p.status?.toLowerCase() || "pending",
+          submittedDate: p.createdAt || new Date().toISOString(),
+          budget: p.budget ? `$${p.budget}` : "Not specified",
+          timeline: p.timeline || "Not specified",
+          lastUpdate: p.updatedAt || p.createdAt || new Date().toISOString()
+        }));
+        
+        setProposals(mappedProposals);
+      }
     } catch (error) {
       console.error("Error fetching proposals:", error);
     } finally {

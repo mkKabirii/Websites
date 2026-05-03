@@ -237,14 +237,14 @@ const NotificationBell = () => {
             gap: 2,
           }}
         >
-          <Typography variant="subtitle2" sx={{ color: "#222", fontWeight: 700 }}>
+          <Typography variant="subtitle2" sx={{ color: "#9eff00", fontWeight: 700 }}>
             Notifications
           </Typography>
           <Button
             size="small"
             startIcon={<CheckCheck size={14} />}
             onClick={handleReadAll}
-            sx={{ textTransform: "none", color: "#4CAF50" }}
+            sx={{ textTransform: "none", color: "#9eff00" }}
           >
             Read all
           </Button>

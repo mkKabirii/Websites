@@ -31,6 +31,7 @@ const OurTeamManagement = () => {
     { id: "image", title: "Photo", align: "center" },
     { id: "name", title: "Name", align: "center" },
     { id: "role", title: "Role", align: "center" },
+    { id: "department", title: "Department", align: "center" },
     { id: "shortDescription", title: "Description", align: "center" },
     { id: "actions", title: "Actions", align: "center" },
   ];
@@ -40,6 +41,7 @@ const OurTeamManagement = () => {
     "image",
     "name",
     "role_Team",
+    "department",
     "shortDescription",
     "actions",
   ];
@@ -106,6 +108,8 @@ const OurTeamManagement = () => {
       const payload = {
         role: formData.role,
         name: formData.name,
+        designation: formData.designation,
+        department: formData.department,
         shortDescription: formData.shortDescription,
         url: formData.url,
         image: formData.image,
@@ -221,7 +225,7 @@ const OurTeamManagement = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: { xs: 1.5, sm: 3 } }}>
       {/* Header Section */}
       <Box sx={{ mb: 4 }} mt={3}>
         <Typography

@@ -1043,7 +1043,7 @@ export default function PaginatedTable({
 
   return (
     <TableContainer sx={tableStyle}>
-      <Table sx={{ width: tableWidth || "100%" }}>
+      <Table sx={{ minWidth: 800, width: tableWidth || "100%" }}>
         <TableHead>
           <TableRow>
             {tableHeader?.map((header) => (

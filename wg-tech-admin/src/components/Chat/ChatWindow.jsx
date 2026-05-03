@@ -451,7 +451,7 @@ const ChatWindow = ({
           className="send-button"
           disabled={!messageText.trim() || uploadingFile}
         >
-          <Send size={20} />
+          Send
         </button>
       </form>
     </div>

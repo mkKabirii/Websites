@@ -133,14 +133,16 @@ const Dashboard = () => {
   }
 
   return (
-    <Box sx={{ p: 3, backgroundColor: "transparent", minHeight: "100vh" }}>
+    <Box sx={{ p: { xs: 1.5, sm: 3 }, backgroundColor: "transparent", minHeight: "100vh" }}>
       {/* Header Section */}
       <Box sx={{ mb: 4 }}>
         <Box
           sx={{
             display: "flex",
+            flexDirection: { xs: "column", md: "row" },
             justifyContent: "space-between",
-            alignItems: "flex-start",
+            alignItems: { xs: "stretch", md: "flex-start" },
+            gap: 2,
             mb: 3,
           }}
         >
@@ -169,7 +171,7 @@ const Dashboard = () => {
           </Box>
 
           {/* Date Range Filter */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Box sx={{ display: "flex", alignItems: { xs: "stretch", sm: "center" }, gap: 2, flexDirection: { xs: "column", sm: "row" } }}>
             <DateRangeFilter
               onDateRangeChange={handleDateRangeChange}
               placeholder="Filter by Date Range"

@@ -318,9 +318,10 @@ const Login = () => {
             <motion.div variants={itemVariants}>
               <Divider sx={{ my: 3, borderColor: "rgba(140, 230, 0, 0.2)" }} />
 
-              {/* <Box sx={{ textAlign: "center" }}>
+              <Box sx={{ textAlign: "center" }}>
                 <Link
-                  href="/forgot-password"
+                  component="button"
+                  onClick={() => navigate("/forgot-password")}
                   sx={{
                     color: "#8CE600",
                     textDecoration: "none",
@@ -334,7 +335,7 @@ const Login = () => {
                 >
                   Forgot your password?
                 </Link>
-              </Box> */}
+              </Box>
             </motion.div>
           </Box>
         </motion.div>

@@ -8,6 +8,7 @@ import "aos/dist/aos.css";
 import BackToTop from "./components/backToTop";
 import ConditionalChatButton from "./components/ConditionalChatButton";
 import CursorSpotlight from "./components/CursorSpotlight";
+import CustomCursor from "./components/CustomCursor";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -35,6 +36,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body id="top" className={`${barlow.className} bg-black`}>
+        <CustomCursor />
         <CursorSpotlight />
         <Navbar />
         <AOSInit />

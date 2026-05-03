@@ -334,15 +334,15 @@ function Hero() {
           <rect width="100%" height="100%" fill="url(#grid)" />
         </svg>
       </div>
-      <div className="relative z-10 h-[45vh] sm:h-[75vh] md:h-[70vh] lg:h-[75vh] w-auto max-w-screen-xl flex flex-col justify-center items-center gap-10 px-4 mb-10 text-center">
+      <div className="relative z-10 min-h-[50vh] sm:h-[75vh] md:h-[70vh] lg:h-[75vh] w-auto max-w-screen-xl flex flex-col justify-center items-center gap-6 sm:gap-10 px-4 mb-10 text-center">
         <h1 className="text-white  font-barlow font-semibold leading-tight flex flex-col items-center text-center">
           <MagnifyText
             text="Innovate with"
-            className="text-[45px] md:text-[65px] lg:text-[65px] xl:text-[78px]"
+            className="text-[36px] sm:text-[45px] md:text-[65px] lg:text-[65px] xl:text-[78px]"
           />
           <div
             onPointerEnter={runImageShatter}
-            className="relative isolate w-full max-w-[250px] sm:max-w-[300px] md:max-w-[400px] lg:max-w-[450px] overflow-hidden animate-float"
+            className="relative isolate w-full max-w-[220px] sm:max-w-[300px] md:max-w-[400px] lg:max-w-[450px] overflow-hidden animate-float"
           >
             <Image
               src="/images/WGTS.png"
@@ -369,7 +369,7 @@ function Hero() {
           </div>
           <MagnifyText
             text="In Tech Solutions"
-            className="text-[35px] sm:text-[40px] md:text-[52px] lg:text-[55px] xl:text-[68px]"
+            className="text-[28px] sm:text-[40px] md:text-[52px] lg:text-[55px] xl:text-[68px]"
           />
         </h1>
         <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-3 md:gap-4 w-auto max-w-md mx-auto sm:max-w-none lg:mb-8 xl:mb-12">

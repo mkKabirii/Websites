@@ -65,33 +65,55 @@
 }
 
 .message-bubble {
-  padding: 8px 12px;
+  padding: 10px 14px;
   border-radius: 8px;
   word-wrap: break-word;
   line-height: 1.4;
+  display: flex;
+  flex-direction: column;
 }
 
 .message-bubble p {
-  margin: 0;
+  margin: 4px 0;
   font-size: 14px;
   color: #f2f2f2;
 }
 
+.message-sender-name {
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+.message-time-inner {
+  font-size: 11px;
+  opacity: 0.6;
+}
+
 .message-bubble.own {
   background: #8ce600;
-  border: 1px solid #8ce600;
-  border-bottom-right-radius: 2px;
+  border: none;
+  border-top-right-radius: 0;
 }
 
 .message-bubble.own p {
   color: #0b0b0b;
 }
+.message-bubble.own .message-sender-name,
+.message-bubble.own .message-time-inner {
+  color: #333;
+}
 
 .message-bubble.other {
-  background-color: #151515;
-  border: 1px solid #222;
-  border-bottom-left-radius: 2px;
+  background-color: #212121;
+  border: none;
+  border-top-left-radius: 0;
   color: #f2f2f2;
+}
+
+.message-bubble.other .message-sender-name,
+.message-bubble.other .message-time-inner {
+  color: #aaa;
 }
 
 .edited-indicator {

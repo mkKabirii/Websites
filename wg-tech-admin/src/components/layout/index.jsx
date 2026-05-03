@@ -237,38 +237,43 @@ export default function MainLayout({ children }) {
           </Box>
 
           {/* Right side (actions + avatar) */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-            <ActionButtons
-              handleNavigation={handleNavigation}
-              handleLogout={handleLogout}
-            />
+          <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 1, sm: 3 } }}>
+            {!isMobile && (
+              <ActionButtons
+                handleNavigation={handleNavigation}
+                handleLogout={handleLogout}
+              />
+            )}
             <NotificationBell />
             <Box
               sx={{
                 display: "flex",
                 alignItems: "center",
-                gap: 2,
+                gap: { xs: 0, sm: 2 },
                 background: "linear-gradient(90deg,#9EFF00,#3DD400)",
                 borderRadius: "8px",
                 padding: "4px",
                 color: "white",
-                width: "180px",
+                width: { xs: "auto", sm: "180px" },
                 cursor: "pointer",
                 justifyContent: "space-between",
                 boxShadow: "inset 0 0 40px rgba(158,255,0,0.18)",
               }}
               onClick={handleAvatarClick}
             >
-              <Typography
-                variant="body1"
-                sx={{
-                  fontWeight: 500,
-                  fontSize: "14px",
-                  color: "black",
-                }}
-              >
-                Hello {user?.username}
-              </Typography>
+              {!isMobile && (
+                <Typography
+                  variant="body1"
+                  sx={{
+                    fontWeight: 500,
+                    fontSize: "14px",
+                    color: "black",
+                    ml: 1,
+                  }}
+                >
+                  Hello {user?.username}
+                </Typography>
+              )}
               <Avatar
                 sx={{
                   width: 40,

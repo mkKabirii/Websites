@@ -11,18 +11,21 @@ import {
   Button,
   Divider,
   CircularProgress,
+  Chip
 } from "@mui/material";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Upload, Plus, Edit, Trash2 } from "lucide-react";
+import CustomSwitch from "../../components/switch";
 import TextInput from "../../components/textInput";
 import CustomButton from "../../components/customButton";
 import { uploadImage } from "../../utils/upload";
 
-const EMPTY_WORK_ITEM = { image: [], title: "", url: "", description: "", purpose: "" };
+const EMPTY_WORK_ITEM = { image: [], title: "", url: "", description: "", purpose: "", status: "Active" };
 
 const createInitialFormState = () => ({
   workCategory: "",
   categoryDescription: "",
+  status: "active",
   works: [{ ...EMPTY_WORK_ITEM }],
 });
 
@@ -44,6 +47,7 @@ const AddEditWorkDialog = ({
         setFormData({
           workCategory: editData.workCategory || "",
           categoryDescription: editData.categoryDescription || "",
+          status: editData.status || "active",
           works: (editData.works && editData.works.length > 0
             ? editData.works
             : [{ ...EMPTY_WORK_ITEM }]).map((workItem) => ({
@@ -56,6 +60,7 @@ const AddEditWorkDialog = ({
             url: workItem.url || "",
             description: workItem.description || "",
             purpose: workItem.purpose || "",
+            status: workItem.status || "Active",
           })),
         });
       } else {
@@ -97,7 +102,7 @@ const AddEditWorkDialog = ({
       ...prev,
       works: newWorks,
     }));
-    if (["title", "url", "description", "image", "purpose"].includes(field)) {
+    if (["title", "url", "description", "image", "purpose", "status"].includes(field)) {
       clearFieldError(`work_${index}_${field}`);
     }
   };
@@ -371,6 +376,44 @@ const AddEditWorkDialog = ({
                   />
                 </Box>
 
+                {/* Status Switch for Category */}
+                <Box>
+                  <Typography variant="body2" color="#FFFFFF">
+                    Category Status
+                  </Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 2,
+                      mt: 1,
+                    }}
+                  >
+                    <CustomSwitch
+                      checked={formData.status === "active"}
+                      onChange={(e) =>
+                        handleFieldChange(
+                          "status",
+                          e.target.checked ? "active" : "inactive"
+                        )
+                      }
+                      showLabel={false}
+                    />
+                    <Chip
+                      label={formData.status}
+                      sx={{
+                        backgroundColor:
+                          formData.status === "active" ? "#8CE600" : "#FF5050",
+                        color: formData.status === "active" ? "#000" : "#FFF",
+                        fontWeight: 600,
+                        fontSize: "12px",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                      }}
+                    />
+                  </Box>
+                </Box>
+
                 {/* Works Section */}
                 <Box>
                   <Typography variant="body2" color="#FFFFFF" sx={{ mb: 2 }}>
@@ -617,6 +660,45 @@ const AddEditWorkDialog = ({
                             rows={3}
                             inputBgColor="#1A1A1A"
                           />
+
+                          {/* Work Status Switch */}
+                          <Box sx={{ mt: 2 }}>
+                            <Typography variant="body2" color="#FFFFFF">
+                              Work Status
+                            </Typography>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 2,
+                                mt: 1,
+                              }}
+                            >
+                              <CustomSwitch
+                                checked={work.status === "Active" || work.status === "active"}
+                                onChange={(e) =>
+                                  handleWorkChange(
+                                    index,
+                                    "status",
+                                    e.target.checked ? "Active" : "Inactive"
+                                  )
+                                }
+                                showLabel={false}
+                              />
+                              <Chip
+                                label={work.status || "Active"}
+                                sx={{
+                                  backgroundColor:
+                                    (work.status === "Active" || work.status === "active") ? "#8CE600" : "#FF5050",
+                                  color: (work.status === "Active" || work.status === "active") ? "#000" : "#FFF",
+                                  fontWeight: 600,
+                                  fontSize: "12px",
+                                  textTransform: "uppercase",
+                                  letterSpacing: "0.5px",
+                                }}
+                              />
+                            </Box>
+                          </Box>
                         </Box>
                       </Box>
                     </Box>

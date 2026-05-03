@@ -185,6 +185,7 @@ const createWorkSchema = Joi.object({
         url: Joi.string().required(),
         description: Joi.string().required(),
         purpose: Joi.string().required(),
+        status: Joi.string().valid("Active", "Inactive", "active", "inactive").default("Active"),
       }),
     )
     .min(1)
@@ -206,6 +207,7 @@ const updateWorkSchema = Joi.object({
         title: Joi.string().required(),
         url: Joi.string().required(),
         description: Joi.string().required(),
+        status: Joi.string().valid("Active", "Inactive", "active", "inactive").optional(),
       }),
     )
     .optional(),
@@ -216,6 +218,8 @@ const updateWorkSchema = Joi.object({
 const createTeamMemberSchema = Joi.object({
   role: Joi.string().custom(validateMongoDbId).required(),
   name: Joi.string().required(),
+  designation: Joi.string().required(),
+  department: Joi.string().allow("").optional(),
   shortDescription: Joi.string().required(),
   image: Joi.string().required(),
   url: Joi.array()
@@ -231,6 +235,8 @@ const createTeamMemberSchema = Joi.object({
 const updateTeamMemberSchema = Joi.object({
   role: Joi.string().custom(validateMongoDbId).optional(),
   name: Joi.string().optional(),
+  designation: Joi.string().optional(),
+  department: Joi.string().allow("").optional(),
   shortDescription: Joi.string().optional(),
   image: Joi.string().optional(),
   url: Joi.array()

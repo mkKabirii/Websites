@@ -14,7 +14,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Upload, Plus, Edit, Delete, Calendar } from "lucide-react";
+import { X, Upload, Plus, Edit, Delete, Calendar, PlayCircle, Film } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import moment from "moment";
@@ -435,127 +435,236 @@ const AddEditUpcommingEventDialog = ({
                   </Box>
                 </Box>
 
-                {/* Image Upload */}
+                {/* ── Image Upload ── */}
                 <Box>
-                  {/* Image Upload */}
-                  <Box>
-                    <Typography variant="body2" color="#FFFFFF">
-                      Images *
-                    </Typography>
+                  <Typography variant="body2" color="#FFFFFF" sx={{ mb: 1 }}>
+                    Images (JPG, PNG, WebP)
+                  </Typography>
 
-                    <label htmlFor="image-upload">
-                      <Box
-                        width={120}
-                        height={120}
-                        borderRadius="12px"
-                        border={"2px dashed #333333"}
-                        display={"flex"}
-                        alignItems={"center"}
-                        justifyContent={"center"}
-                        backgroundColor="#2A2A2A"
-                        overflow={"hidden"}
-                        position={"relative"}
-                        mt={1}
-                        sx={{ cursor: "pointer" }}
-                      >
-                        {uploading ? (
-                          <Box
-                            display={"flex"}
-                            flexDirection={"column"}
-                            alignItems={"center"}
-                            gap={1}
-                          >
-                            <CircularProgress
-                              size={24}
-                              sx={{ color: "#8CE600" }}
-                            />
-                            <Typography variant="caption" color="#8CE600">
-                              Uploading...
-                            </Typography>
-                          </Box>
-                        ) : (
-                          <Box
-                            display={"flex"}
-                            flexDirection={"column"}
-                            alignItems={"center"}
-                            gap={1}
-                          >
-                            <Upload size={24} color="#666666" />
-                            <Typography variant="caption" color="#666666">
-                              Click to Upload
-                            </Typography>
-                          </Box>
-                        )}
-                      </Box>
-                    </label>
-
-                    <input
-                      accept="image/*"
-                      multiple
-                      style={{ display: "none" }}
-                      id="image-upload"
-                      type="file"
-                      onChange={handleImageUpload}
-                    />
-
-                    {/* MULTIPLE IMAGES PREVIEW */}
+                  {/* Upload trigger */}
+                  <label htmlFor="image-upload">
                     <Box
                       sx={{
-                        mt: 2,
+                        width: 140,
+                        aspectRatio: "16/9",
+                        borderRadius: "10px",
+                        border: "2px dashed #444",
                         display: "flex",
-                        flexWrap: "wrap",
-                        gap: 1.5,
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: "#2A2A2A",
+                        cursor: "pointer",
+                        gap: 0.5,
+                        transition: "border-color 0.2s",
+                        "&:hover": { borderColor: "#8CE600" },
                       }}
                     >
-                      {formData.image.map((image, index) => (
-                        <Box
-                          key={index}
+                      {uploading ? (
+                        <>
+                          <CircularProgress size={22} sx={{ color: "#8CE600" }} />
+                          <Typography variant="caption" color="#8CE600">Uploading…</Typography>
+                        </>
+                      ) : (
+                        <>
+                          <Upload size={22} color="#666" />
+                          <Typography variant="caption" color="#666">Upload Image</Typography>
+                        </>
+                      )}
+                    </Box>
+                  </label>
+                  <input
+                    accept="image/jpeg,image/png,image/webp"
+                    style={{ display: "none" }}
+                    id="image-upload"
+                    type="file"
+                    onChange={handleImageUpload}
+                  />
+
+                  {/* Image preview cards — 16:9 */}
+                  <Box sx={{ mt: 2, display: "flex", flexWrap: "wrap", gap: 1.5 }}>
+                    {formData.image.map((image, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          width: 140,
+                          aspectRatio: "16/9",
+                          borderRadius: "10px",
+                          overflow: "hidden",
+                          position: "relative",
+                          border: "1px solid #333",
+                          backgroundColor: "#111",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <img
+                          src={image.url}
+                          alt={image.name}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            display: "block",
+                          }}
+                        />
+                        <IconButton
+                          onClick={() => handleRemoveImage(index)}
                           sx={{
-                            width: 60,
-                            height: 60,
-                            borderRadius: "8px",
-                            overflow: "hidden",
-                            position: "relative",
-                            border: "1px solid #333333",
+                            position: "absolute",
+                            top: 4,
+                            right: 4,
+                            backgroundColor: "rgba(244,67,54,0.9)",
+                            color: "#fff",
+                            width: 20,
+                            height: 20,
+                            "&:hover": { backgroundColor: "#d32f2f" },
                           }}
                         >
-                          <Avatar
-                            src={image.url}
-                            alt={image.name}
-                            sx={{
-                              width: "100%",
-                              height: "100%",
-                              borderRadius: "8px",
-                            }}
-                          />
-
-                          <IconButton
-                            onClick={() => handleRemoveImage(index)}
-                            sx={{
-                              position: "absolute",
-                              top: -5,
-                              right: -5,
-                              backgroundColor: "#f44336",
-                              color: "#FFFFFF",
-                              width: 18,
-                              height: 18,
-                              "&:hover": {
-                                backgroundColor: "#d32f2f",
-                              },
-                            }}
-                          >
-                            <X size={10} />
-                          </IconButton>
-                        </Box>
-                      ))}
-                    </Box>
-
-                    {errors.image && (
-                      <Typography variant="caption" color="error">
-                        {errors.image}
-                      </Typography>
-                    )}
+                          <X size={11} />
+                        </IconButton>
+                      </Box>
+                    ))}
                   </Box>
+
+                  {errors.image && (
+                    <Typography variant="caption" color="error" sx={{ mt: 0.5, display: "block" }}>
+                      {errors.image}
+                    </Typography>
+                  )}
+                </Box>
+
+                {/* ── Video Upload ── */}
+                <Box>
+                  <Typography variant="body2" color="#FFFFFF" sx={{ mb: 1 }}>
+                    Videos (MP4)
+                  </Typography>
+
+                  {/* Upload trigger */}
+                  <label htmlFor="video-upload">
+                    <Box
+                      sx={{
+                        width: 140,
+                        aspectRatio: "16/9",
+                        borderRadius: "10px",
+                        border: "2px dashed #444",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: "#2A2A2A",
+                        cursor: "pointer",
+                        gap: 0.5,
+                        transition: "border-color 0.2s",
+                        "&:hover": { borderColor: "#8CE600" },
+                      }}
+                    >
+                      {uploadingVideo ? (
+                        <>
+                          <CircularProgress size={22} sx={{ color: "#8CE600" }} />
+                          <Typography variant="caption" color="#8CE600">Uploading…</Typography>
+                        </>
+                      ) : (
+                        <>
+                          <Film size={22} color="#666" />
+                          <Typography variant="caption" color="#666">Upload Video</Typography>
+                        </>
+                      )}
+                    </Box>
+                  </label>
+                  <input
+                    accept="video/mp4"
+                    style={{ display: "none" }}
+                    id="video-upload"
+                    type="file"
+                    onChange={handleVideoUpload}
+                  />
+
+                  {/* Video preview cards — 16:9 with play icon overlay */}
+                  <Box sx={{ mt: 2, display: "flex", flexWrap: "wrap", gap: 1.5 }}>
+                    {formData.video.map((video, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          width: 140,
+                          aspectRatio: "16/9",
+                          borderRadius: "10px",
+                          overflow: "hidden",
+                          position: "relative",
+                          border: "1px solid #333",
+                          backgroundColor: "#111",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {/* Native video element — thumbnail shown before play */}
+                        <video
+                          src={video.url}
+                          preload="metadata"
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            display: "block",
+                          }}
+                        />
+                        {/* Play icon overlay */}
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            inset: 0,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            background: "rgba(0,0,0,0.35)",
+                            pointerEvents: "none",
+                          }}
+                        >
+                          <PlayCircle size={28} color="rgba(255,255,255,0.85)" />
+                        </Box>
+                        {/* Filename badge */}
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            position: "absolute",
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            background: "rgba(0,0,0,0.6)",
+                            color: "#ddd",
+                            px: 0.5,
+                            py: 0.25,
+                            fontSize: "9px",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {video.name}
+                        </Typography>
+                        {/* Remove button */}
+                        <IconButton
+                          onClick={() => handleRemoveVideo(index)}
+                          sx={{
+                            position: "absolute",
+                            top: 4,
+                            right: 4,
+                            backgroundColor: "rgba(244,67,54,0.9)",
+                            color: "#fff",
+                            width: 20,
+                            height: 20,
+                            "&:hover": { backgroundColor: "#d32f2f" },
+                          }}
+                        >
+                          <X size={11} />
+                        </IconButton>
+                      </Box>
+                    ))}
+                  </Box>
+
+                  {errors.video && (
+                    <Typography variant="caption" color="error" sx={{ mt: 0.5, display: "block" }}>
+                      {errors.video}
+                    </Typography>
+                  )}
                 </Box>
               </Box>
             </DialogContent>

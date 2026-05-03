@@ -56,7 +56,9 @@ export default function WorkCard({ workData, loading }: WorkCardProps) {
             }
 
             const transformedProjects: TransformedProject[] =
-              category.works.map((item) => {
+              category.works
+                .filter((item: any) => !item.status || item.status.toLowerCase() === "active")
+                .map((item) => {
                 // Handle images array - ensure it's always an array
                 let imagesArray: string[] = [];
                 if (

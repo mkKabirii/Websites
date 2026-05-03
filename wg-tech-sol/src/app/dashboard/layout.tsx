@@ -19,12 +19,16 @@ interface DashboardLayoutProps {
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  const getProfileSrc = (path?: string) =>
-    path
-      ? path.startsWith("http")
-        ? path
-        : `http://localhost:8003${path}`
-      : "";
+  const getProfileSrc = (path?: string) => {
+    if (!path) return "";
+    // Blob/data URLs are already absolute — return as-is
+    if (path.startsWith("blob:") || path.startsWith("data:")) return path;
+    let cleanPath = path.replace(/\\/g, "/");
+    if (!cleanPath.startsWith("/") && !cleanPath.startsWith("http")) cleanPath = "/" + cleanPath;
+    if (cleanPath.startsWith("http")) return cleanPath;
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8003";
+    return `${API_URL}${cleanPath}`;
+  };
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const { user, clearAuth, setAuth, isHydrated } = useAuthStore();
@@ -48,37 +52,51 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       return;
     }
 
-    setIsLoading(false);
-
-    if (!user) {
-      (async () => {
-        try {
-          const res = await getProfile();
-          if (res.status === 200 || res.status === 201) {
-            const data = res.data?.data || res.data;
-            const normalizedUser = {
-              _id: data._id,
-              fullname: data.fullname || data.username || data.name,
-              email: data.email,
-              profilePicture: data.profilePicture || data.profileImage,
-              nationalId: data.nationalId || null,
-              designation: data.role || data.designation,
-              userType: data.role || data.userType || "user",
-            };
-            if (normalizedUser.userType !== "client") {
-              localStorage.removeItem("token");
-              clearAuth();
-              router.push("/wgAuthForm");
-              return;
-            }
-            setAuth({ token, user: normalizedUser });
-          }
-        } catch {
-          // If profile load fails, keep existing auth state.
-        }
-      })();
+    if (user) {
+      // User is already loaded and is a client — safe to show
+      setIsLoading(false);
+      return;
     }
-  }, [isHydrated, user, router, setAuth]);
+
+    // user is null but token exists — fetch profile to confirm identity
+    (async () => {
+      try {
+        const res = await getProfile();
+        if (res.status === 200 || res.status === 201) {
+          const data = res.data?.data || res.data;
+          const normalizedUser = {
+            _id: data._id,
+            fullname: data.fullname || data.username || data.name,
+            email: data.email,
+            profilePicture: (data.profilePicture || data.profileImage)
+              ? `${data.profilePicture || data.profileImage}?t=${new Date(data.updatedAt || Date.now()).getTime()}`
+              : null,
+            nationalId: data.nationalId || null,
+            designation: data.role || data.designation,
+            userType: data.role || data.userType || "user",
+          };
+          if (normalizedUser.userType !== "client") {
+            localStorage.removeItem("token");
+            clearAuth();
+            router.push("/wgAuthForm");
+            return;
+          }
+          const freshToken = localStorage.getItem("token");
+          if (!freshToken) { router.push("/wgAuthForm"); return; }
+          setAuth({ token: freshToken, user: normalizedUser });
+          setIsLoading(false);
+        } else {
+          // Profile fetch failed — redirect to login
+          localStorage.removeItem("token");
+          clearAuth();
+          router.push("/wgAuthForm");
+        }
+      } catch {
+        // Network error — redirect to login for safety
+        router.push("/wgAuthForm");
+      }
+    })();
+  }, [isHydrated, user, router, setAuth, clearAuth]);
 
   const displayName = user?.fullname || user?.username || user?.email || "User";
   const displayInitial = displayName?.charAt(0)?.toUpperCase() || "U";
@@ -134,9 +152,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     <div className="flex bg-black text-white min-h-screen">
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 h-screen overflow-y-auto bg-gradient-to-b from-[#1a1a1a] to-black border-r border-[#333] z-40 transition-transform duration-300 ${
-          isSidebarOpen ? "translate-x-0 w-64" : "-translate-x-full"
-        } lg:relative lg:translate-x-0 lg:w-64`}
+        className={`fixed left-0 top-0 h-screen overflow-y-auto bg-gradient-to-b from-[#1a1a1a] to-black border-r border-[#333] z-40 transition-transform duration-300 ${isSidebarOpen ? "translate-x-0 w-64" : "-translate-x-full"
+          } lg:relative lg:translate-x-0 lg:w-64`}
       >
         {/* Sidebar Header */}
         <div className="p-6 border-b border-[#333]">
@@ -187,11 +204,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   setIsSidebarOpen(false);
                 }
               }}
-              className={`wg-nav-glow flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                item.active
+              className={`wg-nav-glow flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${item.active
                   ? "bg-[#9EFF00] text-black font-semibold"
                   : "text-gray-300 hover:text-[#9EFF00]"
-              }`}
+                }`}
             >
               <span className="text-xl text-gray-400">{item.icon}</span>
               <span>{item.label}</span>

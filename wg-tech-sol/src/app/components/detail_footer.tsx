@@ -42,7 +42,7 @@ export default function DetailFooter({ data }: { data?: SectionData }) {
                 alt="Logo"
                 width={900}
                 height={900}
-                className="rounded-xl w-[600px] h-auto sm:w-[600px] md:w-[760px] object-contain"
+                className="rounded-xl w-full max-w-[320px] sm:max-w-[480px] md:max-w-[760px] h-auto object-contain"
                 priority
               />
             </div>

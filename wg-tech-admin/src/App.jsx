@@ -13,6 +13,7 @@ import AccessDenied from "./app/auth/accessDenied";
 import AccessGranted from "./app/auth/accessGranted";
 import ViewDetails from "./app/projectsProgressManagement/viewDetails";
 import ViewProposals from "./app/proposals/viewProposals";
+import CustomCursor from "./components/CustomCursor";
 
 function App() {
   const { user } = useUserStore();
@@ -27,6 +28,7 @@ function App() {
       }}
     >
       <BrowserRouter>
+        <CustomCursor />
         <Routes>
           <Route element={<AuthProtectedLayout />}>
             {AUTH_ROUTES?.map((route) => (

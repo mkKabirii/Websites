@@ -25,8 +25,10 @@ import {
   FileText,
   CheckCircle,
   Image as ImageIcon,
+  Trash,
 } from "lucide-react";
-import { getAppliedFormById } from "../../api/module/application";
+import { getAppliedFormById, deleteAppliedForm } from "../../api/module/application";
+import { deleteConfirm } from "../../components/customSweetAlert";
 import { useSnackbar } from "notistack";
 
 const ViewFullForms = ({ formData, onBack }) => {
@@ -162,6 +164,41 @@ const ViewFullForms = ({ formData, onBack }) => {
     }
   };
 
+  const handleDelete = async () => {
+    const applicationId = formData?.id || formData?._id;
+    if (!applicationId) return;
+
+    try {
+      const result = await deleteConfirm({
+        title: "Delete Application?",
+        text: "Are you sure you want to delete this application permanently?",
+        confirmButtonText: "Delete",
+      });
+
+      if (!result.isConfirmed) return;
+
+      setLoading(true);
+
+      const response = await deleteAppliedForm(applicationId);
+
+      if (response.status === 200 || response.status === 201) {
+        enqueueSnackbar("Application deleted successfully", {
+          variant: "success",
+        });
+        onBack(true);
+      } else {
+        enqueueSnackbar(response.data?.message || "Failed to delete application", {
+          variant: "error",
+        });
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      enqueueSnackbar("Something went wrong", { variant: "error" });
+      setLoading(false);
+    }
+  };
+
   if (!applicationData && !formData) return null;
 
   const data = applicationData || formData;
@@ -264,18 +301,35 @@ const ViewFullForms = ({ formData, onBack }) => {
             Application Details
           </Typography>
         </Box>
-        <Chip
-          label={data.status || "Pending"}
-          sx={{
-            backgroundColor: getStatusColor(data.status),
-            color: "#FFFFFF",
-            fontWeight: 600,
-            fontSize: "14px",
-            px: 2,
-            py: 1,
-          }}
-          icon={<CheckCircle size={16} />}
-        />
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Chip
+            label={data.status || "Pending"}
+            sx={{
+              backgroundColor: getStatusColor(data.status),
+              color: "#FFFFFF",
+              fontWeight: 600,
+              fontSize: "14px",
+              px: 2,
+              py: 1,
+            }}
+            icon={<CheckCircle size={16} />}
+          />
+          <Button
+            variant="contained"
+            color="error"
+            startIcon={<Trash size={18} />}
+            onClick={handleDelete}
+            sx={{
+              backgroundColor: "#FF5050",
+              fontWeight: 600,
+              "&:hover": {
+                backgroundColor: "#D32F2F",
+              },
+            }}
+          >
+            Delete
+          </Button>
+        </Box>
       </Box>
 
       <Box>

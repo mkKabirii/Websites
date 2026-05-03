@@ -72,7 +72,9 @@ function Page() {
           workCategories = [];
         }
 
-        setWorkData(workCategories);
+        const activeCategories = workCategories.filter((c: any) => !c.status || c.status.toLowerCase() === "active");
+
+        setWorkData(activeCategories);
       }
     } catch (error) {
       console.error("Error fetching work categories:", error);

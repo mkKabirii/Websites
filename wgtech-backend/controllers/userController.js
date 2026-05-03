@@ -181,6 +181,8 @@ const loginUser = catchAsync(async (req, res, next) => {
   if (client) {
     // Client found - authenticate as client
     const isPasswordValid = await bcrypt.compare(password, client.password);
+    console.log("Client login attempt:", email, "Password valid:", isPasswordValid);
+    console.log("Input password:", password, "Stored hash:", client.password);
     if (!isPasswordValid) {
       return next(new AppError("Invalid password", 401));
     }
@@ -227,6 +229,8 @@ const loginUser = catchAsync(async (req, res, next) => {
   }
 
   const isPasswordValid = await comparePassword(password, user.password);
+  console.log("User login attempt:", email, "Password valid:", isPasswordValid);
+  console.log("Input password:", password, "Stored hash:", user.password);
   if (!isPasswordValid) {
     return next(new AppError("Invalid password", 400));
   }
@@ -432,17 +436,21 @@ const forgotPassword = catchAsync(async (req, res, next) => {
   const { email } = req.body;
   if (!email) return next(new AppError("Email is required", 400));
 
-  const user = await User.findOne({ email });
-  if (!user) return next(new AppError("No account found with this email", 404));
+  // Check User model first, then Client model
+  let account = await User.findOne({ email });
+  if (!account) {
+    account = await Client.findOne({ email });
+  }
+  if (!account) return next(new AppError("No account found with this email", 404));
 
   // Generate 6-digit OTP
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-  // Save OTP in user
-  user.resetOtp = otp;
-  user.resetOtpExpiry = otpExpiry;
-  await user.save();
+  // Save OTP
+  account.resetOtp = otp;
+  account.resetOtpExpiry = otpExpiry;
+  await account.save({ validateBeforeSave: false });
 
   // Send OTP email
   try {
@@ -453,7 +461,7 @@ const forgotPassword = catchAsync(async (req, res, next) => {
       message: `
         <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:30px;background:#111;color:#fff;border-radius:12px;">
           <h2 style="color:#9EFF00;">Password Reset Request</h2>
-          <p>Hi <strong>${user.fullname || user.username}</strong>,</p>
+          <p>Hi <strong>${account.fullname || account.name || account.username}</strong>,</p>
           <p>Your OTP for password reset is:</p>
           <div style="background:#1a1a1a;border:2px solid #9EFF00;border-radius:8px;padding:20px;text-align:center;margin:20px 0;">
             <h1 style="color:#9EFF00;font-size:48px;letter-spacing:8px;margin:0;">${otp}</h1>
@@ -481,23 +489,43 @@ const resetPassword = catchAsync(async (req, res, next) => {
     return next(new AppError("Email, OTP and new password are required", 400));
   }
 
-  const user = await User.findOne({ email });
-  if (!user) return next(new AppError("User not found", 404));
+  // Fetch both models to check for shared emails (like mk.balti980@gmail.com)
+  const accountUser = await User.findOne({ email });
+  const accountClient = await Client.findOne({ email });
 
-  // Check OTP
-  if (user.resetOtp !== otp) {
-    return next(new AppError("Invalid OTP", 400));
+  let validAccount = null;
+
+  // Check which account holds the valid OTP
+  if (accountUser && accountUser.resetOtp === otp) {
+    validAccount = accountUser;
+  } else if (accountClient && accountClient.resetOtp === otp) {
+    validAccount = accountClient;
+  }
+
+  if (!validAccount) {
+    return next(new AppError("Invalid OTP or Account not found", 400));
   }
 
   // Check expiry
-  if (!user.resetOtpExpiry || user.resetOtpExpiry < new Date()) {
+  if (!validAccount.resetOtpExpiry || validAccount.resetOtpExpiry < new Date()) {
     return next(new AppError("OTP has expired. Please request a new one", 400));
   }
 
-  user.password = newPassword;
-  user.resetOtp = undefined;
-  user.resetOtpExpiry = undefined;
-  await user.save();
+  // âœ… SYNC FIX: Reset password for ALL accounts sharing this email
+  // The schema's pre('save') hook will automatically hash the passwords.
+  if (accountUser) {
+    accountUser.password = newPassword;
+    accountUser.resetOtp = undefined;
+    accountUser.resetOtpExpiry = undefined;
+    await accountUser.save({ validateBeforeSave: false });
+  }
+
+  if (accountClient) {
+    accountClient.password = newPassword;
+    accountClient.resetOtp = undefined;
+    accountClient.resetOtpExpiry = undefined;
+    await accountClient.save({ validateBeforeSave: false });
+  }
 
   successHandler(res, null, "Password reset successfully! Please login.");
 });

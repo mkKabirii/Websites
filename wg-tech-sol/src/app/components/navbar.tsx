@@ -167,7 +167,7 @@ export default function Navbar() {
         ]);
 
         const services = Array.isArray(servicesRes?.data?.data)
-          ? (servicesRes.data.data as OurServiceType[])
+          ? (servicesRes.data.data as OurServiceType[]).filter((s: any) => !s.status || s.status.toLowerCase() === "active")
           : [];
 
         const serviceItems = services
@@ -175,7 +175,7 @@ export default function Navbar() {
             const serviceLabel = service.title?.trim() || "";
             const serviceSlug = slugify(serviceLabel);
             const subs = Array.isArray(service.subServices)
-              ? service.subServices
+              ? service.subServices.filter((sub: any) => !sub.status || sub.status.toLowerCase() === "active")
               : [];
 
             const serviceLink =
@@ -205,20 +205,21 @@ export default function Navbar() {
         );
 
         const workCategories: WorkCategory[] =
-          (workRes?.data?.data?.works && Array.isArray(workRes.data.data.works)
+          ((workRes?.data?.data?.works && Array.isArray(workRes.data.data.works)
             ? workRes.data.data.works
             : null) ||
           (workRes?.data?.works && Array.isArray(workRes.data.works)
             ? workRes.data.works
             : null) ||
           (Array.isArray(workRes?.data?.data) ? workRes.data.data : null) ||
-          (Array.isArray(workRes?.data) ? workRes.data : []);
+          (Array.isArray(workRes?.data) ? workRes.data : []))
+          .filter((c: any) => !c.status || c.status.toLowerCase() === "active");
 
         const workItems = workCategories
           .flatMap((category) => {
             const categoryLabel = category.workCategory?.trim() || "";
             const categorySlug = slugify(categoryLabel);
-            const works = Array.isArray(category.works) ? category.works : [];
+            const works = Array.isArray(category.works) ? category.works.filter((w: any) => !w.status || w.status.toLowerCase() === "active") : [];
 
             const categoryLink =
               categoryLabel && categorySlug
@@ -274,24 +275,21 @@ export default function Navbar() {
     });
   }, [serviceDropdown, workDropdown]);
 
-  // const getProfileSrc = (path?: string) =>
-  //   path
-  //     ? path.startsWith("http")
-  //       ? path
-  //       : `http://localhost:8003${path}`
-  //     : "";
-
-  //new profile src function to handle both absolute and relative URLs
   const getProfileSrc = (path?: string) => {
-  if (!path) return "";
-  if (path.startsWith("http")) return path;
-  return `http://localhost:8003${path}`;
-};
+    if (!path) return "";
+    // Blob/data URLs are already absolute — return as-is
+    if (path.startsWith("blob:") || path.startsWith("data:")) return path;
+    let cleanPath = path.replace(/\\/g, "/");
+    if (!cleanPath.startsWith("/") && !cleanPath.startsWith("http")) cleanPath = "/" + cleanPath;
+    if (cleanPath.startsWith("http")) return cleanPath;
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8003";
+    return `${API_URL}${cleanPath}`;
+  };
 
-const getUserImage = () => {
-  return (user as any)?.profilePicture || 
-         (user as any)?.profileImage || "";
-};
+  const getUserImage = () => {
+    return (user as any)?.profilePicture || 
+           (user as any)?.profileImage || "";
+  };
 
   return (
     <>
@@ -300,7 +298,7 @@ const getUserImage = () => {
           scrolled ? "bg-black/95 backdrop-blur-md shadow-lg" : "bg-black"
         }`}
       >
-        <nav className="mx-auto max-w-7xl h-full px-4 flex items-center justify-between">
+        <nav className="mx-auto max-w-7xl w-full h-full px-4 flex items-center justify-between">
           {/* Logo + Dashboard (logged-in) */}
           <div className="flex items-center gap-3 z-10">
             <Link
@@ -414,7 +412,7 @@ const getUserImage = () => {
           </div>
 
           {/* Desktop Privacy Policy and Contact Button */}
-          <div className="hidden lg:flex items-center gap-3 z-10">
+          <div className="hidden lg:flex items-center gap-3 z-10 ml-auto">
             {/* <Link
               href="/wgAuthForm"
               className={`px-3 xl:px-4 py-2 xl:py-3 font-semibold rounded-lg transition-all duration-200 text-sm xl:text-base ${
@@ -435,10 +433,10 @@ const getUserImage = () => {
             ) : ( */}
             <Link
               href="/contact"
-              className={`px-4 xl:px-5 py-2 xl:py-3 font-semibold rounded-lg transition-all duration-200 text-sm xl:text-base ${
+              className={`px-5 py-2 xl:px-6 xl:py-2.5 font-bold rounded-xl transition-all duration-300 text-sm tracking-wide shadow-sm flex items-center justify-center ${
                 pathname === "/contact"
-                  ? "bg-[#8CE600] text-black ring-2 ring-white"
-                  : "bg-[#8CE600] text-black hover:bg-[#9eff00] hover:scale-105"
+                  ? "bg-[#9EFF00] text-black shadow-[0_0_15px_rgba(158,255,0,0.4)] scale-105"
+                  : "bg-[#9EFF00] text-black hover:bg-[#a8ff1a] hover:shadow-[0_0_20px_rgba(158,255,0,0.4)] hover:-translate-y-0.5 active:translate-y-0"
               }`}
             >
               Contact Us
@@ -481,7 +479,7 @@ const getUserImage = () => {
 
                 {/* Dropdown Menu */}
                 {profileDropdownOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-56 bg-black/95 backdrop-blur-md border border-white/20 rounded-xl shadow-xl py-2 z-50">
+                  <div className="absolute right-0 top-full mt-3 w-60 bg-[#0a0a0a]/95 backdrop-blur-xl border border-white/[0.08] rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.8)] py-2 z-50 overflow-hidden">
                     {/* User Info */}
                     <div className="px-4 py-3 border-b border-white/10">
                       <div className="flex items-center gap-3">
@@ -521,21 +519,24 @@ const getUserImage = () => {
                       </div>
                     </div>
                     {/* Menu Items */}
-                    <Link
-                      href="/dashboard"
-                      onClick={() => setProfileDropdownOpen(false)}
-                      className="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/10 transition-all text-sm"
-                    >
-                      <ChartBarSquareIcon className="h-5 w-5 text-[#8CE600]" />{" "}
-                      Dashboard
-                    </Link>
-                    <Link
-                      href="/dashboard/profile"
-                      onClick={() => setProfileDropdownOpen(false)}
-                      className="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/10 transition-all text-sm"
-                    >
-                      <UserIcon className="h-5 w-5 text-[#6366F1]" /> My Account
-                    </Link>
+                    <div className="py-1">
+                      <Link
+                        href="/dashboard"
+                        onClick={() => setProfileDropdownOpen(false)}
+                        className="flex items-center gap-3 px-5 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 transition-all text-sm font-medium"
+                      >
+                        <ChartBarSquareIcon className="h-5 w-5 text-[#9EFF00]" />
+                        Dashboard
+                      </Link>
+                      <Link
+                        href="/dashboard/profile"
+                        onClick={() => setProfileDropdownOpen(false)}
+                        className="flex items-center gap-3 px-5 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 transition-all text-sm font-medium"
+                      >
+                        <UserIcon className="h-5 w-5 text-[#9EFF00]" />
+                        My Account
+                      </Link>
+                    </div>
                   </div>
                 )}
               </div>
@@ -543,10 +544,10 @@ const getUserImage = () => {
               <Link
                 href="/wgAuthForm"
                 aria-label="Login"
-                className={`h-[50px] w-[50px] rounded-full grid place-items-center font-bold transition-all duration-200 ${
+                className={`h-[46px] w-[46px] rounded-full flex items-center justify-center transition-all duration-300 shadow-sm ${
                   pathname === "/wgAuthForm"
-                    ? "bg-[#8CE600] text-black ring-2 ring-white"
-                    : "bg-[#8CE600] text-black hover:bg-[#9eff00] hover:scale-105"
+                    ? "bg-[#9EFF00] text-black shadow-[0_0_15px_rgba(158,255,0,0.4)] scale-105"
+                    : "bg-[#9EFF00] text-black hover:bg-[#a8ff1a] hover:shadow-[0_0_20px_rgba(158,255,0,0.4)] hover:scale-105"
                 }`}
               >
                 <svg
@@ -584,25 +585,20 @@ const getUserImage = () => {
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        {/* Spacer to account for navbar height */}
-        <div className="h-[62px] sm:h-[76px] md:h-[93px]"></div>
-
-        <div className="flex flex-col h-[calc(100%-62px)] sm:h-[calc(100%-76px)] md:h-[calc(100%-93px)]">
-          <div className="flex-1 overflow-y-auto">
-            <div className="flex w-full flex-col justify-center items-stretch px-4 sm:px-6 py-6 space-y-2">
+        <div className="flex flex-col h-[100dvh] pt-16 sm:pt-20 md:pt-24">
+          <div className="flex-1 overflow-y-auto pb-6">
+            <div className="flex w-full flex-col justify-center items-stretch px-4 sm:px-6 pt-4 pb-6 space-y-2">
               {navItems.map((item) => (
                 <div key={item.href} className="w-full">
                   {item.dropdown ? (
                     <>
                       <button
                         onClick={() => toggleMobileDropdown(item.label)}
-                        className={`w-full text-center py-3 sm:py-4 font-semibold rounded-lg transition-all duration-200 text-base sm:text-lg flex items-center justify-center gap-2 ${
+                        className={`w-full text-center py-3.5 sm:py-4 font-semibold rounded-xl transition-all duration-200 text-base sm:text-lg flex items-center justify-center gap-2 ${
                           pathname === item.href ||
-                          item.dropdown.some(
-                            (dropItem) => pathname === dropItem.href,
-                          )
-                            ? "bg-gray-800 text-[#9EFF00]"
-                            : "text-white hover:bg-gray-800 active:bg-gray-700"
+                          item.dropdown.some((dropItem) => pathname === dropItem.href)
+                            ? "bg-[#141414] text-[#9EFF00] shadow-[inset_0_0_0_1px_rgba(158,255,0,0.2)]"
+                            : "text-white hover:bg-[#1a1a1a] active:bg-[#141414]"
                         }`}
                       >
                         {item.label}
@@ -640,10 +636,10 @@ const getUserImage = () => {
                                   setOpen(false);
                                   setOpenMobileDropdown(null);
                                 }}
-                                className={`w-full flex items-center justify-center text-left py-2 sm:py-3 font-medium rounded-lg transition-all duration-200 text-sm sm:text-base ${
+                                className={`w-full flex items-center justify-center text-left py-2.5 sm:py-3 font-medium rounded-lg transition-all duration-200 text-sm sm:text-base ${
                                   pathname === dropItem.href
                                     ? "text-[#9EFF00]"
-                                    : "text-gray-300 hover:bg-gray-700 active:bg-gray-600"
+                                    : "text-gray-400 hover:text-white hover:bg-white/5 active:bg-white/10"
                                 }`}
                               >
                                 {dropItem.label}
@@ -654,18 +650,16 @@ const getUserImage = () => {
                       )}
                     </>
                   ) : (
-                    // href={item.href}
-                    <Link href={item.href}>
-                      <div
+                      <Link 
+                        href={item.href}
                         onClick={() => setOpen(false)}
-                        className={`w-full  flex items-center justify-center text-center py-3 sm:py-4 font-semibold rounded-lg transition-all duration-200 text-base sm:text-lg ${
+                        className={`block w-full flex items-center justify-center text-center py-3.5 sm:py-4 font-semibold rounded-xl transition-all duration-200 text-base sm:text-lg ${
                           pathname === item.href
-                            ? "bg-gray-800 text-[#9EFF00]"
-                            : "text-white hover:bg-gray-800 active:bg-gray-700"
+                            ? "bg-[#141414] text-[#9EFF00] shadow-[inset_0_0_0_1px_rgba(158,255,0,0.2)]"
+                            : "text-white hover:bg-[#1a1a1a] active:bg-[#141414]"
                         }`}
                       >
-                        {item.label}
-                      </div>
+                      {item.label}
                     </Link>
                   )}
                 </div>
@@ -699,10 +693,10 @@ const getUserImage = () => {
             <Link
               href="/contact"
               onClick={() => setOpen(false)}
-              className={`block w-full text-center py-3 sm:py-4 font-semibold rounded-lg transition-all duration-200 text-base sm:text-lg ${
+              className={`block w-full flex items-center justify-center text-center py-3.5 sm:py-4 font-bold rounded-xl transition-all duration-300 text-base sm:text-lg tracking-wide ${
                 pathname === "/contact"
-                  ? "bg-[#9EFF00] text-black ring-2 ring-white"
-                  : "bg-[#9EFF00] text-black hover:bg-[#8CE600] active:bg-[#7CD600]"
+                  ? "bg-[#9EFF00] text-black shadow-[0_0_15px_rgba(158,255,0,0.3)]"
+                  : "bg-[#9EFF00] text-black hover:bg-[#a8ff1a] hover:shadow-[0_0_20px_rgba(158,255,0,0.4)]"
               }`}
             >
               Contact Us

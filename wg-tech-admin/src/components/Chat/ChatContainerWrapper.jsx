@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import ChatContainer from "./ChatContainer";
 import useUserStore from "../../zustand/useUserStore";
 
-const ChatContainerWrapper = ({ source = "accepted" }) => {
+const ChatContainerWrapper = ({ source = "accepted", chatFilter = "all" }) => {
   const { user } = useUserStore();
   const [userId, setUserId] = useState(null);
   const [adminId, setAdminId] = useState(null);
@@ -33,6 +33,7 @@ const ChatContainerWrapper = ({ source = "accepted" }) => {
           : user?.designation?.roleName || "admin"
       }
       source={source}
+      chatFilter={chatFilter}
     />
   );
 };

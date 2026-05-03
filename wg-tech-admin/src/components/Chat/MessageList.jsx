@@ -152,7 +152,8 @@ const MessageList = ({ messages, userId }) => {
           lastDate = messageDate;
 
           const sender = message.senderId?._id || message.senderId;
-          const isOwnMessage = sender?.toString() === userId?.toString();
+          const senderRole = (message.senderId?.role || message.senderId?.userRole || "").toLowerCase();
+          const isOwnMessage = senderRole === "admin" || senderRole === "worker" || sender?.toString() === userId?.toString();
 
           const safeKey = message._id ? `${message._id}-${index}` : `msg-${index}`;
           const quotationId = message?.quotationData?._id ? String(message.quotationData._id) : null;
@@ -200,22 +201,27 @@ const MessageList = ({ messages, userId }) => {
                 <div
                   className={`message ${isOwnMessage ? "own-message" : "other-message"}`}
                 >
-                  {!isOwnMessage && (
-                    <div className="message-avatar">
-                      {message.senderId?.profileImage ? (
-                        <img src={message.senderId.profileImage} alt="Sender" />
-                      ) : (
-                        <div className="avatar-placeholder">
-                          {message.senderId?.username?.charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="message-content">
+                  <div className="message-content" style={{ maxWidth: "80%" }}>
                     {message.messageType === "text" && (
                       <div className={`message-bubble ${isOwnMessage ? "own" : "other"}`}>
+                        <span className="message-sender-name">
+                          {isOwnMessage 
+                            ? (message.senderId?.username || message.senderId?.name || "You")
+                            : (message.senderId?.username || message.senderId?.name || message.senderId?.email || "User")}
+                        </span>
                         <p>{message.content}</p>
+                        <span className="message-time-inner" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                          {formatTime(message.createdAt)}
+                          {isOwnMessage && (
+                            <span className="read-status" style={{ display: "flex" }}>
+                              {message.readBy?.length > 1 ? (
+                                <CheckCheck size={14} />
+                              ) : (
+                                <Check size={14} />
+                              )}
+                            </span>
+                          )}
+                        </span>
                         {message.editedAt && (
                           <span className="edited-indicator">(edited)</span>
                         )}
@@ -417,20 +423,22 @@ const MessageList = ({ messages, userId }) => {
                       </div>
                     )}
 
-                    <div className="message-footer">
-                      <span className="message-time">
-                        {formatTime(message.createdAt)}
-                      </span>
-                      {isOwnMessage && (
-                        <span className="read-status">
-                          {message.readBy?.length > 1 ? (
-                            <CheckCheck size={16} />
-                          ) : (
-                            <Check size={16} />
-                          )}
+                    {message.messageType !== "text" && (
+                      <div className="message-footer">
+                        <span className="message-time">
+                          {formatTime(message.createdAt)}
                         </span>
-                      )}
-                    </div>
+                        {isOwnMessage && (
+                          <span className="read-status">
+                            {message.readBy?.length > 1 ? (
+                              <CheckCheck size={16} />
+                            ) : (
+                              <Check size={16} />
+                            )}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

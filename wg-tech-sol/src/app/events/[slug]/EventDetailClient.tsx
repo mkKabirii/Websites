@@ -51,6 +51,7 @@ export default function EventDetailClient() {
     txt.innerHTML = html;
     return txt.value;
   };
+
   const formatDate = (dateString?: string) => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -90,6 +91,8 @@ export default function EventDetailClient() {
       ? event.video.map((vid) => vid.url)
       : [];
   const firstImage = eventImages.length > 0 ? eventImages[0] : "";
+  // Show the media panel whenever there are images OR videos
+  const hasMedia = eventImages.length > 0 || eventVideos.length > 0;
 
   return (
     <div className="max-w-6xl mx-auto mt-20 py-10 px-4 space-y-8">
@@ -111,11 +114,17 @@ export default function EventDetailClient() {
           </p>
         </div>
 
-        {firstImage && (
+        {/* Media panel — visible whenever images OR videos are present */}
+        {hasMedia && (
           <div
-            className="w-full sm:h-[350px] md:h-[500px] lg:h-[550px] object-contain rounded gap-4 rounded mb-6 bg-cover bg-center flex flex-col sm:flex-row sm:flex-wrap justify-center sm:justify-between p-2 sm:p-6 md:p-10 items-center"
-            style={{ backgroundImage: `url(${firstImage})` }}
+            className="w-full sm:h-[350px] md:h-[500px] lg:h-[550px] rounded gap-4 mb-6 bg-cover bg-center flex flex-col sm:flex-row sm:flex-wrap justify-center sm:justify-between p-2 sm:p-6 md:p-10 items-center"
+            style={
+              firstImage
+                ? { backgroundImage: `url(${firstImage})` }
+                : { backgroundColor: "#0d0d0d" }
+            }
           >
+            {/* Images card */}
             {eventImages.length > 0 && (
               <div
                 className="bg-black/80 p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer relative w-full sm:w-64 rounded-lg"
@@ -146,6 +155,7 @@ export default function EventDetailClient() {
               </div>
             )}
 
+            {/* Videos card — renders regardless of whether images exist */}
             {eventVideos.length > 0 && (
               <div
                 className="bg-black/80 p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer relative w-full sm:w-64 rounded-lg"

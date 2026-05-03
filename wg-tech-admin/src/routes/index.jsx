@@ -28,6 +28,9 @@ import {
 // ======================= AUTH =======================
 
 import Login from "../app/auth/login";
+import ForgotPassword from "../app/auth/forgotPassword";
+import OtpVerification from "../app/auth/otpVerification";
+import SetNewPassword from "../app/auth/setNewPassword";
 import ServicesManagement from "../app/services";
 import AdvertisementManagement from "../app/advertisement";
 import ReviewsManagement from "../app/reviews";
@@ -84,7 +87,7 @@ const AUTH_ROUTES = [
   {
     id: 3,
     name: "Forgot Password",
-    component: null,
+    component: <ForgotPassword />,
     exact: "exact",
     path: "forgot-password",
     activeIcon: <RefreshCw size={20} color="#fff" />,
@@ -93,7 +96,7 @@ const AUTH_ROUTES = [
   {
     id: 4,
     name: "OTP Verification",
-    component: null,
+    component: <OtpVerification />,
     exact: "exact",
     path: "otp-verification",
     activeIcon: <Lock size={20} color="#fff" />,
@@ -111,7 +114,7 @@ const AUTH_ROUTES = [
   {
     id: 6,
     name: "Reset Password",
-    component: null,
+    component: <SetNewPassword />,
     exact: "exact",
     path: "set-new-password",
     activeIcon: <Key size={20} color="#fff" />,

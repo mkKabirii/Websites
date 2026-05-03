@@ -255,8 +255,8 @@ const AddEditUserRoleDialog = ({
                           ? "Updating..."
                           : "Creating..."
                         : isEdit
-                        ? "Update Role"
-                        : "Add Role"
+                          ? "Update Role"
+                          : "Add Role"
                     }
                     handlePressBtn={handleSave}
                     disabled={isSubmitting}

@@ -20,10 +20,11 @@ const TABLE_HEADERS = [
   { id: "id", title: "ID", align: "center" },
   { id: "workCategory", title: "Work Category", align: "center" },
   { id: "view", title: "View Works", align: "center" },
+  { id: "status", title: "Status", align: "center" },
   { id: "actions", title: "Actions", align: "center" },
 ];
 
-const DISPLAY_ROWS = ["id", "workCategory", "view", "actions"];
+const DISPLAY_ROWS = ["id", "workCategory", "view", "status", "actions"];
 
 const mapWorkRecord = (work = {}) => {
   const id = String(work._id || "");
@@ -32,6 +33,7 @@ const mapWorkRecord = (work = {}) => {
     id,
     workCategory: work.workCategory || "",
     categoryDescription: work.categoryDescription || "",
+    status: work.status || "active",
     works: Array.isArray(work.works) ? work.works : [],
   };
 };

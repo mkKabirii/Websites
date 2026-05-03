@@ -7,7 +7,7 @@ import AutoReplySettings from "./AutoReplySettings";
 import NotificationBadge from "./NotificationBadge";
 import "./ChatContainer.css";
 
-const ChatContainer = ({ userId, adminId, userRole, source = "accepted" }) => {
+const ChatContainer = ({ userId, adminId, userRole, source = "accepted", chatFilter = "all" }) => {
   const [chats, setChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -238,37 +238,81 @@ const ChatContainer = ({ userId, adminId, userRole, source = "accepted" }) => {
 
     const fetchChats = async () => {
       try {
-        // For workers: use user endpoint with filtering
-        // For admin: use admin endpoint with all chats
-        let url;
+        const apiBase = import.meta.env.VITE_API_URL || "http://localhost:8003";
+        const headers = { Authorization: `Bearer ${localStorage.getItem("token")}` };
+
+        const processEntries = (entries, srcLabel) => {
+          const seen = new Set();
+          const deduplicated = [];
+          for (const entry of entries) {
+            const key =
+              entry.chat?._id ||
+              `placeholder_${entry.clientUserId || entry.clientId || entry.proposalId || entry.proposalEmail || "unknown"}`;
+            if (!seen.has(key)) { seen.add(key); deduplicated.push(entry); }
+          }
+
+          const filtered =
+            srcLabel === "clients"
+              ? deduplicated.filter((entry) => {
+                const role = (entry.clientRole || "").toLowerCase();
+                if (role && role !== "client") return false;
+                if (!entry.clientId && !entry.clientUserId) return false;
+                const uname = (entry.clientUsername || entry.clientName || "").toLowerCase();
+                if (uname.startsWith("guest")) return false;
+                return true;
+              })
+              : deduplicated;
+
+          return filtered.map((entry) => {
+            const baseMeta = {
+              proposalId: entry.proposalId,
+              proposalTitle: entry.proposalTitle,
+              proposalEmail: entry.proposalEmail,
+              clientId: entry.clientId,
+              clientUserId: entry.clientUserId,
+              clientName: entry.clientName,
+              clientUsername: entry.clientUsername,
+              clientProfileImage: entry.clientProfileImage,
+              progressMedia: entry.progressMedia,
+              documents: entry.documents,
+              comments: entry.comments,
+              _sourceTab: srcLabel,
+            };
+
+            if (entry.chat) {
+              const chat = { ...entry.chat, meta: baseMeta };
+              if (typeof chat.chatType !== "string") chat.chatType = "admin_work";
+              if (chat.lastMessage && typeof chat.lastMessage !== "object") chat.lastMessage = null;
+              if (entry.isGroupChat && entry.clientName) {
+                chat.groupName = entry.clientName;
+                chat.isGroupChat = true;
+              }
+              return chat;
+            }
+
+            return {
+              _id: `placeholder_${entry.clientUserId || entry.clientId || entry.proposalId || entry.proposalEmail || "unknown"}`,
+              chatType: "admin_work",
+              clientId: {
+                _id: entry.clientUserId || entry.clientId,
+                username: entry.clientUsername || entry.clientName,
+                email: entry.proposalEmail,
+                profileImage: entry.clientProfileImage,
+              },
+              lastMessage: null,
+              projectId: null,
+              meta: baseMeta,
+              _placeholder: true,
+            };
+          });
+        };
+
         if (userRole === "worker") {
-          url = `${import.meta.env.VITE_API_URL || "http://localhost:8003"}/api/v1/chats/user/${userId}`;
-        } else {
-          const adminSource =
-            source === "clients"
-              ? "clients"
-              : source === "website"
-                ? "website"
-                : "accepted";
-          url = `${import.meta.env.VITE_API_URL || "http://localhost:8003"}/api/v1/chats/admin/${adminSource}`;
-        }
-
-        const response = await fetch(url, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        const data = await response.json();
-
-        // Handle both admin and worker response formats
-        let chatsData = [];
-
-        if (userRole === "worker") {
-          // Worker endpoint returns array of chats directly
-          chatsData = data.data || [];
-          const deduplicatedChats = Array.from(
-            new Map(chatsData.map((chat) => [chat._id, chat])).values(),
-          );
+          const url = `${apiBase}/api/v1/chats/user/${userId}`;
+          const res = await fetch(url, { headers });
+          const data = await res.json();
+          const chatsData = data.data || [];
+          const deduplicatedChats = Array.from(new Map(chatsData.map((c) => [c._id, c])).values());
           const mapped = deduplicatedChats.map((chat) => ({
             ...chat,
             meta: {
@@ -278,112 +322,55 @@ const ChatContainer = ({ userId, adminId, userRole, source = "accepted" }) => {
             },
           }));
           setChats(mapped);
+          return;
+        }
+
+        // ── Admin: build list from one or both sources ──
+        let mapped = [];
+
+        if (source === "all_working") {
+          // Fetch accepted + clients and merge
+          const [resA, resC] = await Promise.all([
+            fetch(`${apiBase}/api/v1/chats/admin/accepted`, { headers }).catch(() => null),
+            fetch(`${apiBase}/api/v1/chats/admin/clients`,  { headers }).catch(() => null),
+          ]);
+          const dataA = resA ? await resA.json() : { data: [] };
+          const dataC = resC ? await resC.json() : { data: [] };
+          const fromA = processEntries(Array.isArray(dataA.data) ? dataA.data : [], "accepted");
+          const fromC = processEntries(Array.isArray(dataC.data) ? dataC.data : [], "clients");
+          // Merge, dedup by _id
+          const mergedMap = new Map();
+          [...fromA, ...fromC].forEach((c) => { if (!mergedMap.has(c._id)) mergedMap.set(c._id, c); });
+          mapped = Array.from(mergedMap.values());
         } else {
-          // Admin endpoint returns proposals with chats
+          const adminSource = source === "clients" ? "clients" : source === "website" ? "website" : "accepted";
+          const res = await fetch(`${apiBase}/api/v1/chats/admin/${adminSource}`, { headers });
+          const data = await res.json();
           if (data.success && Array.isArray(data.data)) {
-            // Deduplicate chats by _id (remove duplicates, keep first occurrence)
-            const seen = new Set();
-            const deduplicated = [];
-
-            for (const entry of data.data) {
-              const placeholderKey =
-                entry.chat?._id ||
-                `placeholder_${entry.clientUserId ||
-                entry.clientId ||
-                entry.proposalId ||
-                entry.proposalEmail ||
-                "unknown"
-                }`;
-              const chatId = placeholderKey;
-              if (!seen.has(chatId)) {
-                seen.add(chatId);
-                deduplicated.push(entry);
-              }
-            }
-
-            // ── Fix #5: filter out guest / non-client users on the "clients" tab ──
-            const clientEntries =
-              source === "clients"
-                ? deduplicated.filter((entry) => {
-                  const role = (entry.clientRole || "").toLowerCase();
-                  // If the backend sends a role, keep only "client"
-                  if (role && role !== "client") return false;
-                  // Drop entries with no real user identity
-                  if (!entry.clientId && !entry.clientUserId) return false;
-                  // Drop obvious guest entries by username pattern
-                  const uname = (entry.clientUsername || entry.clientName || "").toLowerCase();
-                  if (uname.startsWith("guest")) return false;
-                  return true;
-                })
-                : deduplicated;
-
-            const mapped = clientEntries.map((entry) => {
-              const baseMeta = {
-                proposalId: entry.proposalId,
-                proposalTitle: entry.proposalTitle,
-                proposalEmail: entry.proposalEmail,
-                clientId: entry.clientId,
-                clientUserId: entry.clientUserId,
-                clientName: entry.clientName,
-                clientUsername: entry.clientUsername,
-                clientProfileImage: entry.clientProfileImage,
-                progressMedia: entry.progressMedia,
-                documents: entry.documents,
-                comments: entry.comments,
-              };
-
-              if (entry.chat) {
-                const chat = { ...entry.chat, meta: baseMeta };
-                // Ensure chatType is always a string
-                if (typeof chat.chatType !== "string") {
-                  chat.chatType = "admin_work";
-                }
-                // Ensure lastMessage is either null or an object (not rendered directly)
-                if (chat.lastMessage && typeof chat.lastMessage !== "object") {
-                  chat.lastMessage = null;
-                }
-                // Preserve group chat name for display
-                if (entry.isGroupChat && entry.clientName) {
-                  chat.groupName = entry.clientName;
-                  chat.isGroupChat = true;
-                }
-                return chat;
-              }
-
-              // Placeholder chat with UNIQUE ID (not null!)
-              return {
-                _id: `placeholder_${entry.clientUserId ||
-                  entry.clientId ||
-                  entry.proposalId ||
-                  entry.proposalEmail ||
-                  "unknown"
-                  }`,
-                chatType: "admin_work",
-                clientId: {
-                  _id: entry.clientUserId || entry.clientId,
-                  username: entry.clientUsername || entry.clientName,
-                  email: entry.proposalEmail,
-                  profileImage: entry.clientProfileImage,
-                },
-                lastMessage: null,
-                projectId: null,
-                meta: baseMeta,
-                _placeholder: true,
-              };
-            });
-            setChats(sortChatsByLatest(mapped));
+            mapped = processEntries(data.data, adminSource);
           }
         }
+
+        // ── Apply chatFilter ──
+        const displayed =
+          chatFilter === "group"
+            ? mapped.filter((c) => c.isGroupChat)
+            : chatFilter === "accepted"
+              ? mapped.filter((c) => !c.isGroupChat && c.meta?._sourceTab === "accepted")
+              : chatFilter === "client"
+                ? mapped.filter((c) => !c.isGroupChat && c.meta?._sourceTab !== "accepted")
+                : mapped; // "all"
+
+        setChats(sortChatsByLatest(displayed));
       } catch (error) {
         console.error("Error fetching chats:", error);
       }
     };
 
     fetchChats();
-    const interval = setInterval(fetchChats, 10000); // Refresh every 10 seconds
-
+    const interval = setInterval(fetchChats, 10000);
     return () => clearInterval(interval);
-  }, [userId, source]);
+  }, [userId, source, chatFilter]);
 
   // Fetch unread count
   useEffect(() => {

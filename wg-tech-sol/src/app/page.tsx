@@ -24,6 +24,12 @@ export default function Home() {
       const response = await getHomeData();
       if (response.status === 200 || response.status === 201) {
         const data = response?.data?.data || response?.data || {};
+        
+        // Filter out inactive services
+        if (data.services && Array.isArray(data.services)) {
+          data.services = data.services.filter((s: any) => !s.status || s.status.toLowerCase() === "active");
+        }
+        
         setHomeData(data);
       }
     } catch (error) {
