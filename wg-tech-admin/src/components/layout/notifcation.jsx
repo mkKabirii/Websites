@@ -136,8 +136,8 @@ const NotificationBell = () => {
           gap: 1.5,
           p: 1.5,
           cursor: "pointer",
-          backgroundColor: notification.isRead ? "#fff" : "#F4FFE6",
-          "&:hover": { backgroundColor: "#f5f5f5" },
+          backgroundColor: notification.isRead ? "transparent" : "#1e1e1e",
+          "&:hover": { backgroundColor: "#2a2a2a" },
         }}
         onClick={() => handleNotificationClick(notification)}
       >
@@ -149,11 +149,11 @@ const NotificationBell = () => {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: "#E8F5E8",
+            backgroundColor: "rgba(158, 255, 0, 0.1)",
             flex: "0 0 auto",
           }}
         >
-          <Icon size={18} color="#4CAF50" />
+          <Icon size={18} color="#9EFF00" />
         </Box>
 
         <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -161,7 +161,7 @@ const NotificationBell = () => {
             variant="body2"
             sx={{
               fontWeight: notification.isRead ? 500 : 700,
-              color: "#222",
+              color: "#fff",
               lineHeight: 1.35,
             }}
           >
@@ -171,7 +171,7 @@ const NotificationBell = () => {
             <Typography
               variant="caption"
               sx={{
-                color: "#666",
+                color: "#aaa",
                 display: "block",
                 mt: 0.4,
                 overflow: "hidden",
@@ -182,7 +182,7 @@ const NotificationBell = () => {
               {notification.message}
             </Typography>
           )}
-          <Typography variant="caption" sx={{ color: "#999", fontSize: 11 }}>
+          <Typography variant="caption" sx={{ color: "#888", fontSize: 11 }}>
             {notification.createdAt
               ? new Date(notification.createdAt).toLocaleString()
               : "Just now"}
@@ -197,9 +197,9 @@ const NotificationBell = () => {
       <IconButton
         onClick={(event) => setAnchorEl(event.currentTarget)}
         sx={{
-          backgroundColor: "#fff",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-          "&:hover": { backgroundColor: "#f7f7f7" },
+          backgroundColor: "#1a1a1a",
+          boxShadow: "0 4px 15px rgba(255, 255, 255, 0.1)",
+          "&:hover": { backgroundColor: "#262626" },
         }}
       >
         <Badge
@@ -207,7 +207,7 @@ const NotificationBell = () => {
           color="error"
           overlap="circular"
         >
-          <Bell size={20} color="gray" />
+          <Bell size={20} color="#fff" />
         </Badge>
       </IconButton>
 
@@ -221,7 +221,10 @@ const NotificationBell = () => {
             borderRadius: 2,
             width: { xs: 320, sm: 390 },
             maxWidth: "calc(100vw - 24px)",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+            backgroundColor: "#121212",
+            border: "1px solid #333",
+            color: "#fff",
           },
         }}
         transformOrigin={{ horizontal: "right", vertical: "top" }}
@@ -249,18 +252,18 @@ const NotificationBell = () => {
             Read all
           </Button>
         </Box>
-        <Divider />
+        <Divider sx={{ borderColor: "#333" }} />
 
         <Box sx={{ maxHeight: 420, overflowY: "auto" }}>
           {loading && notifications.length === 0 ? (
             <Box sx={{ p: 2 }}>
-              <Typography variant="body2" sx={{ color: "#777" }}>
+              <Typography variant="body2" sx={{ color: "#aaa" }}>
                 Loading notifications...
               </Typography>
             </Box>
           ) : sortedNotifications.length === 0 ? (
             <Box sx={{ p: 2 }}>
-              <Typography variant="body2" sx={{ color: "#777" }}>
+              <Typography variant="body2" sx={{ color: "#aaa" }}>
                 No notifications yet.
               </Typography>
             </Box>
@@ -268,7 +271,7 @@ const NotificationBell = () => {
             sortedNotifications.map((notification, index) => (
               <React.Fragment key={notification._id}>
                 <NotificationItem notification={notification} />
-                {index < sortedNotifications.length - 1 && <Divider />}
+                {index < sortedNotifications.length - 1 && <Divider sx={{ borderColor: "#333" }} />}
               </React.Fragment>
             ))
           )}

@@ -1251,8 +1251,8 @@ export default function ChatPage() {
                                   </div>
                                 </div>
                               ) : (
-                                <>
-                                  <div className="grid grid-cols-2 gap-2 mt-3">
+                                <div className="flex flex-col gap-2 mt-1">
+                                  <div className="grid grid-cols-2 gap-2">
                                     <button
                                       onClick={() =>
                                         handleOpenPdf(message.quotationData)
@@ -1282,11 +1282,11 @@ export default function ChatPage() {
                                       );
                                       setShowQuotationSignDialog(true);
                                     }}
-                                    className="w-full mt-3 px-3 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg text-sm transition-all"
+                                    className="w-full px-3 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg text-sm transition-all"
                                   >
                                     ✓ Sign Now
                                   </button>
-                                </>
+                                </div>
                               )}
 
                               {/* Timestamp and Sender */}

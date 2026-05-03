@@ -33,19 +33,31 @@ const TextEditor = ({
         sx={{
           borderRadius: "8px",
           border: `1px solid ${
-            error ? "#f44336" : isFocused ? "#1976d2" : "#444"
+            error ? "#FF5050" : isFocused ? "#9EFF00" : "#333333"
           }`,
           background: "#2A2A2A",
+          transition: "all 0.3s ease",
           "& .ql-toolbar": {
             border: "none",
             background: "#1E1E1E",
-            borderBottom: "1px solid #444",
+            borderBottom: "1px solid #333",
+            borderRadius: "8px 8px 0 0",
+          },
+          "& .ql-toolbar .ql-stroke": {
+            stroke: "#fff",
+          },
+          "& .ql-toolbar .ql-fill": {
+            fill: "#fff",
+          },
+          "& .ql-toolbar .ql-picker": {
+            color: "#fff",
           },
           "& .ql-container": {
             border: "none",
             background: "#2A2A2A",
             color: "#fff",
             minHeight: "150px",
+            borderRadius: "0 0 8px 8px",
           },
           "& .ql-editor": {
             color: "#fff",

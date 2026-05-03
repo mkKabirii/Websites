@@ -106,10 +106,12 @@ input[type="date"]::-moz-calendar-picker-indicator:hover {
     transform: translate3d(-2%, -2%, 0) scale(1);
     opacity: 0.42;
   }
+
   50% {
     transform: translate3d(2%, 1%, 0) scale(1.06);
     opacity: 0.62;
   }
+
   100% {
     transform: translate3d(-2%, -2%, 0) scale(1);
     opacity: 0.42;
@@ -121,20 +123,20 @@ input[type="date"]::-moz-calendar-picker-indicator:hover {
   inset: -10%;
   pointer-events: none;
   z-index: 0;
-  background: radial-gradient(
-    circle at 50% 45%,
-    rgba(158, 255, 0, 0.06),
-    transparent 58%
-  );
+  background: radial-gradient(circle at 50% 45%,
+      rgba(158, 255, 0, 0.06),
+      transparent 58%);
   filter: none;
 }
 
 @keyframes wg-hero-image-pulse {
+
   0%,
   100% {
     transform: scale(1);
     opacity: 0.7;
   }
+
   50% {
     transform: scale(1.03);
     opacity: 1;
@@ -146,12 +148,10 @@ input[type="date"]::-moz-calendar-picker-indicator:hover {
   inset: -14%;
   z-index: 1;
   pointer-events: none;
-  background: radial-gradient(
-    circle,
-    rgba(158, 255, 0, 0.06) 0%,
-    rgba(158, 255, 0, 0.03) 35%,
-    transparent 70%
-  );
+  background: radial-gradient(circle,
+      rgba(158, 255, 0, 0.06) 0%,
+      rgba(158, 255, 0, 0.03) 35%,
+      transparent 70%);
   filter: none;
 }
 
@@ -161,10 +161,12 @@ input[type="date"]::-moz-calendar-picker-indicator:hover {
     transform: translateY(0px) scale(1);
     opacity: 0.95;
   }
+
   50% {
     transform: translateY(-6px) scale(1.01);
     opacity: 1;
   }
+
   100% {
     transform: translateY(0px) scale(1);
     opacity: 0.95;
@@ -177,6 +179,7 @@ input[type="date"]::-moz-calendar-picker-indicator:hover {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .wg-hero-bg-glow,
   .wg-hero-image-glow {
     animation: none !important;
@@ -212,6 +215,7 @@ input[type="date"]::-moz-calendar-picker-indicator:hover {
 .wg-nav-glow {
   position: relative;
 }
+
 .wg-nav-glow::after {
   content: "";
   position: absolute;
@@ -225,6 +229,7 @@ input[type="date"]::-moz-calendar-picker-indicator:hover {
     inset 0 0 60px rgba(158, 255, 0, 0.55),
     inset 0 0 140px rgba(158, 255, 0, 0.25);
 }
+
 .wg-nav-glow:hover::after {
   opacity: 1;
 }
@@ -250,21 +255,21 @@ input[type="date"]::-moz-calendar-picker-indicator:hover {
   transition: opacity 180ms ease;
   will-change: transform;
   mix-blend-mode: screen;
-  background: radial-gradient(
-    circle,
-    rgba(158, 255, 0, 0.22) 0%,
-    rgba(158, 255, 0, 0.1) 26%,
-    rgba(158, 255, 0, 0.04) 48%,
-    transparent 72%
-  );
+  background: radial-gradient(circle,
+      rgba(158, 255, 0, 0.22) 0%,
+      rgba(158, 255, 0, 0.1) 26%,
+      rgba(158, 255, 0, 0.04) 48%,
+      transparent 72%);
   filter: blur(0.6px);
 }
 
 @keyframes wg-btt-bounce {
+
   0%,
   100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-6px);
   }
@@ -274,6 +279,7 @@ input[type="date"]::-moz-calendar-picker-indicator:hover {
   0% {
     transform: translate3d(-18%, 0, 0);
   }
+
   100% {
     transform: translate3d(18%, 0, 0);
   }
@@ -295,17 +301,13 @@ input[type="date"]::-moz-calendar-picker-indicator:hover {
   border-bottom-left-radius: 9999px;
   border-bottom-right-radius: 9999px;
   background:
-    radial-gradient(
-      circle at 50% 10%,
+    radial-gradient(circle at 50% 10%,
       rgba(255, 255, 255, 0.22),
-      transparent 55%
-    ),
-    linear-gradient(
-      180deg,
+      transparent 55%),
+    linear-gradient(180deg,
       rgba(158, 255, 0, 0.95) 0%,
       rgba(140, 230, 0, 0.9) 45%,
-      rgba(90, 150, 0, 0.88) 100%
-    );
+      rgba(90, 150, 0, 0.88) 100%);
 }
 
 .wg-btt-water::before {
@@ -316,14 +318,12 @@ input[type="date"]::-moz-calendar-picker-indicator:hover {
   top: -10px;
   height: 18px;
   border-radius: 9999px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.22) 18%,
-    rgba(255, 255, 255, 0.06) 45%,
-    rgba(255, 255, 255, 0.18) 70%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.22) 18%,
+      rgba(255, 255, 255, 0.06) 45%,
+      rgba(255, 255, 255, 0.18) 70%,
+      transparent 100%);
   filter: blur(0.2px);
   opacity: 0.9;
   animation: wg-btt-wave 1.9s ease-in-out infinite alternate;
@@ -342,12 +342,15 @@ input[type="date"]::-moz-calendar-picker-indicator:hover {
     transform: translate3d(-22%, 0, 0);
     opacity: 0.12;
   }
+
   12% {
     opacity: 0.38;
   }
+
   60% {
     opacity: 0.3;
   }
+
   100% {
     transform: translate3d(22%, 0, 0);
     opacity: 0.12;
@@ -358,6 +361,7 @@ input[type="date"]::-moz-calendar-picker-indicator:hover {
   0% {
     background-position: 0 0;
   }
+
   100% {
     background-position: 220px 0;
   }
@@ -367,6 +371,7 @@ input[type="date"]::-moz-calendar-picker-indicator:hover {
   0% {
     background-position: 0 0;
   }
+
   100% {
     background-position: 0 220px;
   }
@@ -377,14 +382,17 @@ input[type="date"]::-moz-calendar-picker-indicator:hover {
     transform: translate3d(-28px, 0, 0) rotate(var(--rot, 0deg));
     opacity: 0.14;
   }
+
   30% {
     transform: translate3d(10px, 0, 0) rotate(var(--rot, 0deg));
     opacity: 0.34;
   }
+
   62% {
     transform: translate3d(10px, 22px, 0) rotate(var(--rot, 0deg));
     opacity: 0.28;
   }
+
   100% {
     transform: translate3d(32px, 0, 0) rotate(var(--rot, 0deg));
     opacity: 0.14;
@@ -396,14 +404,17 @@ input[type="date"]::-moz-calendar-picker-indicator:hover {
     transform: translate3d(0, -28px, 0) rotate(var(--rot, 0deg));
     opacity: 0.14;
   }
+
   38% {
     transform: translate3d(0, 12px, 0) rotate(var(--rot, 0deg));
     opacity: 0.34;
   }
+
   70% {
     transform: translate3d(22px, 12px, 0) rotate(var(--rot, 0deg));
     opacity: 0.26;
   }
+
   100% {
     transform: translate3d(0, 34px, 0) rotate(var(--rot, 0deg));
     opacity: 0.14;
@@ -443,11 +454,9 @@ input[type="date"]::-moz-calendar-picker-indicator:hover {
 .wg-auth-tech-fade {
   position: absolute;
   inset: 0;
-  background: radial-gradient(
-    circle at 50% 35%,
-    rgba(158, 255, 0, 0.06),
-    transparent 55%
-  );
+  background: radial-gradient(circle at 50% 35%,
+      rgba(158, 255, 0, 0.06),
+      transparent 55%);
 }
 
 .wg-auth-tech-lines {
@@ -469,19 +478,15 @@ input[type="date"]::-moz-calendar-picker-indicator:hover {
 
   /* base glow + repeating “data packets” */
   background-image:
-    linear-gradient(
-      90deg,
+    linear-gradient(90deg,
       transparent 0%,
       rgba(158, 255, 0, 0.55) 18%,
       rgba(158, 255, 0, 0.08) 55%,
-      transparent 100%
-    ),
-    repeating-linear-gradient(
-      90deg,
+      transparent 100%),
+    repeating-linear-gradient(90deg,
       transparent 0 18px,
       rgba(158, 255, 0, 0.75) 18px 22px,
-      transparent 22px 58px
-    );
+      transparent 22px 58px);
   background-size:
     100% 100%,
     220px 100%;
@@ -508,19 +513,15 @@ input[type="date"]::-moz-calendar-picker-indicator:hover {
   filter: blur(0.15px);
 
   background-image:
-    linear-gradient(
-      180deg,
+    linear-gradient(180deg,
       transparent 0%,
       rgba(158, 255, 0, 0.55) 18%,
       rgba(158, 255, 0, 0.08) 55%,
-      transparent 100%
-    ),
-    repeating-linear-gradient(
-      180deg,
+      transparent 100%),
+    repeating-linear-gradient(180deg,
       transparent 0 18px,
       rgba(158, 255, 0, 0.75) 18px 22px,
-      transparent 22px 58px
-    );
+      transparent 22px 58px);
   background-size:
     100% 100%,
     100% 220px;
@@ -558,19 +559,15 @@ input[type="date"]::-moz-calendar-picker-indicator:hover {
   border-radius: 9999px;
   filter: blur(0.15px);
   background-image:
-    linear-gradient(
-      90deg,
+    linear-gradient(90deg,
       transparent 0%,
       rgba(158, 255, 0, 0.52) 18%,
       rgba(158, 255, 0, 0.08) 55%,
-      transparent 100%
-    ),
-    repeating-linear-gradient(
-      90deg,
+      transparent 100%),
+    repeating-linear-gradient(90deg,
       transparent 0 18px,
       rgba(158, 255, 0, 0.75) 18px 22px,
-      transparent 22px 58px
-    );
+      transparent 22px 58px);
   background-size:
     100% 100%,
     220px 100%;
@@ -594,19 +591,15 @@ input[type="date"]::-moz-calendar-picker-indicator:hover {
   width: 2px;
   height: var(--h);
   background-image:
-    linear-gradient(
-      180deg,
+    linear-gradient(180deg,
       transparent 0%,
       rgba(158, 255, 0, 0.52) 18%,
       rgba(158, 255, 0, 0.08) 55%,
-      transparent 100%
-    ),
-    repeating-linear-gradient(
-      180deg,
+      transparent 100%),
+    repeating-linear-gradient(180deg,
       transparent 0 18px,
       rgba(158, 255, 0, 0.75) 18px 22px,
-      transparent 22px 58px
-    );
+      transparent 22px 58px);
   background-size:
     100% 100%,
     100% 220px;
@@ -624,19 +617,15 @@ input[type="date"]::-moz-calendar-picker-indicator:hover {
   width: 2px;
   height: var(--elbow);
   background-image:
-    linear-gradient(
-      180deg,
+    linear-gradient(180deg,
       transparent 0%,
       rgba(158, 255, 0, 0.52) 18%,
       rgba(158, 255, 0, 0.08) 55%,
-      transparent 100%
-    ),
-    repeating-linear-gradient(
-      180deg,
+      transparent 100%),
+    repeating-linear-gradient(180deg,
       transparent 0 18px,
       rgba(158, 255, 0, 0.75) 18px 22px,
-      transparent 22px 58px
-    );
+      transparent 22px 58px);
   background-size:
     100% 100%,
     100% 220px;
@@ -666,23 +655,21 @@ input[type="date"]::-moz-calendar-picker-indicator:hover {
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   globals.css میں یہ CSS add کریں:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
- 
+
 .magic-card {
   position: relative;
   overflow: hidden;
 }
- 
+
 .magic-card::before {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
   padding: 1.5px;
-  background: radial-gradient(
-    120px circle at var(--mx, 50%) var(--my, 50%),
-    #9eff00,
-    transparent 70%
-  );
+  background: radial-gradient(120px circle at var(--mx, 50%) var(--my, 50%),
+      #9eff00,
+      transparent 70%);
   -webkit-mask: linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
@@ -691,22 +678,20 @@ input[type="date"]::-moz-calendar-picker-indicator:hover {
   transition: opacity 0.3s;
   pointer-events: none;
 }
- 
+
 .magic-card::after {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: radial-gradient(
-    200px circle at var(--mx, 50%) var(--my, 50%),
-    rgba(158, 255, 0, 0.07),
-    transparent 70%
-  );
+  background: radial-gradient(200px circle at var(--mx, 50%) var(--my, 50%),
+      rgba(158, 255, 0, 0.07),
+      transparent 70%);
   opacity: 0;
   transition: opacity 0.3s;
   pointer-events: none;
 }
- 
+
 .magic-card:hover::before,
 .magic-card:hover::after {
   opacity: 1;

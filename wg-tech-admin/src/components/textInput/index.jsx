@@ -64,18 +64,18 @@ function TextInput({
               transition: "all 0.3s ease",
 
               "&:hover": {
-                borderColor: error ? "#FF5050" : "#8CE600", // 🟢 Dynamic hover color
+                borderColor: error ? "#FF5050" : "#9EFF00", // 🟢 Dynamic hover color
                 borderWidth: "1px",
               },
 
               "&.Mui-focused": {
-                borderColor: error ? "#FF5050" : "#8CE600", // 🟢 Dynamic focus color
+                borderColor: error ? "#FF5050" : "#9EFF00", // 🟢 Dynamic focus color
                 borderWidth: "2px",
                 borderRadius: "12px",
                 fontFamily: "Poppins",
                 boxShadow: error
                   ? "0 0 0 3px rgba(255, 80, 80, 0.1)" // 🟢 Error shadow
-                  : "0 0 0 3px rgba(140, 230, 0, 0.1)", // 🟢 Normal shadow
+                  : "0 0 0 3px rgba(158, 255, 0, 0.1)", // 🟢 Normal shadow
               },
 
               "& fieldset": {
@@ -97,7 +97,7 @@ function TextInput({
               color: error ? "#FF5050" : "#FFFFFF", // 🟢 Dynamic label color
               fontWeight: "600",
               "&.Mui-focused": {
-                color: error ? "#FF5050" : "#8CE600", // 🟢 Dynamic focused label color
+                color: error ? "#FF5050" : "#9EFF00", // 🟢 Dynamic focused label color
               },
             },
 
@@ -130,9 +130,9 @@ function TextInput({
               >
                 {showPassIcon ? (
                   showPass ? (
-                    <Eye color="#8CE600" />
+                    <Eye color="#9EFF00" />
                   ) : (
-                    <EyeClosed color="#8CE600" />
+                    <EyeClosed color="#9EFF00" />
                   )
                 ) : (
                   InputEndIcon

@@ -29,9 +29,9 @@ const MessageList = ({ messages, userId }) => {
             const response = await fetch(`${baseUrl}/api/v1/quotations/${quotationId}`, {
               headers: token
                 ? {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                  }
+                  Authorization: `Bearer ${token}`,
+                  "Content-Type": "application/json",
+                }
                 : undefined,
             });
 
@@ -162,11 +162,11 @@ const MessageList = ({ messages, userId }) => {
             message?.quotationData?.clientSubmission || latestQuotation?.clientSubmission;
           const isQuotationSigned = Boolean(
             quotationId &&
-              (message?.quotationData?.status === "signed" ||
-                message?.quotationData?.clientSubmission ||
-                signedQuotationIds.has(quotationId) ||
-                latestQuotation?.status === "signed" ||
-                latestQuotation?.clientSubmission)
+            (message?.quotationData?.status === "signed" ||
+              message?.quotationData?.clientSubmission ||
+              signedQuotationIds.has(quotationId) ||
+              latestQuotation?.status === "signed" ||
+              latestQuotation?.clientSubmission)
           );
 
           return (
@@ -205,7 +205,7 @@ const MessageList = ({ messages, userId }) => {
                     {message.messageType === "text" && (
                       <div className={`message-bubble ${isOwnMessage ? "own" : "other"}`}>
                         <span className="message-sender-name">
-                          {isOwnMessage 
+                          {isOwnMessage
                             ? (message.senderId?.username || message.senderId?.name || "You")
                             : (message.senderId?.username || message.senderId?.name || message.senderId?.email || "User")}
                         </span>
@@ -254,9 +254,29 @@ const MessageList = ({ messages, userId }) => {
                     )}
 
                     {message.messageType === "document" && (
-                      <div className="message-document">
+                      <div className={`message-document ${isOwnMessage ? "own" : "other"}`} style={{ marginTop: "4px", marginBottom: "4px" }}>
                         <a
                           href="#"
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "10px",
+                            backgroundColor: isOwnMessage ? "rgba(158, 255, 0, 0.1)" : "#2A2A2A",
+                            color: isOwnMessage ? "#9EFF00" : "#fff",
+                            padding: "12px 16px",
+                            borderRadius: "10px",
+                            textDecoration: "none",
+                            border: `1px solid ${isOwnMessage ? "rgba(158, 255, 0, 0.3)" : "#444"}`,
+                            fontSize: "14px",
+                            fontWeight: "500",
+                            transition: "all 0.2s",
+                          }}
+                          onMouseOver={(e) => {
+                            e.currentTarget.style.backgroundColor = isOwnMessage ? "rgba(158, 255, 0, 0.15)" : "#333";
+                          }}
+                          onMouseOut={(e) => {
+                            e.currentTarget.style.backgroundColor = isOwnMessage ? "rgba(158, 255, 0, 0.1)" : "#2A2A2A";
+                          }}
                           onClick={(e) => {
                             e.preventDefault();
                             handleDownloadAttachment(
@@ -265,15 +285,38 @@ const MessageList = ({ messages, userId }) => {
                             );
                           }}
                         >
-                          📄 {message.documentName || message.fileName || message.content || "Document"}
+                          <span style={{ fontSize: "18px" }}>📄</span>
+                          <span style={{ wordBreak: "break-all" }}>
+                            {message.documentName || message.fileName || message.content || "Document"}
+                          </span>
                         </a>
                       </div>
                     )}
 
                     {message.messageType === "file" && (
-                      <div className="message-file">
+                      <div className={`message-file ${isOwnMessage ? "own" : "other"}`} style={{ marginTop: "4px", marginBottom: "4px" }}>
                         <a
                           href="#"
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "10px",
+                            backgroundColor: isOwnMessage ? "rgba(158, 255, 0, 0.1)" : "#2A2A2A",
+                            color: isOwnMessage ? "#9EFF00" : "#fff",
+                            padding: "12px 16px",
+                            borderRadius: "10px",
+                            textDecoration: "none",
+                            border: `1px solid ${isOwnMessage ? "rgba(158, 255, 0, 0.3)" : "#444"}`,
+                            fontSize: "14px",
+                            fontWeight: "500",
+                            transition: "all 0.2s",
+                          }}
+                          onMouseOver={(e) => {
+                            e.currentTarget.style.backgroundColor = isOwnMessage ? "rgba(158, 255, 0, 0.15)" : "#333";
+                          }}
+                          onMouseOut={(e) => {
+                            e.currentTarget.style.backgroundColor = isOwnMessage ? "rgba(158, 255, 0, 0.1)" : "#2A2A2A";
+                          }}
                           onClick={(e) => {
                             e.preventDefault();
                             handleDownloadAttachment(
@@ -282,102 +325,141 @@ const MessageList = ({ messages, userId }) => {
                             );
                           }}
                         >
-                          📎 {message.fileName || message.documentName || message.content || "File"}
+                          <span style={{ fontSize: "18px" }}>📎</span>
+                          <span style={{ wordBreak: "break-all" }}>
+                            {message.fileName || message.documentName || message.content || "File"}
+                          </span>
                         </a>
                       </div>
                     )}
 
                     {message.messageType === "quotation" && (
-                      <div className={`message-quotation ${isOwnMessage ? "own" : "other"}`} style={{ cursor: "pointer" }}>
+                      <div className={`message-quotation ${isOwnMessage ? "own" : "other"}`} style={{ cursor: "pointer", marginTop: "6px", marginBottom: "6px" }}>
                         <div style={{
-                          backgroundColor: isOwnMessage ? "#dcf8c6" : "#fff",
-                          border: "1px solid #ccc",
-                          borderRadius: "10px",
-                          padding: "12px",
+                          backgroundColor: isOwnMessage ? "rgba(158, 255, 0, 0.05)" : "#1E1E1E",
+                          border: `1px solid ${isOwnMessage ? "rgba(158, 255, 0, 0.2)" : "#333"}`,
+                          borderRadius: "12px",
+                          padding: "16px",
                           width: "100%",
-                          maxWidth: "380px"
+                          maxWidth: "380px",
+                          color: "#fff",
+                          boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
                         }}>
                           {message.quotationData?.image && (
-                            <img 
-                              src={message.quotationData.image} 
-                              alt="Quotation" 
-                              style={{ width: "100%", borderRadius: "8px", marginBottom: "8px", maxHeight: "150px", objectFit: "cover" }}
+                            <img
+                              src={message.quotationData.image}
+                              alt="Quotation"
+                              style={{ width: "100%", borderRadius: "8px", marginBottom: "12px", maxHeight: "160px", objectFit: "cover" }}
                             />
                           )}
-                          <div style={{ fontWeight: "bold", fontSize: "14px", marginBottom: "4px" }}>
-                            📄 {message.quotationData?.title || "Quotation"}
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+                            <span style={{ fontSize: "16px" }}>📄</span>
+                            <div style={{ fontWeight: "600", fontSize: "15px", color: "#fff" }}>
+                              {message.quotationData?.title || "Quotation"}
+                            </div>
                           </div>
+
                           {message.quotationData?.subTitle && (
-                            <div style={{ fontSize: "12px", color: "#666", marginBottom: "6px" }}>
+                            <div style={{ fontSize: "13px", color: "#aaa", marginBottom: "8px" }}>
                               {message.quotationData.subTitle}
                             </div>
                           )}
+
                           {message.quotationData?.shortDescription && (
-                            <div style={{ fontSize: "13px", color: "#555", marginBottom: "8px", lineHeight: "1.4" }}>
+                            <div style={{ fontSize: "13px", color: "#ccc", marginBottom: "12px", lineHeight: "1.5" }}>
                               {message.quotationData.shortDescription}
                             </div>
                           )}
+
                           {isQuotationSigned && (
                             <div
                               style={{
-                                backgroundColor: "#ecfdf3",
-                                color: "#166534",
-                                border: "1px solid #86efac",
-                                padding: "6px 8px",
-                                borderRadius: "6px",
+                                backgroundColor: "rgba(158, 255, 0, 0.1)",
+                                color: "#9EFF00",
+                                border: "1px solid rgba(158, 255, 0, 0.3)",
+                                padding: "8px 12px",
+                                borderRadius: "8px",
                                 fontSize: "12px",
-                                fontWeight: "bold",
-                                marginBottom: "8px",
+                                fontWeight: "600",
+                                marginBottom: "12px",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "6px"
                               }}
                             >
-                              Signed submission received. Review proofs to continue approval.
+                              <Check size={14} /> Signed submission received. Review proofs.
                             </div>
                           )}
+
                           {message.quotationData?.totalAmount && (
-                            <div style={{ 
-                              backgroundColor: "#f0f0f0", 
-                              padding: "8px", 
-                              borderRadius: "6px", 
-                              fontSize: "12px",
-                              fontWeight: "bold",
-                              color: "#000"
+                            <div style={{
+                              backgroundColor: "#2A2A2A",
+                              border: "1px solid #333",
+                              padding: "10px 12px",
+                              borderRadius: "8px",
+                              fontSize: "13px",
+                              marginBottom: "12px",
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: "6px"
                             }}>
-                              Total: {message.quotationData.currency} {message.quotationData.totalAmount.toFixed(2)}
-                              <br />
-                              Advance (50%): {message.quotationData.currency} {(message.quotationData.totalAmount * 0.5).toFixed(2)}
+                              <div style={{ display: "flex", justifyContent: "space-between", color: "#fff", fontWeight: "600" }}>
+                                <span>Total:</span>
+                                <span>{message.quotationData.currency} {message.quotationData.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                              </div>
+                              <div style={{ display: "flex", justifyContent: "space-between", color: "#aaa", fontSize: "12px" }}>
+                                <span>Advance (50%):</span>
+                                <span>{message.quotationData.currency} {(message.quotationData.totalAmount * 0.5).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                              </div>
                             </div>
                           )}
 
                           {isQuotationSigned ? (
                             <div
                               style={{
-                                marginTop: "10px",
+                                backgroundColor: "#2A2A2A",
+                                padding: "12px",
+                                borderRadius: "8px",
                                 fontSize: "12px",
-                                color: "#4b5563",
-                                lineHeight: "1.5",
+                                color: "#ccc",
+                                lineHeight: "1.8",
+                                border: "1px solid #333",
+                                marginBottom: "12px"
                               }}
                             >
-                              Signature: {mergedSubmission?.signature ? "Uploaded" : "Submitted"}
-                              <br />
-                              National ID Front: {mergedSubmission?.nationalIdFront ? "Uploaded" : "Submitted"}
-                              <br />
-                              National ID Back: {mergedSubmission?.nationalIdBack ? "Uploaded" : "Submitted"}
-                              <br />
-                              Advance Payment Proof: {mergedSubmission?.paymentProof ? "Uploaded" : "Submitted"}
+                              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                <span>Signature:</span> <span style={{ color: mergedSubmission?.signature ? "#9EFF00" : "#aaa", fontWeight: mergedSubmission?.signature ? "600" : "400" }}>{mergedSubmission?.signature ? "Uploaded" : "Submitted"}</span>
+                              </div>
+                              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                <span>ID Front:</span> <span style={{ color: mergedSubmission?.nationalIdFront ? "#9EFF00" : "#aaa", fontWeight: mergedSubmission?.nationalIdFront ? "600" : "400" }}>{mergedSubmission?.nationalIdFront ? "Uploaded" : "Submitted"}</span>
+                              </div>
+                              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                <span>ID Back:</span> <span style={{ color: mergedSubmission?.nationalIdBack ? "#9EFF00" : "#aaa", fontWeight: mergedSubmission?.nationalIdBack ? "600" : "400" }}>{mergedSubmission?.nationalIdBack ? "Uploaded" : "Submitted"}</span>
+                              </div>
+                              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                <span>Payment Proof:</span> <span style={{ color: mergedSubmission?.paymentProof ? "#9EFF00" : "#aaa", fontWeight: mergedSubmission?.paymentProof ? "600" : "400" }}>{mergedSubmission?.paymentProof ? "Uploaded" : "Submitted"}</span>
+                              </div>
                             </div>
                           ) : (
-                            <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
+                            <div style={{ display: "flex", gap: "10px", marginBottom: "12px" }}>
                               <button
                                 style={{
                                   flex: 1,
-                                  padding: "8px",
-                                  backgroundColor: "#111827",
-                                  color: "white",
-                                  border: "none",
-                                  borderRadius: "6px",
-                                  fontSize: "12px",
-                                  fontWeight: "bold",
+                                  padding: "10px",
+                                  backgroundColor: "transparent",
+                                  color: "#9EFF00",
+                                  border: "1px solid #9EFF00",
+                                  borderRadius: "8px",
+                                  fontSize: "13px",
+                                  fontWeight: "600",
                                   cursor: "pointer",
+                                  transition: "all 0.2s ease-in-out",
+                                }}
+                                onMouseOver={(e) => { 
+                                  e.currentTarget.style.backgroundColor = 'rgba(158, 255, 0, 0.1)'; 
+                                }}
+                                onMouseOut={(e) => { 
+                                  e.currentTarget.style.backgroundColor = 'transparent'; 
                                 }}
                                 onClick={() => handleOpenPdf(message.quotationData)}
                               >
@@ -386,14 +468,21 @@ const MessageList = ({ messages, userId }) => {
                               <button
                                 style={{
                                   flex: 1,
-                                  padding: "8px",
-                                  backgroundColor: "#059669",
-                                  color: "white",
-                                  border: "none",
-                                  borderRadius: "6px",
-                                  fontSize: "12px",
-                                  fontWeight: "bold",
+                                  padding: "10px",
+                                  backgroundColor: "transparent",
+                                  color: "#9EFF00",
+                                  border: "1px solid #9EFF00",
+                                  borderRadius: "8px",
+                                  fontSize: "13px",
+                                  fontWeight: "600",
                                   cursor: "pointer",
+                                  transition: "all 0.2s ease-in-out",
+                                }}
+                                onMouseOver={(e) => { 
+                                  e.currentTarget.style.backgroundColor = 'rgba(158, 255, 0, 0.1)'; 
+                                }}
+                                onMouseOut={(e) => { 
+                                  e.currentTarget.style.backgroundColor = 'transparent'; 
                                 }}
                                 onClick={() => handleDownloadPdf(message.quotationData)}
                               >
@@ -403,20 +492,34 @@ const MessageList = ({ messages, userId }) => {
                           )}
                           {!isOwnMessage && (
                             <button style={{
-                              marginTop: "10px",
                               width: "100%",
-                              padding: "8px",
-                              backgroundColor: "#2563eb",
-                              color: "white",
+                              padding: "12px",
+                              backgroundColor: "#9EFF00",
+                              color: "#000",
                               border: "none",
-                              borderRadius: "6px",
-                              fontSize: "12px",
-                              fontWeight: "bold",
-                              cursor: "pointer"
-                            }} onClick={() => {
-                              window.dispatchEvent(new CustomEvent("openQuotationProofs", { detail: message.quotationData?._id }));
-                            }}>
-                              {isQuotationSigned ? "Review & View Proofs" : "View Submission Proofs"}
+                              borderRadius: "8px",
+                              fontSize: "14px",
+                              fontWeight: "700",
+                              cursor: "pointer",
+                              transition: "all 0.2s ease-in-out",
+                              display: "flex",
+                              justifyContent: "center",
+                              alignItems: "center",
+                              gap: "8px",
+                              boxShadow: "0 4px 12px rgba(158, 255, 0, 0.2)",
+                            }}
+                              onMouseOver={(e) => {
+                                e.currentTarget.style.backgroundColor = '#85d600';
+                                e.currentTarget.style.transform = 'translateY(-1px)';
+                              }}
+                              onMouseOut={(e) => {
+                                e.currentTarget.style.backgroundColor = '#9EFF00';
+                                e.currentTarget.style.transform = 'translateY(0)';
+                              }}
+                              onClick={() => {
+                                window.dispatchEvent(new CustomEvent("openQuotationProofs", { detail: message.quotationData?._id }));
+                              }}>
+                              {isQuotationSigned ? <><Check size={18} strokeWidth={3} /> Review & View Proofs</> : "View Submission Proofs"}
                             </button>
                           )}
                         </div>

@@ -173,59 +173,76 @@ const AdminQuotationProofsModal = ({
     const fallbackKind = detectFileKind(previewSrc, asset.mime);
     const imageFile = Boolean(asset.isImage || fallbackKind.isImage);
     const pdfFile = Boolean(asset.isPdf || fallbackKind.isPdf);
-    const previewHeight = imageFile ? "420px" : "560px";
-
     return (
-      <Card variant="outlined" sx={{ borderRadius: 3 }}>
-        <CardContent>
-          <div className="flex items-center justify-between mb-3">
-            <Typography variant="subtitle2" className="font-semibold">
+      <Card 
+        variant="outlined" 
+        sx={{ 
+          borderRadius: 3, 
+          backgroundColor: "#1e1e1e", 
+          borderColor: "#333", 
+          color: "#fff", 
+          overflow: "hidden",
+          height: "450px",
+          display: "flex",
+          flexDirection: "column"
+        }}
+      >
+        <CardContent sx={{ p: 2, display: "flex", flexDirection: "column", height: "100%" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", pr: 2 }}>
               {title}
             </Typography>
             <IconButton
               size="small"
               onClick={() => handleDownload(fileUrl, downloadName)}
               title="Download"
+              sx={{ color: "#9EFF00", backgroundColor: "rgba(158, 255, 0, 0.1)", "&:hover": { backgroundColor: "rgba(158, 255, 0, 0.2)" }, flexShrink: 0 }}
             >
               <Download size={16} />
             </IconButton>
           </div>
 
-          {imageFile && (
-            <Box sx={{ backgroundColor: "#f5f5f5", borderRadius: 2, p: 1 }}>
+          <Box sx={{ 
+            flexGrow: 1, 
+            backgroundColor: "#2a2a2a", 
+            borderRadius: 2, 
+            p: 1, 
+            border: "1px solid #333", 
+            display: "flex", 
+            justifyContent: "center", 
+            alignItems: "center",
+            overflow: "hidden" 
+          }}>
+            {imageFile && (
               <img
                 src={previewSrc}
                 alt={title}
-                style={{ width: "100%", height: previewHeight, objectFit: "contain", borderRadius: "8px" }}
+                style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", borderRadius: "4px" }}
               />
-            </Box>
-          )}
+            )}
 
-          {pdfFile && (
-            <Box sx={{ backgroundColor: "#f5f5f5", borderRadius: 2, p: 1, height: previewHeight }}>
+            {pdfFile && (
               <object
                 data={previewSrc}
                 type="application/pdf"
-                style={{ width: "100%", height: "100%", border: "none", borderRadius: "8px" }}
+                style={{ width: "100%", height: "100%", border: "none", borderRadius: "4px" }}
               >
                 <iframe
                   src={previewSrc}
                   title={title}
-                  style={{ width: "100%", height: "100%", border: "none", borderRadius: "8px" }}
+                  style={{ width: "100%", height: "100%", border: "none", borderRadius: "4px" }}
                 />
               </object>
-            </Box>
-          )}
+            )}
 
-          {!imageFile && !pdfFile && (
-            <Box sx={{ backgroundColor: "#f5f5f5", borderRadius: 2, p: 1, height: previewHeight }}>
+            {!imageFile && !pdfFile && (
               <iframe
                 src={previewSrc}
                 title={title}
-                style={{ width: "100%", height: "100%", border: "none", borderRadius: "8px" }}
+                style={{ width: "100%", height: "100%", border: "none", borderRadius: "4px" }}
               />
-            </Box>
-          )}
+            )}
+          </Box>
         </CardContent>
       </Card>
     );
@@ -279,102 +296,140 @@ const AdminQuotationProofsModal = ({
 
   return (
     <>
-      <Dialog open={open} onClose={onClose} maxWidth="xl" fullWidth>
-        <DialogTitle>
-          <div className="flex items-center justify-between">
-            <span>Quotation Proofs & Documentation - Inline Auto Preview</span>
-            <IconButton onClick={onClose} size="small">
-              <X size={20} />
-            </IconButton>
-          </div>
+      <Dialog 
+        open={open} 
+        onClose={onClose} 
+        maxWidth="xl" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            backgroundColor: "#1e1e1e",
+            color: "#fff",
+            border: "1px solid #333",
+            borderRadius: "12px",
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          color: "#fff", 
+          pt: 3,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          width: "100%"
+        }}>
+          <span style={{ fontWeight: 600, fontSize: "1.1rem" }}>Quotation Proofs & Documentation - Inline Auto Preview</span>
+          <IconButton 
+            onClick={onClose} 
+            size="small" 
+            sx={{ 
+              color: "#aaa", 
+              ml: 2,
+              "&:hover": { color: "#fff", backgroundColor: "rgba(255, 255, 255, 0.1)" } 
+            }}
+          >
+            <X size={20} />
+          </IconButton>
         </DialogTitle>
 
-        <Divider />
+        <Divider sx={{ borderColor: "#333" }} />
 
-        <DialogContent className="py-6" sx={{ maxHeight: "85vh", backgroundColor: "#fafafa" }}>
+        <DialogContent className="py-6" sx={{ maxHeight: "85vh", backgroundColor: "#121212" }}>
           {!hasProofs ? (
-            <Alert severity="info">
+            <Alert severity="info" sx={{ backgroundColor: "rgba(59, 130, 246, 0.1)", color: "#60a5fa", border: "1px solid rgba(59, 130, 246, 0.2)", "& .MuiAlert-icon": { color: "#60a5fa" } }}>
               The client has not yet submitted their signature and documentation.
             </Alert>
           ) : (
             <Box className="space-y-6">
-              <Alert severity="success">
+              <Alert severity="success" sx={{ backgroundColor: "rgba(158, 255, 0, 0.1)", color: "#9EFF00", border: "1px solid rgba(158, 255, 0, 0.2)", "& .MuiAlert-icon": { color: "#9EFF00" } }}>
                 Auto Preview Mode: All submitted proofs are shown below without opening each file manually.
               </Alert>
 
               {/* Submitted Proofs */}
               {clientSubmission && (
-                <Box className="space-y-4">
-                  <Typography variant="h6" className="font-semibold">
+                <Box sx={{ mt: 1 }}>
+                  <Typography variant="h6" className="font-semibold" sx={{ color: "#fff", mt: 2 }}>
                     Client Submitted Proofs
                   </Typography>
 
-                  <Divider />
+                  <Divider sx={{ borderColor: "#333", mb: 3, mt: 1 }} />
 
-                  {/* E-Signature */}
-                  {clientSubmission.signature ? (
-                    renderProofPreview(
-                      "signature",
-                      clientSubmission.signature,
-                      "E-Signature",
-                      "signature.png"
-                    )
-                  ) : (
-                    <Alert severity="warning">
-                      Signature file is missing in this submission record.
-                    </Alert>
-                  )}
-
-                  {/* National ID */}
-                  {(clientSubmission.nationalIdFront || clientSubmission.nationalIdBack) && (
-                    <Grid container spacing={2}>
-                      {clientSubmission.nationalIdFront && (
-                        <Grid item xs={12} md={6}>
-                          {renderProofPreview(
-                            "nationalIdFront",
-                            clientSubmission.nationalIdFront,
-                            "National ID - Front",
-                            "id-front"
-                          )}
-                        </Grid>
-                      )}
-                      {clientSubmission.nationalIdBack && (
-                        <Grid item xs={12} md={6}>
-                          {renderProofPreview(
-                            "nationalIdBack",
-                            clientSubmission.nationalIdBack,
-                            "National ID - Back",
-                            "id-back"
-                          )}
-                        </Grid>
+                  <Grid container spacing={3}>
+                    {/* E-Signature */}
+                    <Grid item xs={12}>
+                      {clientSubmission.signature ? (
+                        renderProofPreview(
+                          "signature",
+                          clientSubmission.signature,
+                          "E-Signature",
+                          "signature.png"
+                        )
+                      ) : (
+                        <Alert severity="warning" sx={{ backgroundColor: "rgba(245, 158, 11, 0.1)", color: "#fbbf24", border: "1px solid rgba(245, 158, 11, 0.2)", "& .MuiAlert-icon": { color: "#fbbf24" } }}>
+                          Signature file is missing in this submission record.
+                        </Alert>
                       )}
                     </Grid>
-                  )}
 
-                  {/* Payment Proof */}
-                  {clientSubmission.paymentProof && (
-                    renderProofPreview(
-                      "paymentProof",
-                      clientSubmission.paymentProof,
-                      "Advance Payment Proof",
-                      "payment-proof"
-                    )
-                  )}
+                    {/* National ID */}
+                    {clientSubmission.nationalIdFront && (
+                      <Grid item xs={12} md={6}>
+                        {renderProofPreview(
+                          "nationalIdFront",
+                          clientSubmission.nationalIdFront,
+                          "National ID - Front",
+                          "id-front"
+                        )}
+                      </Grid>
+                    )}
+                    
+                    {clientSubmission.nationalIdBack && (
+                      <Grid item xs={12} md={6}>
+                        {renderProofPreview(
+                          "nationalIdBack",
+                          clientSubmission.nationalIdBack,
+                          "National ID - Back",
+                          "id-back"
+                        )}
+                      </Grid>
+                    )}
+
+                    {/* Payment Proof */}
+                    {clientSubmission.paymentProof && (
+                      <Grid item xs={12}>
+                        {renderProofPreview(
+                          "paymentProof",
+                          clientSubmission.paymentProof,
+                          "Advance Payment Proof",
+                          "payment-proof"
+                        )}
+                      </Grid>
+                    )}
+                  </Grid>
                 </Box>
               )}
             </Box>
           )}
         </DialogContent>
 
-        <Divider />
+        <Divider sx={{ borderColor: "#333" }} />
 
-        <DialogActions className="p-4">
+        <DialogActions className="p-4" sx={{ backgroundColor: "#1e1e1e" }}>
           {hasProofs && !isSubmissionConfirmed && (
-            <Button onClick={handleConfirmSubmission} variant="contained" disabled={confirming}>
+            <Button 
+              onClick={handleConfirmSubmission} 
+              variant="contained" 
+              disabled={confirming}
+              sx={{ backgroundColor: "#9EFF00", color: "#000", fontWeight: 600, padding: "8px 24px", "&:hover": { backgroundColor: "#85d600" } }}
+            >
               {confirming ? "Confirming..." : "Confirm Submission"}
             </Button>
           )}
-          <Button onClick={onClose} variant="outlined">
+          <Button 
+            onClick={onClose} 
+            variant="outlined"
+            sx={{ color: "#ccc", borderColor: "#555", padding: "8px 24px", "&:hover": { backgroundColor: "#2a2a2a", borderColor: "#fff", color: "#fff" } }}
+          >
             Close
           </Button>
         </DialogActions>

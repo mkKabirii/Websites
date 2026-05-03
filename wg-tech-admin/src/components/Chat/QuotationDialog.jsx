@@ -163,6 +163,9 @@ const QuotationDialog = ({ open, onClose, clientId, onQuotationSent }) => {
           display: "flex",
           flexDirection: "column",
           maxHeight: "90vh",
+          backgroundColor: "#1e1e1e",
+          color: "#fff",
+          border: "1px solid #333",
         },
       }}
     >
@@ -188,36 +191,46 @@ const QuotationDialog = ({ open, onClose, clientId, onQuotationSent }) => {
                 <Typography variant="h6" className="font-bold">
                   Create and Send Quotation
                 </Typography>
-                <Typography variant="caption" className="text-gray-600">
+                <Typography variant="caption" sx={{ color: "#aaa" }}>
                   Only title and detailed description are required.
                 </Typography>
               </Box>
-              <IconButton onClick={handleClose} size="small">
+              <IconButton onClick={handleClose} size="small" sx={{ color: "#fff" }}>
                 <X size={20} />
               </IconButton>
             </DialogTitle>
 
-            <Divider />
+            <Divider sx={{ borderColor: "#333" }} />
 
             <DialogContent
-              className="space-y-4 py-6"
+              className="py-4"
               sx={{ overflow: "auto", pb: 2, flex: 1 }}
             >
-              <Alert severity="info" className="mb-4">
+              <Alert
+                severity="success"
+                sx={{
+                  backgroundColor: "rgba(158, 255, 0, 0.1)",
+                  color: "#9EFF00",
+                  border: "1px solid rgba(158, 255, 0, 0.2)",
+                  "& .MuiAlert-icon": { color: "#9EFF00" },
+                  mb: 1
+                }}
+              >
                 Quotation item lines are now auto-generated in the background
                 for API compatibility.
               </Alert>
 
               <Box
                 sx={{
+                  mb: 2,
                   "& .MuiOutlinedInput-root": {
-                    backgroundColor: "#ffffff !important",
+                    backgroundColor: "#2a2a2a !important",
                   },
                   "& .MuiOutlinedInput-input": {
-                    color: "#111827 !important",
+                    color: "#fff !important",
                   },
                   "& .MuiOutlinedInput-input::placeholder": {
-                    color: "#9ca3af !important",
+                    color: "#aaa !important",
                     opacity: 1,
                   },
                 }}
@@ -229,16 +242,16 @@ const QuotationDialog = ({ open, onClose, clientId, onQuotationSent }) => {
                   error={errors.title}
                   helperText={errors.title}
                   showLabel="Title *"
-                  inputBgColor="#FFFFFF"
+                  inputBgColor="#2a2a2a"
                   sx={{
                     "& .MuiOutlinedInput-root": {
-                      border: "1px solid #d0d5dd",
-                      backgroundColor: "#ffffff !important",
+                      border: "1px solid #333",
+                      backgroundColor: "#2a2a2a !important",
                     },
                     "& .MuiInputBase-input": {
-                      color: "#111827 !important",
+                      color: "#fff !important",
                       "&::placeholder": {
-                        color: "#9ca3af !important",
+                        color: "#aaa !important",
                         opacity: 1,
                       },
                     },
@@ -246,10 +259,11 @@ const QuotationDialog = ({ open, onClose, clientId, onQuotationSent }) => {
                 />
               </Box>
 
-              <Box>
+              <Box sx={{ mb: 2 }}>
                 <Typography
                   variant="caption"
                   className="font-semibold mb-2 block"
+                  sx={{ fontSize: "0.85rem", color: "#ddd" }}
                 >
                   Detailed Description *
                 </Typography>
@@ -259,7 +273,6 @@ const QuotationDialog = ({ open, onClose, clientId, onQuotationSent }) => {
                     handleInputChange("longDescription", value)
                   }
                   placeholder="Describe the quotation details"
-                  lightTheme
                 />
                 {errors.longDescription && (
                   <Typography color="error" variant="caption">
@@ -269,13 +282,14 @@ const QuotationDialog = ({ open, onClose, clientId, onQuotationSent }) => {
               </Box>
             </DialogContent>
 
-            <Divider />
+            <Divider sx={{ borderColor: "#333" }} />
 
             <DialogActions
               sx={{
                 flexShrink: 0,
                 padding: "16px",
-                backgroundColor: "#f9f9f9",
+                backgroundColor: "#121212",
+                borderTop: "1px solid #333",
                 gap: 2,
                 justifyContent: "flex-end",
               }}
@@ -283,7 +297,7 @@ const QuotationDialog = ({ open, onClose, clientId, onQuotationSent }) => {
               <Button
                 onClick={handleClose}
                 disabled={loading}
-                sx={{ textTransform: "none" }}
+                sx={{ textTransform: "none", color: "#aaa" }}
               >
                 Cancel
               </Button>
@@ -293,9 +307,9 @@ const QuotationDialog = ({ open, onClose, clientId, onQuotationSent }) => {
                 disabled={loading}
                 loading={loading}
                 variant="contained"
-                btnBgColor="#8CE600"
-                btnHoverColor="#7BCC00"
-                btnTextColor="#ffffff"
+                btnBgColor="#9EFF00"
+                btnHoverColor="#85d600"
+                btnTextColor="#000000"
                 sx={{
                   textTransform: "none",
                   fontWeight: 600,
